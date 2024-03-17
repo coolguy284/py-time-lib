@@ -1,5 +1,5 @@
 def is_leap(year):
   return year % 4 == 0
 
-def num_days(year):
+def days_in_year(year):
   return 366 if is_leap(year) else 365
