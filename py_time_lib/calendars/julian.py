@@ -12,9 +12,9 @@ def days_in_month(year, month):
     raise Exception(f'month {month} out of range, must be between 1 and 12')
   
   if is_leap(year):
-    return MONTH_DAYS_LEAP[month + 1]
+    return MONTH_DAYS_LEAP[month - 1]
   else:
-    return MONTH_DAYS_NON_LEAP[month + 1]
+    return MONTH_DAYS_NON_LEAP[month - 1]
 
 class JulianDate:
   __slots__ = '_year', '_month', '_day'
