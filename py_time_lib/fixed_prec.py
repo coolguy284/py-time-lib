@@ -31,7 +31,7 @@ class FixedPrec:
       self.max_prec,
     )
   
-  def __add__(self, other):
+  def convert_to_highest_precision(self, other):
     if self.place > other.place:
       precise = self
       less_precise = other
@@ -41,11 +41,44 @@ class FixedPrec:
     
     place_diff = precise.place - less_precise.place
     
-    return FixedPrec(
-      less_precise.value * (10 ** place_diff) + precise.value,
+    less_precise_converted = FixedPrec(
+      less_precise.value * (10 ** place_diff),
       precise.place,
       max(less_precise.max_prec, precise.max_prec)
+    )
+    
+    if self.place > other.place:
+      if self.max_prec < less_precise_converted.max_prec:
+        self = FixedPrec(
+          self.value,
+          self.place,
+          less_precise_converted.max_prec
+        )
+      
+      return self, less_precise_converted
+    else:
+      if other.max_prec < less_precise_converted.max_prec:
+        other = FixedPrec(
+          other.value,
+          other.place,
+          less_precise_converted.max_prec
+        )
+      
+      return less_precise_converted, other
+  
+  def __add__(self, other):
+    self, other = self.convert_to_highest_precision(other)
+    
+    return FixedPrec(
+      self.value + other.value,
+      self.place,
+      self.max_prec
     )
   
   def __sub__(self, other):
     return self + (-other)
+  
+  def __eq__(self, other):
+    self, other = self.convert_to_highest_precision(other)
+    
+    return self.value == other.value
