@@ -1,5 +1,7 @@
 MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+REPEAT_PERIOD_DAYS = ((366 + 365 * 3) * 24 + (365 * 4)) * 3 + (366 + 365 * 3) * 25
+REPEAT_PERIOD_YEARS = 400
 
 def is_leap(year):
   return (year % 4 == 0) and not (year % 100 == 0) or (year % 400 == 0)
