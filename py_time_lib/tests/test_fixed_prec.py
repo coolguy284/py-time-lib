@@ -31,3 +31,7 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(1, 0) != FixedPrec(1, 0), False)
     self.assertEqual(FixedPrec(1, 0) != FixedPrec(10, 1), False)
     self.assertEqual(FixedPrec(1, 0) != FixedPrec(10, 0), True)
+    self.assertEqual(FixedPrec(1, 0) > FixedPrec(-1, 0), True)
+    self.assertEqual(FixedPrec(1, 0) < FixedPrec(10, 0), True)
+    self.assertEqual(FixedPrec(1, 0) >= FixedPrec(-1, 0), True)
+    self.assertEqual(FixedPrec(1, 0) <= FixedPrec(10, 0), True)
