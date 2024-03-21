@@ -28,8 +28,18 @@ class FixedPrec:
     return FixedPrec(
       -self.value,
       self.place,
-      self.max_prec,
+      self.max_prec
     )
+  
+  def reduce_to_max_prec(self):
+    if self.place > self.max_prec:
+      return FixedPrec(
+        self.value // 10 ** (self.place - self.max_prec),
+        self.max_prec,
+        self.max_prec
+      )
+    else:
+      return self
   
   def convert_to_highest_precision(self, other):
     if self.place > other.place:
@@ -77,6 +87,13 @@ class FixedPrec:
   
   def __sub__(self, other):
     return self + (-other)
+  
+  def __mul__(self, other):
+    return FixedPrec(
+      self.value * other.value,
+      self.place + other.place,
+      max(self.max_prec, other.max_prec)
+    ).reduce_to_max_prec()
   
   def __eq__(self, other):
     self, other = self.convert_to_highest_precision(other)

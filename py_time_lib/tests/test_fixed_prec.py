@@ -16,13 +16,20 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(str(FixedPrec(-1, 3)), '-0.001')
     self.assertEqual(str(FixedPrec(-1003, 3)), '-1.003')
   
-  def test_math(self):
+  def test_add(self):
     self.assertEqual(str(FixedPrec(1, 0) + FixedPrec(3, 0)), '4')
     self.assertEqual(str(FixedPrec(1, 0) + FixedPrec(3, 3)), '1.003')
     self.assertEqual(str(FixedPrec(1, 0) + FixedPrec(3, -3)), '3001')
     self.assertEqual(str(FixedPrec(1, 0) - FixedPrec(3, 0)), '-2')
     self.assertEqual(str(FixedPrec(1, 0) - FixedPrec(3, 3)), '0.997')
     self.assertEqual(str(FixedPrec(1, 0) - FixedPrec(3, -3)), '-2999')
+  
+  def test_mul(self):
+    self.assertEqual(str(FixedPrec(1, 0) * FixedPrec(3, 0)), '3')
+    self.assertEqual(str(FixedPrec(8, 0) * FixedPrec(12, 0)), '96')
+    self.assertEqual(str(FixedPrec(8, 0) * FixedPrec(12, 1)), '9.6')
+    self.assertEqual(str(FixedPrec(8, 1) * FixedPrec(12, 1)), '0.96')
+    self.assertEqual(str(FixedPrec(8, 1) * FixedPrec(12, 20)), '0.000000000000')
   
   def test_relational(self):
     self.assertEqual(FixedPrec(1, 0) == FixedPrec(1, 0), True)
