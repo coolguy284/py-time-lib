@@ -7,7 +7,7 @@ class FixedPrec:
     self.max_prec = max_prec
   
   def __repr__(self):
-    return f'FixedPrec(value = {self.value}, place = {self.place}, max_prec = {self.max_prec})'
+    return f'{self.__class__.__name__}(value = {self.value}, place = {self.place}, max_prec = {self.max_prec})'
   
   def __str__(self):
     if self.value == 0:
@@ -23,6 +23,15 @@ class FixedPrec:
         pos_string = str(abs(self.value))
         pos_string = f'{pos_string:0>{self.place + 1}}'
         return f'{"-" if negative else ""}{pos_string[:-self.place]}.{pos_string[-self.place:]}'
+  
+  def __format__(self, format_spec: str) -> str:
+    if format_spec == '+':
+      if self.value >= 0:
+        return f'+{self!s}'
+      else:
+        return str(self)
+    else:
+      return NotImplemented
   
   def __neg__(self):
     return FixedPrec(

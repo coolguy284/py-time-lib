@@ -1,5 +1,7 @@
 from py_time_lib.calendars.gregorian import GregorianDate
 from py_time_lib.calendars.julian import JulianDate
+from py_time_lib.fixed_prec import FixedPrec
+from py_time_lib.time_classes import TimeInstant
 
 date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
 
@@ -19,3 +21,10 @@ print()
 print(JulianDate.DAYS_IN_YEAR)
 print(GregorianDate.DAYS_IN_YEAR)
 print()
+
+t1 = TimeInstant(FixedPrec(1000, 0))
+t2 = TimeInstant(FixedPrec(1003, 0))
+print(t1)
+print(t2)
+print(t2 - t1)
+print(t1 - t2)
