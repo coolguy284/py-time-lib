@@ -16,6 +16,15 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(str(FixedPrec(-1, 3)), '-0.001')
     self.assertEqual(str(FixedPrec(-1003, 3)), '-1.003')
   
+  def test_format(self):
+    self.assertEqual(f'{FixedPrec(1, 0):+}', '+1')
+    self.assertEqual(f'{FixedPrec(0, 0):+}', '+0')
+    self.assertEqual(f'{FixedPrec(-1, 0):+}', '-1')
+  
+  def test_neg(self):
+    self.assertEqual(str(-FixedPrec(1, 0)), '-1')
+    self.assertEqual(str(-FixedPrec(0, 0)), '0')
+  
   def test_add(self):
     self.assertEqual(str(FixedPrec(1, 0) + FixedPrec(3, 0)), '4')
     self.assertEqual(str(FixedPrec(1, 0) + FixedPrec(3, 3)), '1.003')

@@ -70,7 +70,7 @@ class TimeInstant:
     if hasattr(other, '_time'):
       return TimeDelta(self._time - other._time)
     else:
-      return TimeInstant(self._time + other._time_delta)
+      return TimeInstant(self._time - other._time_delta)
   
   def __eq__(self, other):
     return self._time == other._time
