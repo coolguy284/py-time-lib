@@ -10,4 +10,4 @@ class JulianDate(JulGregBaseDate):
   def is_leap(year):
     return year % 4 == 0
 
-JulianDate.months_start_day = JulianDate._get_months_start_day()
+JulianDate._init_class_vars()

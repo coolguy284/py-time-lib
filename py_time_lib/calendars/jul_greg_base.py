@@ -22,15 +22,6 @@ class JulGregBaseDate:
       return cls.MONTH_DAYS_NON_LEAP[month - 1]
   
   @classmethod
-  def _get_months_start_day(cls):
-    months_start_day = [0]
-    
-    for i in range(cls.REPEAT_PERIOD_YEARS * cls.MONTHS_IN_YEAR - 1):
-      months_start_day.append(months_start_day[-1] + cls.days_in_month(i // cls.MONTHS_IN_YEAR, i % cls.MONTHS_IN_YEAR + 1))
-    
-    return months_start_day
-  
-  @classmethod
   def normalize_date(cls, year, month, day):
     return cls.days_since_epoch_to_date(*cls.date_to_days_since_epoch(year, month, day))
   
@@ -64,6 +55,15 @@ class JulGregBaseDate:
       low_enough_index % cls.MONTHS_IN_YEAR + 1,
       mod_days - cls.months_start_day[low_enough_index] + 1
     )
+  
+  @classmethod
+  def _init_class_vars(cls):
+    cls.months_start_day = [0]
+    
+    for i in range(cls.REPEAT_PERIOD_YEARS * cls.MONTHS_IN_YEAR - 1):
+      cls.months_start_day.append(cls.months_start_day[-1] + cls.days_in_month(i // cls.MONTHS_IN_YEAR, i % cls.MONTHS_IN_YEAR + 1))
+    
+    cls.DAYS_IN_YEAR = cls.REPEAT_PERIOD_DAYS / cls.REPEAT_PERIOD_YEARS
   
   # instance stuff
   

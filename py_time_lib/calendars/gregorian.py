@@ -10,4 +10,4 @@ class GregorianDate(JulGregBaseDate):
   def is_leap(year):
     return (year % 4 == 0) and not (year % 100 == 0) or (year % 400 == 0)
 
-GregorianDate.months_start_day = GregorianDate._get_months_start_day()
+GregorianDate._init_class_vars()
