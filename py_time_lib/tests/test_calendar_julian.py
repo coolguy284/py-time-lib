@@ -58,3 +58,8 @@ class TestCalendarJulian(unittest.TestCase):
     for _ in range(1000):
       days = random.randint(-1000000000000, 1000000000000)
       self.assertEqual(days, date_to_days_since_epoch(*days_since_epoch_to_date(days)))
+  
+  def test_date_to_days_overflow(self):
+    self.assertEqual(date_to_days_since_epoch(0, 13, 1), date_to_days_since_epoch(1, 1, 1))
+    self.assertEqual(date_to_days_since_epoch(0, 25, 1), date_to_days_since_epoch(2, 1, 1))
+    self.assertEqual(date_to_days_since_epoch(0, 788 * 12 + 1, 1), date_to_days_since_epoch(788, 1, 1))
