@@ -25,10 +25,14 @@ class JulianDate:
     else:
       return cls.MONTH_DAYS_NON_LEAP[month - 1]
   
-  months_start_day = [0]
-  
-  for i in range(REPEAT_PERIOD_YEARS * MONTHS_IN_YEAR - 1):
-    months_start_day.append(months_start_day[-1] + days_in_month(i // MONTHS_IN_YEAR, i % MONTHS_IN_YEAR + 1))
+  @classmethod
+  def _get_months_start_day(cls):
+    months_start_day = [0]
+    
+    for i in range(cls.REPEAT_PERIOD_YEARS * cls.MONTHS_IN_YEAR - 1):
+      months_start_day.append(months_start_day[-1] + cls.days_in_month(i // cls.MONTHS_IN_YEAR, i % cls.MONTHS_IN_YEAR + 1))
+    
+    return months_start_day
   
   @classmethod
   def date_to_days_since_epoch(cls, year, month, day):
@@ -98,3 +102,5 @@ class JulianDate:
   
   def __str__(self):
     return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
+
+JulianDate.months_start_day = JulianDate._get_months_start_day()

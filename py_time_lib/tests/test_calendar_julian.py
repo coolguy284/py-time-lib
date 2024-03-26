@@ -1,28 +1,30 @@
 import random, unittest
 
-from ..calendars.julian import date_to_days_since_epoch, days_in_month, days_in_year, days_since_epoch_to_date, is_leap, JulianDate
+from ..calendars.julian import JulianDate
+
+cls = JulianDate
 
 class TestCalendarJulian(unittest.TestCase):
   def test_leap_year_2020(self):
-    self.assertEqual(is_leap(2020), True)
+    self.assertEqual(cls.is_leap(2020), True)
   
   def test_leap_year_2021(self):
-    self.assertEqual(is_leap(2021), False)
+    self.assertEqual(cls.is_leap(2021), False)
   
   def test_leap_year_1900(self):
-    self.assertEqual(is_leap(1900), True)
+    self.assertEqual(cls.is_leap(1900), True)
   
   def test_leap_year_2000(self):
-    self.assertEqual(is_leap(2000), True)
+    self.assertEqual(cls.is_leap(2000), True)
   
   def test_year_2000_days(self):
-    self.assertEqual(days_in_year(2000), 366)
+    self.assertEqual(cls.days_in_year(2000), 366)
   
   def test_year_2001_days(self):
-    self.assertEqual(days_in_year(2001), 365)
+    self.assertEqual(cls.days_in_year(2001), 365)
   
   def test_year_1900_days(self):
-    self.assertEqual(days_in_year(1900), 366)
+    self.assertEqual(cls.days_in_year(1900), 366)
   
   def test_class_repr(self):
     jd = JulianDate(2024, 1, 1)
@@ -33,10 +35,10 @@ class TestCalendarJulian(unittest.TestCase):
     self.assertEqual(str(jd), '2024-01-01')
   
   def test_month_days_2024_02(self):
-    self.assertEqual(days_in_month(2024, 2), 29)
+    self.assertEqual(cls.days_in_month(2024, 2), 29)
   
   def test_month_days_2023_02(self):
-    self.assertEqual(days_in_month(2023, 2), 28)
+    self.assertEqual(cls.days_in_month(2023, 2), 28)
   
   def test_feb_29_2024(self):
     _ = JulianDate(2024, 2, 29)
@@ -50,16 +52,16 @@ class TestCalendarJulian(unittest.TestCase):
     
     for _ in range(1000):
       year = random.randint(-1000000, 1000000)
-      self.assertEqual(days_in_year(year), date_to_days_since_epoch(year + 1, 1, 1) - date_to_days_since_epoch(year, 1, 1))
+      self.assertEqual(cls.days_in_year(year), cls.date_to_days_since_epoch(year + 1, 1, 1) - cls.date_to_days_since_epoch(year, 1, 1))
   
   def test_days_since_epoch_to_date(self):
     random.seed(42)
     
     for _ in range(1000):
       days = random.randint(-1000000000000, 1000000000000)
-      self.assertEqual(days, date_to_days_since_epoch(*days_since_epoch_to_date(days)), f'{days}, {days_since_epoch_to_date(days)}')
+      self.assertEqual(days, cls.date_to_days_since_epoch(*cls.days_since_epoch_to_date(days)), f'{days}, {cls.days_since_epoch_to_date(days)}')
   
   def test_date_to_days_overflow(self):
-    self.assertEqual(date_to_days_since_epoch(0, 13, 1), date_to_days_since_epoch(1, 1, 1))
-    self.assertEqual(date_to_days_since_epoch(0, 25, 1), date_to_days_since_epoch(2, 1, 1))
-    self.assertEqual(date_to_days_since_epoch(0, 788 * 12 + 1, 1), date_to_days_since_epoch(788, 1, 1))
+    self.assertEqual(cls.date_to_days_since_epoch(0, 13, 1), cls.date_to_days_since_epoch(1, 1, 1))
+    self.assertEqual(cls.date_to_days_since_epoch(0, 25, 1), cls.date_to_days_since_epoch(2, 1, 1))
+    self.assertEqual(cls.date_to_days_since_epoch(0, 788 * 12 + 1, 1), cls.date_to_days_since_epoch(788, 1, 1))
