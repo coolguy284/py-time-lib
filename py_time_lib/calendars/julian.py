@@ -25,8 +25,9 @@ for i in range(REPEAT_PERIOD_YEARS * MONTHS_IN_YEAR - 1):
   months_start_day.append(months_start_day[-1] + days_in_month(i // MONTHS_IN_YEAR, i % MONTHS_IN_YEAR + 1))
 
 def date_to_days_since_epoch(year, month, day):
-  year_addl, month = divmod(month, MONTHS_IN_YEAR)
+  year_addl, month = divmod(month - 1, MONTHS_IN_YEAR)
   year += year_addl
+  month += 1
   
   repeat_days = year // REPEAT_PERIOD_YEARS * REPEAT_PERIOD_DAYS
   mod_years = year % REPEAT_PERIOD_YEARS
