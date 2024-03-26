@@ -66,11 +66,11 @@ class JulGregBaseDate:
   __slots__ = '_year', '_month', '_day'
   
   def __init__(self, year, month, day):
-    if not (1 <= month <= self.__class__.MONTHS_IN_YEAR):
-      raise Exception(f'month {month} out of range, must be between 1 and {self.__class__.MONTHS_IN_YEAR}')
+    if not (1 <= month <= self.MONTHS_IN_YEAR):
+      raise Exception(f'month {month} out of range, must be between 1 and {self.MONTHS_IN_YEAR}')
     
-    if not (1 <= day <= self.__class__.days_in_month(year, month)):
-      raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {self.__class__.days_in_month(year, month)}')
+    if not (1 <= day <= self.days_in_month(year, month)):
+      raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {self.days_in_month(year, month)}')
     
     self._year = year
     self._month = month
