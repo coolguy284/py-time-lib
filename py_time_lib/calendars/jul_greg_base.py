@@ -31,6 +31,10 @@ class JulGregBaseDate:
     return months_start_day
   
   @classmethod
+  def normalize_date(cls, year, month, day):
+    return cls.days_since_epoch_to_date(*cls.date_to_days_since_epoch(year, month, day))
+  
+  @classmethod
   def date_to_days_since_epoch(cls, year, month, day):
     year_addl, month = divmod(month - 1, cls.MONTHS_IN_YEAR)
     year += year_addl
@@ -79,7 +83,7 @@ class JulGregBaseDate:
   @classmethod
   def from_unnormalized(cls, year, month, day):
     'Creates a JulianDate object but accepts months and days out of range'
-    pass
+    return cls(cls.normalize_date(year, month, day))
   
   @property
   def year(self):
