@@ -1,3 +1,4 @@
+MONTHS_IN_YEAR = 12
 MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 REPEAT_PERIOD_DAYS = ((366 + 365 * 3) * 24 + (365 * 4)) * 3 + (366 + 365 * 3) * 25
@@ -17,6 +18,36 @@ def days_in_month(year, month):
     return MONTH_DAYS_LEAP[month - 1]
   else:
     return MONTH_DAYS_NON_LEAP[month - 1]
+
+months_start_day = [0]
+
+for i in range(REPEAT_PERIOD_YEARS * MONTHS_IN_YEAR - 1):
+  months_start_day.append(months_start_day[-1] + days_in_month(i // MONTHS_IN_YEAR, i % MONTHS_IN_YEAR + 1))
+
+def date_to_days_since_epoch(year, month, day):
+  repeat_days = year // REPEAT_PERIOD_YEARS * REPEAT_PERIOD_DAYS
+  mod_years = year % REPEAT_PERIOD_YEARS
+  mod_days = months_start_day[mod_years * MONTHS_IN_YEAR + (month - 1)]
+  return repeat_days + mod_days + (day - 1)
+
+def days_since_epoch_to_date(days):
+  repeat_years = days // REPEAT_PERIOD_DAYS * REPEAT_PERIOD_YEARS
+  mod_days = days % REPEAT_PERIOD_DAYS
+  low_enough_index = 0
+  too_high_index = len(months_start_day)
+  while too_high_index - low_enough_index > 1:
+    guess_index = (low_enough_index + too_high_index) // 2
+    if months_start_day[guess_index] > mod_days:
+      # too high
+      too_high_index = guess_index
+    else:
+      # could be valid
+      low_enough_index = guess_index
+  return (
+    repeat_years + low_enough_index // MONTHS_IN_YEAR,
+    low_enough_index % MONTHS_IN_YEAR + 1,
+    mod_days - months_start_day[low_enough_index] + 1
+  )
 
 class GregorianDate:
   __slots__ = '_year', '_month', '_day'

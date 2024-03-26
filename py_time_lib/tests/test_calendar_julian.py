@@ -46,25 +46,11 @@ class TestCalendarJulian(unittest.TestCase):
       _ = JulianDate(2023, 2, 29)
   
   def test_date_to_days_since_epoch(self):
-    test = lambda year: self.assertEqual(days_in_year(year), date_to_days_since_epoch(year + 1, 1, 1) - date_to_days_since_epoch(year, 1, 1))
-    
-    #test(-20000)
-    #test(-19999)
-    #test(-19998)
-    #test(-19997)
-    #test(-19996)
-    #test(-19995)
-    #test(-19994)
-    #test(-19993)
-    #test(2020)
-    #test(2021)
-    #test(1900)
-    #test(1901)
-    
     random.seed(42)
     
     for _ in range(1000):
-      test(random.randint(-1000000, 1000000))
+      year = random.randint(-1000000, 1000000)
+      self.assertEqual(days_in_year(year), date_to_days_since_epoch(year + 1, 1, 1) - date_to_days_since_epoch(year, 1, 1))
   
   def test_days_since_epoch_to_date(self):
     random.seed(42)

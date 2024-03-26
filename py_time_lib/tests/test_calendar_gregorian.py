@@ -1,6 +1,6 @@
-import unittest
+import random, unittest
 
-from ..calendars.gregorian import days_in_month, days_in_year, is_leap, GregorianDate
+from ..calendars.gregorian import date_to_days_since_epoch, days_in_month, days_in_year, days_since_epoch_to_date, is_leap, GregorianDate
 
 class TestCalendarGregorian(unittest.TestCase):
   def test_leap_year_2020(self):
@@ -44,3 +44,17 @@ class TestCalendarGregorian(unittest.TestCase):
   def test_feb_29_2023(self):
     with self.assertRaises(Exception):
       _ = GregorianDate(2023, 2, 29)
+  
+  def test_date_to_days_since_epoch(self):
+    random.seed(42)
+    
+    for _ in range(1000):
+      year = random.randint(-1000000, 1000000)
+      self.assertEqual(days_in_year(year), date_to_days_since_epoch(year + 1, 1, 1) - date_to_days_since_epoch(year, 1, 1))
+  
+  def test_days_since_epoch_to_date(self):
+    random.seed(42)
+    
+    for _ in range(1000):
+      days = random.randint(-1000000000000, 1000000000000)
+      self.assertEqual(days, date_to_days_since_epoch(*days_since_epoch_to_date(days)))
