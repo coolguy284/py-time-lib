@@ -1,67 +1,76 @@
-MONTHS_IN_YEAR = 12
-MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-REPEAT_PERIOD_DAYS = 366 + 365 * 3
-REPEAT_PERIOD_YEARS = 4
-
-def is_leap(year):
-  return year % 4 == 0
-
-def days_in_year(year):
-  return 366 if is_leap(year) else 365
-
-def days_in_month(year, month):
-  if not (1 <= month <= MONTHS_IN_YEAR):
-    raise Exception(f'month {month} out of range, must be between 1 and {MONTHS_IN_YEAR}')
-  
-  if is_leap(year):
-    return MONTH_DAYS_LEAP[month - 1]
-  else:
-    return MONTH_DAYS_NON_LEAP[month - 1]
-
-months_start_day = [0]
-
-for i in range(REPEAT_PERIOD_YEARS * MONTHS_IN_YEAR - 1):
-  months_start_day.append(months_start_day[-1] + days_in_month(i // MONTHS_IN_YEAR, i % MONTHS_IN_YEAR + 1))
-
-def date_to_days_since_epoch(year, month, day):
-  year_addl, month = divmod(month - 1, MONTHS_IN_YEAR)
-  year += year_addl
-  month += 1
-  
-  repeat_days = year // REPEAT_PERIOD_YEARS * REPEAT_PERIOD_DAYS
-  mod_years = year % REPEAT_PERIOD_YEARS
-  mod_days = months_start_day[mod_years * MONTHS_IN_YEAR + (month - 1)]
-  return repeat_days + mod_days + (day - 1)
-
-def days_since_epoch_to_date(days):
-  repeat_years = days // REPEAT_PERIOD_DAYS * REPEAT_PERIOD_YEARS
-  mod_days = days % REPEAT_PERIOD_DAYS
-  low_enough_index = 0
-  too_high_index = len(months_start_day)
-  while too_high_index - low_enough_index > 1:
-    guess_index = (low_enough_index + too_high_index) // 2
-    if months_start_day[guess_index] > mod_days:
-      # too high
-      too_high_index = guess_index
-    else:
-      # could be valid
-      low_enough_index = guess_index
-  return (
-    repeat_years + low_enough_index // MONTHS_IN_YEAR,
-    low_enough_index % MONTHS_IN_YEAR + 1,
-    mod_days - months_start_day[low_enough_index] + 1
-  )
-
 class JulianDate:
+  # static stuff
+  
+  MONTHS_IN_YEAR = 12
+  MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  REPEAT_PERIOD_DAYS = 366 + 365 * 3
+  REPEAT_PERIOD_YEARS = 4
+  
+  @staticmethod
+  def is_leap(year):
+    return year % 4 == 0
+  
+  @classmethod
+  def days_in_year(cls, year):
+    return 366 if cls.is_leap(year) else 365
+  
+  @classmethod
+  def days_in_month(cls, year, month):
+    if not (1 <= month <= cls.MONTHS_IN_YEAR):
+      raise Exception(f'month {month} out of range, must be between 1 and {cls.MONTHS_IN_YEAR}')
+    
+    if cls.is_leap(year):
+      return cls.MONTH_DAYS_LEAP[month - 1]
+    else:
+      return cls.MONTH_DAYS_NON_LEAP[month - 1]
+  
+  months_start_day = [0]
+  
+  for i in range(REPEAT_PERIOD_YEARS * MONTHS_IN_YEAR - 1):
+    months_start_day.append(months_start_day[-1] + days_in_month(i // MONTHS_IN_YEAR, i % MONTHS_IN_YEAR + 1))
+  
+  @classmethod
+  def date_to_days_since_epoch(cls, year, month, day):
+    year_addl, month = divmod(month - 1, cls.MONTHS_IN_YEAR)
+    year += year_addl
+    month += 1
+    
+    repeat_days = year // cls.REPEAT_PERIOD_YEARS * cls.REPEAT_PERIOD_DAYS
+    mod_years = year % cls.REPEAT_PERIOD_YEARS
+    mod_days = cls.months_start_day[mod_years * cls.MONTHS_IN_YEAR + (month - 1)]
+    return repeat_days + mod_days + (day - 1)
+  
+  @classmethod
+  def days_since_epoch_to_date(cls, days):
+    repeat_years = days // cls.REPEAT_PERIOD_DAYS * cls.REPEAT_PERIOD_YEARS
+    mod_days = days % cls.REPEAT_PERIOD_DAYS
+    low_enough_index = 0
+    too_high_index = len(cls.months_start_day)
+    while too_high_index - low_enough_index > 1:
+      guess_index = (low_enough_index + too_high_index) // 2
+      if cls.months_start_day[guess_index] > mod_days:
+        # too high
+        too_high_index = guess_index
+      else:
+        # could be valid
+        low_enough_index = guess_index
+    return (
+      repeat_years + low_enough_index // cls.MONTHS_IN_YEAR,
+      low_enough_index % cls.MONTHS_IN_YEAR + 1,
+      mod_days - cls.months_start_day[low_enough_index] + 1
+    )
+  
+  # instance stuff
+  
   __slots__ = '_year', '_month', '_day'
   
   def __init__(self, year, month, day):
-    if not (1 <= month <= MONTHS_IN_YEAR):
-      raise Exception(f'month {month} out of range, must be between 1 and {MONTHS_IN_YEAR}')
+    if not (1 <= month <= self.__class__.MONTHS_IN_YEAR):
+      raise Exception(f'month {month} out of range, must be between 1 and {self.__class__.MONTHS_IN_YEAR}')
     
-    if not (1 <= day <= days_in_month(year, month)):
-      raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {days_in_month(year, month)}')
+    if not (1 <= day <= self.__class__.days_in_month(year, month)):
+      raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {self.__class__.days_in_month(year, month)}')
     
     self._year = year
     self._month = month
