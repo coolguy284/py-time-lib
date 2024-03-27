@@ -10,5 +10,9 @@ class JulianDate(JulGregBaseDate):
   @staticmethod
   def is_leap(year):
     return year % 4 == 0
+  
+  # instance stuff
+  
+  __slots__ = ()
 
 JulianDate._init_class_vars()

@@ -65,3 +65,8 @@ class TestCalendarJulian(unittest.TestCase):
     self.assertEqual(cls.date_to_days_since_epoch(0, 13, 1), cls.date_to_days_since_epoch(1, 1, 1))
     self.assertEqual(cls.date_to_days_since_epoch(0, 25, 1), cls.date_to_days_since_epoch(2, 1, 1))
     self.assertEqual(cls.date_to_days_since_epoch(0, 788 * 12 + 1, 1), cls.date_to_days_since_epoch(788, 1, 1))
+  
+  def test_no_attributes(self):
+    with self.assertRaises(AttributeError):
+      d1 = cls(2024, 3, 26)
+      d1.prop = False

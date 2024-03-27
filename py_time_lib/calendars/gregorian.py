@@ -13,6 +13,9 @@ class GregorianDate(JulGregBaseDate):
     return (year % 4 == 0) and not (year % 100 == 0) or (year % 400 == 0)
   
   # instance stuff
+  
+  __slots__ = ()
+  
   def days_diff_from_julian(self):
     return JulianDate(*self.to_date()).to_days_since_epoch() - self.to_days_since_epoch()
 

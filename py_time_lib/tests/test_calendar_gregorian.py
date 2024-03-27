@@ -77,3 +77,8 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls(2100, 2, 28).days_diff_from_julian(), 13)
     self.assertEqual(cls(2100, 3, 1).days_diff_from_julian(), 14)
     self.assertEqual(cls(2200, 2, 28).days_diff_from_julian(), 14)
+  
+  def test_no_attributes(self):
+    with self.assertRaises(AttributeError):
+      d1 = cls(2024, 3, 26)
+      d1.prop = False
