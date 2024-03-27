@@ -4,6 +4,7 @@ from .julian import JulianDate
 class GregorianDate(JulGregBaseDate):
   # static stuff
   
+  JAN_1_YEAR0_DAY_OFFSET = 0
   REPEAT_PERIOD_DAYS = ((366 + 365 * 3) * 24 + (365 * 4)) * 3 + (366 + 365 * 3) * 25
   REPEAT_PERIOD_YEARS = 400
   

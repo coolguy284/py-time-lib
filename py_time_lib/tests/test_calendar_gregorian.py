@@ -65,3 +65,15 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls.date_to_days_since_epoch(0, 13, 1), cls.date_to_days_since_epoch(1, 1, 1))
     self.assertEqual(cls.date_to_days_since_epoch(0, 25, 1), cls.date_to_days_since_epoch(2, 1, 1))
     self.assertEqual(cls.date_to_days_since_epoch(0, 788 * 12 + 1, 1), cls.date_to_days_since_epoch(788, 1, 1))
+  
+  def test_julian_day_diff(self):
+    # https://en.wikipedia.org/wiki/Gregorian_calendar#Difference_between_Gregorian_and_Julian_calendar_dates
+    self.assertEqual(cls(1700, 2, 28).days_diff_from_julian(), 10)
+    self.assertEqual(cls(1700, 3, 1).days_diff_from_julian(), 11)
+    self.assertEqual(cls(1800, 2, 28).days_diff_from_julian(), 11)
+    self.assertEqual(cls(1800, 3, 1).days_diff_from_julian(), 12)
+    self.assertEqual(cls(1900, 2, 28).days_diff_from_julian(), 12)
+    self.assertEqual(cls(1900, 3, 1).days_diff_from_julian(), 13)
+    self.assertEqual(cls(2100, 2, 28).days_diff_from_julian(), 13)
+    self.assertEqual(cls(2100, 3, 1).days_diff_from_julian(), 14)
+    self.assertEqual(cls(2200, 2, 28).days_diff_from_julian(), 14)

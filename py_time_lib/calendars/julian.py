@@ -3,6 +3,7 @@ from .jul_greg_base import JulGregBaseDate
 class JulianDate(JulGregBaseDate):
   # static stuff
   
+  JAN_1_YEAR0_DAY_OFFSET = -2
   REPEAT_PERIOD_DAYS = 366 + 365 * 3
   REPEAT_PERIOD_YEARS = 4
   

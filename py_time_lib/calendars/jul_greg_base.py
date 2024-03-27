@@ -34,10 +34,13 @@ class JulGregBaseDate:
     repeat_days = year // cls.REPEAT_PERIOD_YEARS * cls.REPEAT_PERIOD_DAYS
     mod_years = year % cls.REPEAT_PERIOD_YEARS
     mod_days = cls.months_start_day[mod_years * cls.MONTHS_IN_YEAR + (month - 1)]
-    return repeat_days + mod_days + (day - 1)
+    
+    return repeat_days + mod_days + (day - 1) + cls.JAN_1_YEAR0_DAY_OFFSET
   
   @classmethod
   def days_since_epoch_to_date(cls, days):
+    days -= cls.JAN_1_YEAR0_DAY_OFFSET
+    
     repeat_years = days // cls.REPEAT_PERIOD_DAYS * cls.REPEAT_PERIOD_YEARS
     mod_days = days % cls.REPEAT_PERIOD_DAYS
     low_enough_index = 0
@@ -50,6 +53,7 @@ class JulGregBaseDate:
       else:
         # could be valid
         low_enough_index = guess_index
+    
     return (
       repeat_years + low_enough_index // cls.MONTHS_IN_YEAR,
       low_enough_index % cls.MONTHS_IN_YEAR + 1,
