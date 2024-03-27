@@ -1,4 +1,5 @@
 from .jul_greg_base import JulGregBaseDate
+from .julian import JulianDate
 
 class GregorianDate(JulGregBaseDate):
   # static stuff
@@ -9,5 +10,9 @@ class GregorianDate(JulGregBaseDate):
   @staticmethod
   def is_leap(year):
     return (year % 4 == 0) and not (year % 100 == 0) or (year % 400 == 0)
+  
+  # instance stuff
+  def difference_from_julian(self):
+    return JulianDate(self.year, self.month, self.day).to_days_since_epoch() - self.to_days_since_epoch()
 
 GregorianDate._init_class_vars()
