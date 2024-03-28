@@ -1,5 +1,6 @@
+from .lib_funcs import binary_search_array_split
 from .fixed_prec import FixedPrec
-#from .calendars.gregorian import GregorianDate
+from .calendars.gregorian import GregorianDate
 from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS
 
 class TimeDelta:
@@ -62,7 +63,10 @@ class TimeInstant:
   
   @classmethod
   def _init_class_vars(cls):
-    ...
+    leap_secs_epoch_days = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch(), utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
+    pre_epoch_leap_secs, after_or_during_epoch_leap_secs = binary_search_array_split(leap_secs_epoch_days, lambda x: x[0] < 0)
+    pre_epoch_leap_secs.reverse()
+    print([pre_epoch_leap_secs, after_or_during_epoch_leap_secs])
   
   def __init__(self, time, coerce_to_fixed_prec = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
@@ -102,3 +106,5 @@ class TimeInstant:
   
   def __le__(self, other):
     return self._time <= other._time
+
+TimeInstant._init_class_vars()

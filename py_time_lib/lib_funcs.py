@@ -13,3 +13,21 @@ def binary_search(func, min_inclusive = 0, max_exclusive = 100):
       low_enough = guess
   
   return low_enough
+
+def binary_search_array_split(array, func):
+  'Splits array into section where func(array[i]) is True (must be lower part) and where it is False.'
+  
+  if len(array) == 0:
+    return [], []
+  elif len(array) == 1:
+    if func(array):
+      return array, []
+    else:
+      return [], array
+  else:
+    if not func(array[0]):
+      return [], array
+    
+    largest_true_index = binary_search(lambda x: func(array[x]), 0, len(array))
+    
+    return array[:largest_true_index + 1], array[largest_true_index + 1:]
