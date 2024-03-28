@@ -34,3 +34,6 @@ print(GregorianDate(2024, 3, 26).days_diff_from_julian())
 print(GregorianDate(1900, 3, 1).days_diff_from_julian())
 print(GregorianDate(1900, 2, 28).days_diff_from_julian())
 print()
+
+print(GregorianDate.from_iso_string('2024-03-27'))
+print()

@@ -1,3 +1,5 @@
+import re
+
 class JulGregBaseDate:
   'Base class for Julian and Gregorian calendars. This class not intended to be directly instantiated.'
   
@@ -6,6 +8,7 @@ class JulGregBaseDate:
   MONTHS_IN_YEAR = 12
   MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  _date_iso_string_regex = re.compile('^(-?\d+)-(\d{1,2})-(\d{1,2})$')
   
   @classmethod
   def days_in_year(cls, year):
@@ -93,6 +96,12 @@ class JulGregBaseDate:
   def from_days_since_epoch(cls, days):
     return cls(*cls.days_since_epoch_to_date(days))
   
+  @classmethod
+  def from_iso_string(cls, string: str):
+    'Converts a string in format "YYYY-MM-DD" or "-YYYY-MM-DD" to date object.'
+    match = cls._date_iso_string_regex.match(string)
+    return cls(int(match[1]), int(match[2]), int(match[3]))
+  
   @property
   def year(self):
     return self._year
@@ -109,10 +118,13 @@ class JulGregBaseDate:
     return f'{self.__class__.__name__}({self.year!r}, {self.month!r}, {self.day!r})'
   
   def __str__(self):
-    return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
+    return self.to_iso_string()
   
   def to_date(self):
     return (self.year, self.month, self.day)
   
   def to_days_since_epoch(self):
     return self.date_to_days_since_epoch(self.year, self.month, self.day)
+  
+  def to_iso_string(self):
+    return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
