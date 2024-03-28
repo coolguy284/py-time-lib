@@ -1,5 +1,7 @@
 import re
 
+from ..lib_funcs import binary_search
+
 class JulGregBaseDate:
   'Base class for Julian and Gregorian calendars. This class not intended to be directly instantiated.'
   
@@ -46,21 +48,12 @@ class JulGregBaseDate:
     
     repeat_years = days // cls.REPEAT_PERIOD_DAYS * cls.REPEAT_PERIOD_YEARS
     mod_days = days % cls.REPEAT_PERIOD_DAYS
-    low_enough_index = 0
-    too_high_index = len(cls.months_start_day)
-    while too_high_index - low_enough_index > 1:
-      guess_index = (low_enough_index + too_high_index) // 2
-      if cls.months_start_day[guess_index] > mod_days:
-        # too high
-        too_high_index = guess_index
-      else:
-        # could be valid
-        low_enough_index = guess_index
+    representative_month_index = binary_search(lambda guess: cls.months_start_day[guess] <= mod_days, 0, len(cls.months_start_day))
     
     return (
-      repeat_years + low_enough_index // cls.MONTHS_IN_YEAR,
-      low_enough_index % cls.MONTHS_IN_YEAR + 1,
-      mod_days - cls.months_start_day[low_enough_index] + 1
+      repeat_years + representative_month_index // cls.MONTHS_IN_YEAR,
+      representative_month_index % cls.MONTHS_IN_YEAR + 1,
+      mod_days - cls.months_start_day[representative_month_index] + 1
     )
   
   @classmethod
