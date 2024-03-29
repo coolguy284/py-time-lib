@@ -1,5 +1,23 @@
+from math import floor, log10
+
 class FixedPrec:
   __slots__ = 'value', 'place', 'max_prec'
+  
+  FLOAT_ADDED_PREC = 15
+  
+  @classmethod
+  def from_basic(cls, value, max_prec = 12):
+    'Converts a value from a basic type like int, float, or FixedPrec to a FixedPrec.'
+    if isinstance(value, int):
+      return FixedPrec(value, 0, max_prec = max_prec)
+    elif isinstance(value, float):
+      # approximate conversion but floats are approximate anyway so
+      prec = floor(log10(abs(value)))
+      value /= 10 ** prec
+      value *= 10 ** cls.FLOAT_ADDED_PREC
+      return FixedPrec(int(floor(value)), -prec + cls.FLOAT_ADDED_PREC)
+    else:
+      return value
   
   def __init__(self, value, place, max_prec = 12):
     self.value = value
@@ -32,6 +50,9 @@ class FixedPrec:
         return str(self)
     else:
       return NotImplemented
+  
+  def to_hashable_tuple(self):
+    return (self.__class__.__name__, self.value, self.place, self.max_prec)
   
   def __neg__(self):
     return FixedPrec(
@@ -86,6 +107,7 @@ class FixedPrec:
       return less_precise_converted, other
   
   def __add__(self, other):
+    other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -98,11 +120,21 @@ class FixedPrec:
     return self + (-other)
   
   def __mul__(self, other):
+    other = self.from_basic(other)
     return FixedPrec(
       self.value * other.value,
       self.place + other.place,
       max(self.max_prec, other.max_prec)
     ).reduce_to_max_prec()
+  
+  def __radd__(self, other):
+    return self + other
+  
+  def __rsub__(self, other):
+    return (-self) + other
+  
+  def __rmul__(self, other):
+    return self * other
   
   def __eq__(self, other):
     self, other = self.convert_to_highest_precision(other)

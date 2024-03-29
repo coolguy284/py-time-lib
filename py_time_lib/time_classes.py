@@ -56,8 +56,8 @@ class TimeInstant:
   
   __slots__ = '_time'
   
-  NOMINAL_SECS_PER_DAY = 86400
-  NOMINAL_SECS_PER_HOUR = 3600
+  NOMINAL_SECS_PER_DAY = 86_400
+  NOMINAL_SECS_PER_HOUR = 3_600
   NOMINAL_SECS_PER_MIN = 60
   
   # leap second functionality unimplemented for now
@@ -148,4 +148,4 @@ class TimeInstant:
   def to_utc_secs_since_epoch(self):
     ...
 
-TimeInstant._init_class_vars()
+#TimeInstant._init_class_vars()
