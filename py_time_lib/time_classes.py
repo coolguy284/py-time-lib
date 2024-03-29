@@ -1,4 +1,4 @@
-from .lib_funcs import binary_search_array_split
+from .lib_funcs import binary_search, binary_search_array_split
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
 from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS
@@ -106,6 +106,10 @@ class TimeInstant:
   def __str__(self):
     return f'T{self._time:+}'
   
+  @property
+  def time(self):
+    return self._time
+  
   def __add__(self, other):
     return TimeInstant(self._time + other._time_delta)
   
@@ -143,7 +147,30 @@ class TimeInstant:
     second, frac_second = divmod(remainder, 1)
     return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
   
-  def to_utc_secs_since_epoch(self):
-    ...
+  def to_utc_secs_since_epoch_form_1(self):
+    'Returns a tuple of the form (utc_seconds_since_epoch, positive_leap_second_occurring, time_since_positive_leap_second_start).'
+    if len(self.TAI_TO_UTC_OFFSET_TABLE) == 0:
+      return (self._time + self.UTC_INITIAL_OFFSET_FROM_TAI, False, None)
+    else:
+      if self._time < self.TAI_TO_UTC_OFFSET_TABLE[0][0]:
+        return (self._time + self.UTC_INITIAL_OFFSET_FROM_TAI, False, None)
+      else:
+        tai_table_index = binary_search(lambda x: self._time > self.TAI_TO_UTC_OFFSET_TABLE[x][0], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
+        start_instant, positive_leap_second_occurring, utc_data = self.TAI_TO_UTC_OFFSET_TABLE[tai_table_index]
+        if positive_leap_second_occurring:
+          utc_epoch_secs = utc_data
+          return (utc_epoch_secs, True, self._time - start_instant)
+        else:
+          utc_tai_delta = utc_data
+          return (self._time + utc_tai_delta, False, None)
+  
+  def to_utc_secs_since_epoch_form_2(self):
+    'Returns a tuple of the form (utc_seconds_since_epoch, second_fold). For a leap second, the counter goes back one second, and fold gets set to true.'
+    utc_seconds_since_epoch, positive_leap_second_occurring, time_since_positive_leap_second_start = self.to_utc_secs_since_epoch_form_1()
+    # TODO fix implementation, but can only be done if there is a way to know if you are one second after a positive leap second finished
+    if not positive_leap_second_occurring:
+      return utc_seconds_since_epoch, False
+    else:
+      return utc_seconds_since_epoch + time_since_positive_leap_second_start, True
 
 TimeInstant._init_class_vars()
