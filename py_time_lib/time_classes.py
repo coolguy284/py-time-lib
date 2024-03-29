@@ -56,6 +56,10 @@ class TimeInstant:
   
   __slots__ = '_time'
   
+  NOMINAL_SECS_PER_DAY = 86400
+  NOMINAL_SECS_PER_HOUR = 3600
+  NOMINAL_SECS_PER_MIN = 60
+  
   # leap second functionality unimplemented for now
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
   UTC_INITIAL_OFFSET_FROM_TAI = FixedPrec(-10, 0)
@@ -63,10 +67,34 @@ class TimeInstant:
   
   @classmethod
   def _init_class_vars(cls):
-    leap_secs_epoch_days = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch(), utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
-    pre_epoch_leap_secs, after_or_during_epoch_leap_secs = binary_search_array_split(leap_secs_epoch_days, lambda x: x[0] < 0)
+    leap_secs = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch() + 1, utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
+    pre_epoch_leap_secs, _ = binary_search_array_split(leap_secs, lambda x: x[0] < 0)
     pre_epoch_leap_secs.reverse()
-    print([pre_epoch_leap_secs, after_or_during_epoch_leap_secs])
+    
+    current_utc_tai_offset = cls.UTC_INITIAL_OFFSET_FROM_TAI
+    cls.TAI_TO_UTC_OFFSET_TABLE = [
+      # format:
+      # [FixedPrec time instant, positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs]
+      # applies when time is after or equal to this time instant
+      # if a positive leap second is occurring, the fixed utc epoch seconds value is given
+      # otherwise, the utc-tai delta is given
+    ]
+    
+    for leap_entry in leap_secs:
+      days_since_epoch, utc_delta = leap_entry
+      leap_sec_base_time_utc = days_since_epoch * cls.NOMINAL_SECS_PER_DAY
+      leap_sec_base_time = leap_sec_base_time_utc - current_utc_tai_offset
+      if utc_delta < 0:
+        # "positive" leap second (utc clocks are paused for one second; 11:59:59 PM UTC -> 11:59:60 PM UTC -> 12:00:00 AM UTC)
+        current_utc_tai_offset += utc_delta
+        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time, True, leap_sec_base_time_utc])
+        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset])
+      elif utc_delta > 0:
+        # "negative" leap second (utc clocks skip one second; 11:59:58 PM UTC -> 12:00:00 AM UTC)
+        current_utc_tai_offset += utc_delta
+        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset])
+    
+    print(cls.TAI_TO_UTC_OFFSET_TABLE)
   
   def __init__(self, time, coerce_to_fixed_prec = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
@@ -106,5 +134,18 @@ class TimeInstant:
   
   def __le__(self, other):
     return self._time <= other._time
+  
+  def to_gregorian_date_tuple_tai(self):
+    'Returns a gregorian date tuple in the TAI timezone (as math is easiest for this).'
+    days_since_epoch = self._time // self.NOMINAL_SECS_PER_DAY
+    time_since_day_start = self._time - days_since_epoch * self.NOMINAL_SECS_PER_DAY
+    date = GregorianDate.from_days_since_epoch(days_since_epoch)
+    hour, remainder = divmod(time_since_day_start, self.NOMINAL_SECS_PER_HOUR)
+    minute, remainder = divmod(remainder, self.NOMINAL_SECS_PER_MIN)
+    second, frac_second = divmod(remainder, 1)
+    return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
+  
+  def to_utc_secs_since_epoch(self):
+    ...
 
 TimeInstant._init_class_vars()
