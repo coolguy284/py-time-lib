@@ -79,3 +79,10 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec.from_basic(0.003).to_hashable_tuple(), FixedPrec(3_000_000_000_000_000, 18).to_hashable_tuple())
     self.assertEqual(FixedPrec.from_basic(1.0).to_hashable_tuple(), FixedPrec(1_000_000_000_000_000, 15).to_hashable_tuple())
     self.assertEqual(FixedPrec.from_basic(0.01).to_hashable_tuple(), FixedPrec(1_000_000_000_000_000, 17).to_hashable_tuple())
+  
+  def test_auto_casting(self):
+    self.assertEqual(FixedPrec.from_basic(3) + 5, 8)
+    self.assertEqual(FixedPrec.from_basic(3) - 5, -2)
+    self.assertEqual(FixedPrec.from_basic(3) > 5, False)
+    self.assertEqual(FixedPrec.from_basic(3) < 5, True)
+    self.assertEqual(FixedPrec.from_basic(3) * -4, -12)

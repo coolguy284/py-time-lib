@@ -137,31 +137,37 @@ class FixedPrec:
     return self * other
   
   def __eq__(self, other):
+    other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value == other.value
   
   def __ne__(self, other):
+    other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value != other.value
   
   def __gt__(self, other):
+    other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value > other.value
   
   def __lt__(self, other):
+    other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value < other.value
   
   def __ge__(self, other):
+    other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value >= other.value
   
   def __le__(self, other):
+    other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value <= other.value
