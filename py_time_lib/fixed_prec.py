@@ -15,7 +15,7 @@ class FixedPrec:
       prec = floor(log10(abs(value)))
       value /= 10 ** prec
       value *= 10 ** cls.FLOAT_ADDED_PREC
-      return FixedPrec(int(floor(value)), -prec + cls.FLOAT_ADDED_PREC)
+      return FixedPrec(int(value), -prec + cls.FLOAT_ADDED_PREC)
     else:
       return value
   

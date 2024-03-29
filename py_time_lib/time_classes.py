@@ -82,8 +82,8 @@ class TimeInstant:
     
     for leap_entry in leap_secs:
       days_since_epoch, utc_delta = leap_entry
-      leap_sec_base_time_utc = days_since_epoch * cls.NOMINAL_SECS_PER_DAY
-      leap_sec_base_time = leap_sec_base_time_utc - current_utc_tai_offset
+      leap_sec_base_time_utc = FixedPrec.from_basic(days_since_epoch * cls.NOMINAL_SECS_PER_DAY)
+      leap_sec_base_time = FixedPrec.from_basic(leap_sec_base_time_utc - current_utc_tai_offset)
       if utc_delta < 0:
         # "positive" leap second (utc clocks are paused for one second; 11:59:59 PM UTC -> 11:59:60 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
@@ -93,8 +93,6 @@ class TimeInstant:
         # "negative" leap second (utc clocks skip one second; 11:59:58 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
         cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset])
-    
-    print(cls.TAI_TO_UTC_OFFSET_TABLE)
   
   def __init__(self, time, coerce_to_fixed_prec = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
@@ -148,4 +146,4 @@ class TimeInstant:
   def to_utc_secs_since_epoch(self):
     ...
 
-#TimeInstant._init_class_vars()
+TimeInstant._init_class_vars()
