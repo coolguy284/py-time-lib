@@ -1,9 +1,12 @@
+import re
 from math import floor, log10
 
 class FixedPrec:
   __slots__ = 'value', 'place', 'max_prec'
   
   FLOAT_ADDED_PREC = 15
+  _int_regex = re.compile('^(-?\\d+)$')
+  _float_regex = re.compile('^(-?)(\\d+)\\.(\\d+)$')
   
   @classmethod
   def from_basic(cls, value, max_prec = 12):
@@ -16,6 +19,16 @@ class FixedPrec:
       value /= 10 ** prec
       value *= 10 ** cls.FLOAT_ADDED_PREC
       return FixedPrec(int(value), -prec + cls.FLOAT_ADDED_PREC)
+    elif isinstance(value, str):
+      if match := cls._int_regex.match(value):
+        return FixedPrec(int(match[1]), 0, max_prec = max_prec)
+      elif match := cls._float_regex.match(value):
+        result = FixedPrec(int(match[2]) * 10 ** len(match[3]) + int(match[3]), len(match[3]), max_prec = max_prec)
+        if match[1] == '-':
+          result *= -1
+        return result
+      else:
+        raise Exception(f'Could not convert string {value!r} to FixedPrec.')
     else:
       return value
   
