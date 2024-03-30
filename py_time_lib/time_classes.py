@@ -165,7 +165,7 @@ class TimeInstant:
           'time_since_last_leap_second_start': None,
         }
       else:
-        tai_table_index = binary_search(lambda x: self._time > self.TAI_TO_UTC_OFFSET_TABLE[x][0], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
+        tai_table_index = binary_search(lambda x: self._time >= self.TAI_TO_UTC_OFFSET_TABLE[x][0], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
         start_instant, positive_leap_second_occurring, utc_data, utc_delta = self.TAI_TO_UTC_OFFSET_TABLE[tai_table_index]
         if positive_leap_second_occurring:
           utc_epoch_secs = utc_data
