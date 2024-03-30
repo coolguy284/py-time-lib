@@ -8,7 +8,7 @@ class TimeDelta:
   
   def __init__(self, time_delta, coerce_to_fixed_prec = True):
     if coerce_to_fixed_prec and not isinstance(time_delta, FixedPrec):
-      time_delta = FixedPrec.from_any(time_delta)
+      time_delta = FixedPrec.from_basic(time_delta)
     
     self._time_delta = time_delta
   
@@ -74,7 +74,7 @@ class TimeInstant:
     current_utc_tai_offset = cls.UTC_INITIAL_OFFSET_FROM_TAI
     cls.TAI_TO_UTC_OFFSET_TABLE = [
       # format:
-      # [FixedPrec time instant, positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs]
+      # [FixedPrec time instant, positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs, leap_utc_delta]
       # applies when time is after or equal to this time instant
       # if a positive leap second is occurring, the fixed utc epoch seconds value is given
       # otherwise, the utc-tai delta is given
@@ -87,16 +87,16 @@ class TimeInstant:
       if utc_delta < 0:
         # "positive" leap second (utc clocks are paused for one second; 11:59:59 PM UTC -> 11:59:60 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
-        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time, True, leap_sec_base_time_utc])
-        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset])
+        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time, True, leap_sec_base_time_utc, utc_delta])
+        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta])
       elif utc_delta > 0:
         # "negative" leap second (utc clocks skip one second; 11:59:58 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
-        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset])
+        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta])
   
   def __init__(self, time, coerce_to_fixed_prec = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
-      time = FixedPrec.from_any(time)
+      time = FixedPrec.from_basic(time)
     
     self._time = time
   
@@ -147,30 +147,59 @@ class TimeInstant:
     second, frac_second = divmod(remainder, 1)
     return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
   
-  def to_utc_secs_since_epoch_form_1(self):
-    'Returns a tuple of the form (utc_seconds_since_epoch, positive_leap_second_occurring, time_since_positive_leap_second_start).'
+  def to_utc_info(self):
+    'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, time_since_positive_leap_second_start).'
     if len(self.TAI_TO_UTC_OFFSET_TABLE) == 0:
-      return (self._time + self.UTC_INITIAL_OFFSET_FROM_TAI, False, None)
+      return {
+        'utc_seconds_since_epoch': self._time + self.UTC_INITIAL_OFFSET_FROM_TAI,
+        'positive_leap_second_occurring': False,
+        'last_leap_delta': None,
+        'time_since_last_leap_second_start': None,
+      }
     else:
       if self._time < self.TAI_TO_UTC_OFFSET_TABLE[0][0]:
-        return (self._time + self.UTC_INITIAL_OFFSET_FROM_TAI, False, None)
+        return {
+          'utc_seconds_since_epoch': self._time + self.UTC_INITIAL_OFFSET_FROM_TAI,
+          'positive_leap_second_occurring': False,
+          'last_leap_delta': None,
+          'time_since_last_leap_second_start': None,
+        }
       else:
         tai_table_index = binary_search(lambda x: self._time > self.TAI_TO_UTC_OFFSET_TABLE[x][0], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
-        start_instant, positive_leap_second_occurring, utc_data = self.TAI_TO_UTC_OFFSET_TABLE[tai_table_index]
+        start_instant, positive_leap_second_occurring, utc_data, utc_delta = self.TAI_TO_UTC_OFFSET_TABLE[tai_table_index]
         if positive_leap_second_occurring:
           utc_epoch_secs = utc_data
-          return (utc_epoch_secs, True, self._time - start_instant)
+          return {
+            'utc_seconds_since_epoch': utc_epoch_secs,
+            'positive_leap_second_occurring': True,
+            'last_leap_delta': utc_delta,
+            'time_since_last_leap_second_start': self._time - start_instant,
+          }
         else:
           utc_tai_delta = utc_data
-          return (self._time + utc_tai_delta, False, None)
+          return {
+            'utc_seconds_since_epoch': self._time + utc_tai_delta,
+            'positive_leap_second_occurring': False,
+            'last_leap_delta': utc_delta,
+            'time_since_last_leap_second_start': self._time - start_instant,
+          }
   
-  def to_utc_secs_since_epoch_form_2(self):
+  def to_utc_secs_since_epoch(self):
     'Returns a tuple of the form (utc_seconds_since_epoch, second_fold). For a leap second, the counter goes back one second, and fold gets set to true.'
-    utc_seconds_since_epoch, positive_leap_second_occurring, time_since_positive_leap_second_start = self.to_utc_secs_since_epoch_form_1()
+    utc_info = self.to_utc_info()
+    utc_seconds_since_epoch = utc_info['utc_seconds_since_epoch']
+    positive_leap_second_occurring = utc_info['positive_leap_second_occurring']
+    last_leap_delta = utc_info['last_leap_delta']
+    time_since_last_leap_second_start = utc_info['time_since_last_leap_second_start']
     # TODO fix implementation, but can only be done if there is a way to know if you are one second after a positive leap second finished
     if not positive_leap_second_occurring:
-      return utc_seconds_since_epoch, False
+      if last_leap_delta < 0 and time_since_last_leap_second_start < 2 * -last_leap_delta:
+        # last leap second was a positive leap second and folds are necessary
+        return utc_seconds_since_epoch, True
+      else:
+        # last leap second was a negative leap second, no folds necessary
+        return utc_seconds_since_epoch, False
     else:
-      return utc_seconds_since_epoch + time_since_positive_leap_second_start, True
+      return utc_seconds_since_epoch + time_since_last_leap_second_start, False
 
 TimeInstant._init_class_vars()
