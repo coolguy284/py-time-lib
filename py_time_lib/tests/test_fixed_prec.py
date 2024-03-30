@@ -53,6 +53,8 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(1, 0) < FixedPrec(10, 0), True)
     self.assertEqual(FixedPrec(1, 0) >= FixedPrec(-1, 0), True)
     self.assertEqual(FixedPrec(1, 0) <= FixedPrec(10, 0), True)
+    self.assertEqual(FixedPrec(1, 0) == None, False)
+    self.assertEqual(FixedPrec(1, 0) != None, True)
   
   def test_to_hashable_tuple(self):
     self.assertEqual(FixedPrec(0, -3).to_hashable_tuple(), ('FixedPrec', 0, -3, 12))

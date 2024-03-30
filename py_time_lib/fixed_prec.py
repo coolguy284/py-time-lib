@@ -167,12 +167,18 @@ class FixedPrec:
     return self * other
   
   def __eq__(self, other):
+    if other is None:
+      return False
+    
     other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value == other.value
   
   def __ne__(self, other):
+    if other is None:
+      return True
+    
     other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     

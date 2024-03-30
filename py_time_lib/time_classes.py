@@ -34,9 +34,15 @@ class TimeDelta:
     return TimeDelta(self._time_delta / other)
   
   def __eq__(self, other):
+    if other is None:
+      return False
+    
     return self._time_delta == other._time_delta
   
   def __ne__(self, other):
+    if other is None:
+      return True
+    
     return self._time_delta != other._time_delta
   
   def __gt__(self, other):
@@ -120,9 +126,15 @@ class TimeInstant:
       return TimeInstant(self._time - other._time_delta)
   
   def __eq__(self, other):
+    if other is None:
+      return False
+    
     return self._time == other._time
   
   def __ne__(self, other):
+    if other is None:
+      return True
+    
     return self._time != other._time
   
   def __gt__(self, other):
@@ -148,13 +160,13 @@ class TimeInstant:
     return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
   
   def to_utc_info(self):
-    'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, time_since_positive_leap_second_start).'
+    'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, last_leap_delta, last_leap_transition_time (when last leap second started or ended)).'
     if len(self.TAI_TO_UTC_OFFSET_TABLE) == 0:
       return {
         'utc_seconds_since_epoch': self._time + self.UTC_INITIAL_OFFSET_FROM_TAI,
         'positive_leap_second_occurring': False,
         'last_leap_delta': None,
-        'time_since_last_leap_second_start': None,
+        'last_leap_transition_time': None,
       }
     else:
       if self._time < self.TAI_TO_UTC_OFFSET_TABLE[0][0]:
@@ -162,7 +174,7 @@ class TimeInstant:
           'utc_seconds_since_epoch': self._time + self.UTC_INITIAL_OFFSET_FROM_TAI,
           'positive_leap_second_occurring': False,
           'last_leap_delta': None,
-          'time_since_last_leap_second_start': None,
+          'last_leap_transition_time': None,
         }
       else:
         tai_table_index = binary_search(lambda x: self._time >= self.TAI_TO_UTC_OFFSET_TABLE[x][0], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
@@ -173,7 +185,7 @@ class TimeInstant:
             'utc_seconds_since_epoch': utc_epoch_secs,
             'positive_leap_second_occurring': True,
             'last_leap_delta': utc_delta,
-            'time_since_last_leap_second_start': self._time - start_instant,
+            'last_leap_transition_time': start_instant,
           }
         else:
           utc_tai_delta = utc_data
@@ -181,7 +193,7 @@ class TimeInstant:
             'utc_seconds_since_epoch': self._time + utc_tai_delta,
             'positive_leap_second_occurring': False,
             'last_leap_delta': utc_delta,
-            'time_since_last_leap_second_start': self._time - start_instant,
+            'last_leap_transition_time': start_instant,
           }
   
   def to_utc_secs_since_epoch(self):
@@ -190,16 +202,19 @@ class TimeInstant:
     utc_seconds_since_epoch = utc_info['utc_seconds_since_epoch']
     positive_leap_second_occurring = utc_info['positive_leap_second_occurring']
     last_leap_delta = utc_info['last_leap_delta']
-    time_since_last_leap_second_start = utc_info['time_since_last_leap_second_start']
+    last_leap_transition_time = utc_info['last_leap_transition_time']
     # TODO fix implementation, but can only be done if there is a way to know if you are one second after a positive leap second finished
     if not positive_leap_second_occurring:
-      if last_leap_delta < 0 and time_since_last_leap_second_start < 2 * -last_leap_delta:
-        # last leap second was a positive leap second and folds are necessary
-        return utc_seconds_since_epoch, True
+      if last_leap_delta != None:
+        if last_leap_delta < 0 and self.time - last_leap_transition_time < -last_leap_delta:
+          # last leap second was a positive leap second and folds are necessary
+          return utc_seconds_since_epoch, True
+        else:
+          # last leap second was a negative leap second, no folds necessary
+          return utc_seconds_since_epoch, False
       else:
-        # last leap second was a negative leap second, no folds necessary
         return utc_seconds_since_epoch, False
     else:
-      return utc_seconds_since_epoch + time_since_last_leap_second_start, False
+      return utc_seconds_since_epoch, False
 
 TimeInstant._init_class_vars()
