@@ -32,10 +32,27 @@ class FixedPrec:
     else:
       return value
   
-  def __init__(self, value, place, max_prec = 12):
-    self.value = value
-    self.place = place
-    self.max_prec = max_prec
+  def __init__(self, *args, max_prec = 12):
+    if len(args) == 0:
+      raise Exception(f'FixedPrec constructor needs an argument')
+    elif len(args) == 1:
+      value = args[0]
+      converted = FixedPrec.from_basic(value, max_prec = max_prec)
+      self.value = converted.value
+      self.place = converted.place
+      self.max_prec = converted.max_prec
+    elif len(args) == 2:
+      value, place = args
+      self.value = value
+      self.place = place
+      self.max_prec = max_prec
+    elif len(args) == 3:
+      value, place, max_prec = args
+      self.value = value
+      self.place = place
+      self.max_prec = max_prec
+    else:
+      raise Exception(f'FixedPrec constructor takes 1-3 arguments')
   
   def __repr__(self):
     return f'{self.__class__.__name__}(value = {self.value}, place = {self.place}, max_prec = {self.max_prec})'
