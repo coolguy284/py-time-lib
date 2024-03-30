@@ -215,6 +215,6 @@ class TimeInstant:
       else:
         return utc_seconds_since_epoch, False
     else:
-      return utc_seconds_since_epoch, False
+      return utc_seconds_since_epoch + (self.time - last_leap_transition_time), False
 
 TimeInstant._init_class_vars()
