@@ -151,12 +151,26 @@ class TimeInstant:
   
   def to_gregorian_date_tuple_tai(self):
     'Returns a gregorian date tuple in the TAI timezone (as math is easiest for this).'
-    days_since_epoch = self._time // self.NOMINAL_SECS_PER_DAY
-    time_since_day_start = self._time - days_since_epoch * self.NOMINAL_SECS_PER_DAY
+    days_since_epoch, time_since_day_start = divmod(self._time, self.NOMINAL_SECS_PER_DAY)
     date = GregorianDate.from_days_since_epoch(days_since_epoch)
     hour, remainder = divmod(time_since_day_start, self.NOMINAL_SECS_PER_HOUR)
     minute, remainder = divmod(remainder, self.NOMINAL_SECS_PER_MIN)
     second, frac_second = divmod(remainder, 1)
+    return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
+  
+  def to_gregorian_date_tuple_utc(self):
+    'Returns a gregorian date tuple in the UTC timezone.'
+    utc_info = self.to_utc_info()
+    utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
+    if utc_info['positive_leap_second_occurring']:
+      utc_secs_since_epoch -= 1
+    days_since_epoch, time_since_day_start = divmod(utc_secs_since_epoch, self.NOMINAL_SECS_PER_DAY)
+    date = GregorianDate.from_days_since_epoch(days_since_epoch)
+    hour, remainder = divmod(time_since_day_start, self.NOMINAL_SECS_PER_HOUR)
+    minute, remainder = divmod(remainder, self.NOMINAL_SECS_PER_MIN)
+    second, frac_second = divmod(remainder, 1)
+    if utc_info['positive_leap_second_occurring']:
+      second += 1
     return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
   
   def to_utc_info(self):
