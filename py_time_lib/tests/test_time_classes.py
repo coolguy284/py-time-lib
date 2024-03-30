@@ -14,7 +14,7 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(str(TimeInstant(FixedPrec(-1000, 0))), 'T-1000')
     self.assertEqual(str(TimeInstant(FixedPrec(0, 0))), 'T+0')
   
-  def test_time_delta_ops(self):
+  def test_time_delta_basic_ops(self):
     self.assertEqual(str(-TimeDelta(FixedPrec(1, 0))), 'TD-1')
     self.assertEqual(str(-TimeDelta(FixedPrec(0, 0))), 'TD+0')
     self.assertEqual(str(TimeDelta(FixedPrec(3, 0)) + TimeDelta(FixedPrec(2, 0))), 'TD+5')
@@ -22,10 +22,56 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(str(TimeDelta(FixedPrec(3, 0)) * FixedPrec(4, 0)), 'TD+12')
     #self.assertEqual(str(TimeDelta(FixedPrec(3, 0)) / FixedPrec(3, 0)), 'TD+1')
   
-  def test_time_instant_add_sub(self):
+  def test_time_instant_basic_ops(self):
     self.assertEqual(str(TimeInstant(FixedPrec(1000, 0)) + TimeDelta(FixedPrec(3, 0))), 'T+1003')
     self.assertEqual(str(TimeInstant(FixedPrec(1000, 0)) - TimeDelta(FixedPrec(3, 0))), 'T+997')
     self.assertEqual(str(TimeInstant(FixedPrec(1000, 0)) - TimeInstant(FixedPrec(993, 0))), 'TD+7')
+  
+  def test_time_delta_relational_ops(self):
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) > TimeDelta(FixedPrec(0, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) < TimeDelta(FixedPrec(0, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) >= TimeDelta(FixedPrec(0, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) <= TimeDelta(FixedPrec(0, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) == TimeDelta(FixedPrec(0, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) != TimeDelta(FixedPrec(0, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) > TimeDelta(FixedPrec(1, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) < TimeDelta(FixedPrec(1, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) >= TimeDelta(FixedPrec(1, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) <= TimeDelta(FixedPrec(1, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) == TimeDelta(FixedPrec(1, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) != TimeDelta(FixedPrec(1, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) > TimeDelta(FixedPrec(2, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) < TimeDelta(FixedPrec(2, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) >= TimeDelta(FixedPrec(2, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) <= TimeDelta(FixedPrec(2, 0)), True)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) == TimeDelta(FixedPrec(2, 0)), False)
+    self.assertEqual(TimeDelta(FixedPrec(1, 0)) != TimeDelta(FixedPrec(2, 0)), True)
+  
+  def test_time_instant_relational_ops(self):
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) > TimeInstant(FixedPrec(0, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) < TimeInstant(FixedPrec(0, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) >= TimeInstant(FixedPrec(0, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) <= TimeInstant(FixedPrec(0, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) == TimeInstant(FixedPrec(0, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) != TimeInstant(FixedPrec(0, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) > TimeInstant(FixedPrec(1, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) < TimeInstant(FixedPrec(1, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) >= TimeInstant(FixedPrec(1, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) <= TimeInstant(FixedPrec(1, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) == TimeInstant(FixedPrec(1, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) != TimeInstant(FixedPrec(1, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) > TimeInstant(FixedPrec(2, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) < TimeInstant(FixedPrec(2, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) >= TimeInstant(FixedPrec(2, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) <= TimeInstant(FixedPrec(2, 0)), True)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) == TimeInstant(FixedPrec(2, 0)), False)
+    self.assertEqual(TimeInstant(FixedPrec(1, 0)) != TimeInstant(FixedPrec(2, 0)), True)
+  
+  def test_time_type_coercion(self):
+    self.assertEqual(TimeDelta(3), TimeDelta(FixedPrec(3, 0)))
+    self.assertEqual(TimeDelta(3.0), TimeDelta(FixedPrec(3, 0)))
+    self.assertEqual(TimeInstant(3), TimeInstant(FixedPrec(3, 0)))
+    self.assertEqual(TimeInstant(3.0), TimeInstant(FixedPrec(3, 0)))
   
   def test_utc_conversion_basic(self):
     last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[-2][0]
