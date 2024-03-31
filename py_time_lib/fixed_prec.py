@@ -96,6 +96,25 @@ class FixedPrec:
       self.max_prec
     )
   
+  def __int__(self):
+    if self.place < 0:
+      return int(self.value * 10 ** -self.place)
+    elif self.place > 0:
+      if self.value < 0:
+        return int(-(-self.value // 10 ** self.place))
+      else:
+        return int(self.value // 10 ** self.place)
+    else:
+      return int(self.value)
+  
+  def __float__(self):
+    if self.place < 0:
+      return float(self.value) * 10.0 ** -self.place
+    elif self.place > 0:
+      return float(self.value) / 10.0 ** self.place
+    else:
+      return float(self.value)
+  
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
       return FixedPrec(

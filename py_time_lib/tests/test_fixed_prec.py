@@ -93,6 +93,32 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(1, 0) == None, False)
     self.assertEqual(FixedPrec(1, 0) != None, True)
   
+  def test_to_int(self):
+    self.assertEqual(int(FixedPrec('0')), 0)
+    self.assertEqual(int(FixedPrec('0.0')), 0)
+    self.assertEqual(int(FixedPrec(0, -1)), 0)
+    self.assertEqual(int(FixedPrec('0.9')), 0)
+    self.assertEqual(int(FixedPrec('-0.9')), 0)
+    self.assertEqual(int(FixedPrec('3.9')), 3)
+    self.assertEqual(int(FixedPrec('-3.9')), -3)
+    self.assertEqual(int(FixedPrec(39, -1)), 390)
+    self.assertEqual(int(FixedPrec(-39, -1)), -390)
+    self.assertEqual(int(FixedPrec('4')), 4)
+    self.assertEqual(int(FixedPrec('-4')), -4)
+  
+  def test_to_float(self):
+    self.assertEqual(float(FixedPrec('0')), 0.0)
+    self.assertEqual(float(FixedPrec('0.0')), 0.0)
+    self.assertEqual(float(FixedPrec(0, -1)), 0.0)
+    self.assertEqual(float(FixedPrec('0.9')), 0.9)
+    self.assertEqual(float(FixedPrec('-0.9')), -0.9)
+    self.assertEqual(float(FixedPrec('3.9')), 3.9)
+    self.assertEqual(float(FixedPrec('-3.9')), -3.9)
+    self.assertEqual(float(FixedPrec(39, -1)), 390.0)
+    self.assertEqual(float(FixedPrec(-39, -1)), -390.0)
+    self.assertEqual(float(FixedPrec('4')), 4.0)
+    self.assertEqual(float(FixedPrec('-4')), -4.0)
+  
   def test_to_hashable_tuple(self):
     self.assertEqual(FixedPrec(0, -3).to_hashable_tuple(), ('FixedPrec', 0, -3, 12))
     self.assertEqual(FixedPrec(0, 0).to_hashable_tuple(), ('FixedPrec', 0, 0, 12))
