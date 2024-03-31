@@ -98,12 +98,12 @@ class TimeInstant:
       if utc_delta < 0:
         # "positive" leap second (utc clocks are paused for one second; 11:59:59 PM UTC -> 11:59:60 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
-        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time, True, leap_sec_base_time_utc, utc_delta])
-        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta])
+        cls.TAI_TO_UTC_OFFSET_TABLE.append((leap_sec_base_time, True, leap_sec_base_time_utc, utc_delta))
+        cls.TAI_TO_UTC_OFFSET_TABLE.append((leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta))
       elif utc_delta > 0:
         # "negative" leap second (utc clocks skip one second; 11:59:58 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
-        cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta])
+        cls.TAI_TO_UTC_OFFSET_TABLE.append((leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta))
   
   def __init__(self, time: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
