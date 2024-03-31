@@ -1,15 +1,20 @@
 import re
 from math import floor, log10
+from numbers import Integral
+from typing import Self
 
 class FixedPrec:
   __slots__ = 'value', 'place', 'max_prec'
+  value: Integral
+  place: Integral
+  max_prec: Integral
   
   FLOAT_ADDED_PREC = 15
   _int_regex = re.compile('^(-?\\d+)$')
   _float_regex = re.compile('^(-?)(\\d+)\\.(\\d+)$')
   
   @classmethod
-  def from_basic(cls, value, max_prec = 12):
+  def from_basic(cls, value: int | float | str | Self, max_prec = 12) -> Self:
     'Converts a value from a basic type like int, float, or FixedPrec to a FixedPrec.'
     if isinstance(value, int):
       return FixedPrec(value, 0, max_prec = max_prec)
@@ -32,7 +37,7 @@ class FixedPrec:
     else:
       return value
   
-  def __init__(self, *args, max_prec = 12):
+  def __init__(self, *args: tuple[()] | tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
     if len(args) == 0:
       raise Exception(f'FixedPrec constructor needs an argument')
     elif len(args) == 1:
@@ -54,10 +59,10 @@ class FixedPrec:
     else:
       raise Exception(f'FixedPrec constructor takes 1-3 arguments')
   
-  def __repr__(self):
+  def __repr__(self) -> str:
     return f'{self.__class__.__name__}(value = {self.value}, place = {self.place}, max_prec = {self.max_prec})'
   
-  def __str__(self):
+  def __str__(self) -> str:
     if self.value == 0:
       if self.place <= 0:
         return '0'
@@ -81,17 +86,17 @@ class FixedPrec:
     else:
       return NotImplemented
   
-  def to_hashable_tuple(self):
+  def to_hashable_tuple(self) -> tuple[str, Integral, Integral, Integral]:
     return (self.__class__.__name__, self.value, self.place, self.max_prec)
   
-  def __neg__(self):
+  def __neg__(self) -> Self:
     return FixedPrec(
       -self.value,
       self.place,
       self.max_prec
     )
   
-  def reduce_to_max_prec(self):
+  def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
       return FixedPrec(
         self.value // 10 ** (self.place - self.max_prec),
@@ -101,7 +106,7 @@ class FixedPrec:
     else:
       return self
   
-  def convert_to_highest_precision(self, other):
+  def convert_to_highest_precision(self, other: Self) -> Self:
     if self.place > other.place:
       precise = self
       less_precise = other
@@ -136,7 +141,7 @@ class FixedPrec:
       
       return less_precise_converted, other
   
-  def __add__(self, other):
+  def __add__(self, other) -> Self:
     other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
@@ -146,10 +151,10 @@ class FixedPrec:
       self.max_prec
     )
   
-  def __sub__(self, other):
+  def __sub__(self, other) -> Self:
     return self + (-other)
   
-  def __mul__(self, other):
+  def __mul__(self, other) -> Self:
     other = self.from_basic(other)
     return FixedPrec(
       self.value * other.value,
@@ -157,7 +162,7 @@ class FixedPrec:
       max(self.max_prec, other.max_prec)
     ).reduce_to_max_prec()
   
-  def __floordiv__(self, other):
+  def __floordiv__(self, other) -> Self:
     other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
@@ -167,7 +172,7 @@ class FixedPrec:
       self.max_prec,
     )
   
-  def __mod__(self, other):
+  def __mod__(self, other) -> Self:
     other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
@@ -177,7 +182,7 @@ class FixedPrec:
       self.max_prec
     )
   
-  def __divmod__(self, other):
+  def __divmod__(self, other) -> Self:
     other = self.from_basic(other)
     self, other = self.convert_to_highest_precision(other)
     
@@ -191,13 +196,13 @@ class FixedPrec:
       self.max_prec
     )
   
-  def __radd__(self, other):
+  def __radd__(self, other) -> Self:
     return self + other
   
-  def __rsub__(self, other):
+  def __rsub__(self, other) -> Self:
     return (-self) + other
   
-  def __rmul__(self, other):
+  def __rmul__(self, other) -> Self:
     return self * other
   
   def __eq__(self, other):

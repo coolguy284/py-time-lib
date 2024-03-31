@@ -1,3 +1,6 @@
+from numbers import Integral, Real
+from typing import Self
+
 from .lib_funcs import binary_search, binary_search_array_split
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
@@ -5,62 +8,64 @@ from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS
 
 class TimeDelta:
   __slots__ = '_time_delta'
+  _time_delta: FixedPrec | Real
   
-  def __init__(self, time_delta, coerce_to_fixed_prec = True):
+  def __init__(self, time_delta: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(time_delta, FixedPrec):
       time_delta = FixedPrec.from_basic(time_delta)
     
     self._time_delta = time_delta
   
-  def __repr__(self):
+  def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time_delta!r})'
   
-  def __str__(self):
+  def __str__(self) -> str:
     return f'TD{self._time_delta:+}'
   
-  def __neg__(self):
+  def __neg__(self) -> Self:
     return TimeDelta(-self._time_delta)
   
-  def __add__(self, other):
+  def __add__(self, other: Self) -> Self:
     return TimeDelta(self._time_delta + other._time_delta)
   
-  def __sub__(self, other):
+  def __sub__(self, other: Self) -> Self:
     return self + (-other)
   
-  def __mul__(self, other):
+  def __mul__(self, other) -> Self:
     return TimeDelta(self._time_delta * other)
   
-  def __truediv__(self, other):
+  def __truediv__(self, other) -> Self:
     return TimeDelta(self._time_delta / other)
   
-  def __eq__(self, other):
+  def __eq__(self, other: Self | None):
     if other is None:
       return False
     
     return self._time_delta == other._time_delta
   
-  def __ne__(self, other):
+  def __ne__(self, other: Self | None):
     if other is None:
       return True
     
     return self._time_delta != other._time_delta
   
-  def __gt__(self, other):
+  def __gt__(self, other: Self):
     return self._time_delta > other._time_delta
   
-  def __lt__(self, other):
+  def __lt__(self, other: Self):
     return self._time_delta < other._time_delta
   
-  def __ge__(self, other):
+  def __ge__(self, other: Self):
     return self._time_delta >= other._time_delta
   
-  def __le__(self, other):
+  def __le__(self, other: Self):
     return self._time_delta <= other._time_delta
 
 class TimeInstant:
   '''Class representing an instant of time. Modeled after TAI, with epoch at jan 1, 1 BCE (year 0). Stores seconds since epoch.'''
   
   __slots__ = '_time'
+  _time: FixedPrec | Real
   
   NOMINAL_SECS_PER_DAY = 86_400
   NOMINAL_SECS_PER_HOUR = 3_600
@@ -72,7 +77,7 @@ class TimeInstant:
   LEAP_SECONDS = DATA_LEAP_SECONDS
   
   @classmethod
-  def _init_class_vars(cls):
+  def _init_class_vars(cls) -> None:
     leap_secs = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch() + 1, utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
     pre_epoch_leap_secs, _ = binary_search_array_split(leap_secs, lambda x: x[0] < 0)
     pre_epoch_leap_secs.reverse()
@@ -100,56 +105,56 @@ class TimeInstant:
         current_utc_tai_offset += utc_delta
         cls.TAI_TO_UTC_OFFSET_TABLE.append([leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta])
   
-  def __init__(self, time, coerce_to_fixed_prec = True):
+  def __init__(self, time: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
       time = FixedPrec.from_basic(time)
     
     self._time = time
   
-  def __repr__(self):
+  def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time!r})'
   
-  def __str__(self):
+  def __str__(self) -> str:
     return f'T{self._time:+}'
   
   @property
-  def time(self):
+  def time(self) -> FixedPrec | Real:
     return self._time
   
-  def __add__(self, other):
+  def __add__(self, other: TimeDelta) -> Self:
     return TimeInstant(self._time + other._time_delta)
   
-  def __sub__(self, other):
+  def __sub__(self, other: Self | TimeDelta) -> Self | TimeDelta:
     if hasattr(other, '_time'):
       return TimeDelta(self._time - other._time)
     else:
       return TimeInstant(self._time - other._time_delta)
   
-  def __eq__(self, other):
+  def __eq__(self, other: Self | None):
     if other is None:
       return False
     
     return self._time == other._time
   
-  def __ne__(self, other):
+  def __ne__(self, other: Self | None):
     if other is None:
       return True
     
     return self._time != other._time
   
-  def __gt__(self, other):
+  def __gt__(self, other: Self):
     return self._time > other._time
   
-  def __lt__(self, other):
+  def __lt__(self, other: Self):
     return self._time < other._time
   
-  def __ge__(self, other):
+  def __ge__(self, other: Self):
     return self._time >= other._time
   
-  def __le__(self, other):
+  def __le__(self, other: Self):
     return self._time <= other._time
   
-  def to_gregorian_date_tuple_tai(self):
+  def to_gregorian_date_tuple_tai(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
     'Returns a gregorian date tuple in the TAI timezone (as math is easiest for this).'
     days_since_epoch, time_since_day_start = divmod(self._time, self.NOMINAL_SECS_PER_DAY)
     date = GregorianDate.from_days_since_epoch(days_since_epoch)
@@ -158,7 +163,7 @@ class TimeInstant:
     second, frac_second = divmod(remainder, 1)
     return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
   
-  def to_gregorian_date_tuple_utc(self):
+  def to_gregorian_date_tuple_utc(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
     'Returns a gregorian date tuple in the UTC timezone.'
     utc_info = self.to_utc_info()
     utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
@@ -173,7 +178,7 @@ class TimeInstant:
       second += 1
     return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
   
-  def to_utc_info(self):
+  def to_utc_info(self) -> dict[str, FixedPrec | Real | bool | None]:
     'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, last_leap_delta, last_leap_transition_time (when last leap second started or ended)).'
     if len(self.TAI_TO_UTC_OFFSET_TABLE) == 0:
       return {
@@ -210,7 +215,7 @@ class TimeInstant:
             'last_leap_transition_time': start_instant,
           }
   
-  def to_utc_secs_since_epoch(self):
+  def to_utc_secs_since_epoch(self) -> tuple[FixedPrec | Real, bool]:
     'Returns a tuple of the form (utc_seconds_since_epoch, second_fold). For a leap second, the counter goes back one second, and fold gets set to true.'
     utc_info = self.to_utc_info()
     utc_seconds_since_epoch = utc_info['utc_seconds_since_epoch']

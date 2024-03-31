@@ -1,8 +1,11 @@
 import re
+from abc import abstractmethod, ABC
+from numbers import Integral
+from typing import Self
 
 from ..lib_funcs import binary_search
 
-class JulGregBaseDate:
+class JulGregBaseDate(ABC):
   'Base class for Julian and Gregorian calendars. This class not intended to be directly instantiated.'
   
   # static stuff
@@ -10,14 +13,19 @@ class JulGregBaseDate:
   MONTHS_IN_YEAR = 12
   MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  _date_iso_string_regex = re.compile('^(-?\d+)-(\d{1,2})-(\d{1,2})$')
+  _date_iso_string_regex = re.compile('^(-?\\d+)-(\\d{1,2})-(\\d{1,2})$')
+  
+  @staticmethod
+  @abstractmethod
+  def is_leap(year: Integral) -> bool:
+    ...
   
   @classmethod
-  def days_in_year(cls, year):
+  def days_in_year(cls, year: Integral) -> int:
     return 366 if cls.is_leap(year) else 365
   
   @classmethod
-  def days_in_month(cls, year, month):
+  def days_in_month(cls, year: Integral, month: Integral) -> int:
     if not (1 <= month <= cls.MONTHS_IN_YEAR):
       raise Exception(f'month {month} out of range, must be between 1 and {cls.MONTHS_IN_YEAR}')
     
@@ -27,11 +35,11 @@ class JulGregBaseDate:
       return cls.MONTH_DAYS_NON_LEAP[month - 1]
   
   @classmethod
-  def normalize_date(cls, year, month, day):
+  def normalize_date[T: Integral](cls, year: T, month: T, day: T) -> tuple[T, T, T]:
     return cls.days_since_epoch_to_date(*cls.date_to_days_since_epoch(year, month, day))
   
   @classmethod
-  def date_to_days_since_epoch(cls, year, month, day):
+  def date_to_days_since_epoch[T: Integral](cls, year: T, month: T, day: T) -> T:
     year_addl, month = divmod(month - 1, cls.MONTHS_IN_YEAR)
     year += year_addl
     month += 1
@@ -43,7 +51,7 @@ class JulGregBaseDate:
     return repeat_days + mod_days + (day - 1) + cls.JAN_1_YEAR0_DAY_OFFSET
   
   @classmethod
-  def days_since_epoch_to_date(cls, days):
+  def days_since_epoch_to_date[T: Integral](cls, days: T) -> tuple[T, T, T]:
     days -= cls.JAN_1_YEAR0_DAY_OFFSET
     
     repeat_years = days // cls.REPEAT_PERIOD_DAYS * cls.REPEAT_PERIOD_YEARS
@@ -57,7 +65,7 @@ class JulGregBaseDate:
     )
   
   @classmethod
-  def _init_class_vars(cls):
+  def _init_class_vars(cls) -> None:
     cls.months_start_day = [0]
     
     for i in range(cls.REPEAT_PERIOD_YEARS * cls.MONTHS_IN_YEAR - 1):
@@ -68,8 +76,11 @@ class JulGregBaseDate:
   # instance stuff
   
   __slots__ = '_year', '_month', '_day'
+  _year: Integral
+  _month: Integral
+  _day: Integral
   
-  def __init__(self, year, month, day):
+  def __init__(self, year: Integral, month: Integral, day: Integral):
     if not (1 <= month <= self.MONTHS_IN_YEAR):
       raise Exception(f'month {month} out of range, must be between 1 and {self.MONTHS_IN_YEAR}')
     
@@ -81,43 +92,43 @@ class JulGregBaseDate:
     self._day = day
   
   @classmethod
-  def from_unnormalized(cls, year, month, day):
+  def from_unnormalized(cls, year: Integral, month: Integral, day: Integral) -> Self:
     'Creates a JulianDate object but accepts months and days out of range'
     return cls(cls.normalize_date(year, month, day))
   
   @classmethod
-  def from_days_since_epoch(cls, days):
+  def from_days_since_epoch(cls, days: Integral) -> Self:
     return cls(*cls.days_since_epoch_to_date(days))
   
   @classmethod
-  def from_iso_string(cls, string: str):
+  def from_iso_string(cls, string: str) -> Self:
     'Converts a string in format "YYYY-MM-DD" or "-YYYY-MM-DD" to date object.'
     match = cls._date_iso_string_regex.match(string)
     return cls(int(match[1]), int(match[2]), int(match[3]))
   
   @property
-  def year(self):
+  def year(self) -> Integral:
     return self._year
   
   @property
-  def month(self):
+  def month(self) -> Integral:
     return self._month
   
   @property
-  def day(self):
+  def day(self) -> Integral:
     return self._day
   
-  def __repr__(self):
+  def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self.year!r}, {self.month!r}, {self.day!r})'
   
-  def __str__(self):
+  def __str__(self) -> str:
     return self.to_iso_string()
   
-  def to_date(self):
+  def to_date(self) -> tuple[Integral, Integral, Integral]:
     return (self.year, self.month, self.day)
   
-  def to_days_since_epoch(self):
+  def to_days_since_epoch(self) -> Integral:
     return self.date_to_days_since_epoch(self.year, self.month, self.day)
   
-  def to_iso_string(self):
+  def to_iso_string(self) -> str:
     return f'{self.year}-{self.month:0>2}-{self.day:0>2}'

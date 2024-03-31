@@ -1,4 +1,4 @@
 test negative leap seconds
 
 low prio:
-add type annotations where possible
+add from iso date support to constructor of julgregbase

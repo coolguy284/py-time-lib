@@ -1,7 +1,7 @@
 from ..fixed_prec import FixedPrec
 
 # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
-LEAP_SECONDS = [
+LEAP_SECONDS: list[list[str, FixedPrec]] = [
   # [date, utc delta]
   ['1972-06-30', FixedPrec(-1, 0)],
   ['1972-12-31', FixedPrec(-1, 0)],

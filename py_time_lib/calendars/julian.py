@@ -8,7 +8,7 @@ class JulianDate(JulGregBaseDate):
   REPEAT_PERIOD_YEARS = 4
   
   @staticmethod
-  def is_leap(year):
+  def is_leap(year) -> bool:
     return year % 4 == 0
   
   # instance stuff
