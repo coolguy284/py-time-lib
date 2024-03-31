@@ -157,6 +157,40 @@ class FixedPrec:
       max(self.max_prec, other.max_prec)
     ).reduce_to_max_prec()
   
+  def __floordiv__(self, other):
+    other = self.from_basic(other)
+    self, other = self.convert_to_highest_precision(other)
+    
+    return FixedPrec(
+      self.value // other.value,
+      0,
+      self.max_prec,
+    )
+  
+  def __mod__(self, other):
+    other = self.from_basic(other)
+    self, other = self.convert_to_highest_precision(other)
+    
+    return FixedPrec(
+      self.value % other.value,
+      self.place,
+      self.max_prec
+    )
+  
+  def __divmod__(self, other):
+    other = self.from_basic(other)
+    self, other = self.convert_to_highest_precision(other)
+    
+    return FixedPrec(
+      self.value // other.value,
+      0,
+      self.max_prec,
+    ), FixedPrec(
+      self.value % other.value,
+      self.place,
+      self.max_prec
+    )
+  
   def __radd__(self, other):
     return self + other
   
