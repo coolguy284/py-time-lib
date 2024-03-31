@@ -189,12 +189,12 @@ class TestTimeClasses(unittest.TestCase):
       False,
     ))
   
-  # def test_tai_tuple(self):
-  #   date = GregorianDate(2018, 1, 1)
-  #   instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
-  #   self.assertEqual(instant.to_gregorian_date_tuple_tai(), (2018, 1, 1, 0, 0, 37, 0.5))
+  def test_tai_tuple(self):
+    date = GregorianDate(2018, 1, 1)
+    instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
+    self.assertEqual(instant.to_gregorian_date_tuple_tai(), (2018, 1, 1, 0, 0, 37, 0.5))
   
-  # def test_utc_tuple(self):
-  #   date = GregorianDate(2018, 1, 1)
-  #   instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
-  #   self.assertEqual(instant.to_gregorian_date_tuple_utc(), (2018, 1, 1, 0, 0, 0, 0.5))
+  def test_utc_tuple(self):
+    date = GregorianDate(2018, 1, 1)
+    instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
+    self.assertEqual(instant.to_gregorian_date_tuple_utc(), (2018, 1, 1, 0, 0, 0, 0.5))
