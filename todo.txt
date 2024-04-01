@@ -1,4 +1,10 @@
-test negative leap seconds
+create context manager for resetting state of timeinstant
+convert utc tai table to use dict
+
+add test for positve/negative leap second on utc tuple
+Dont just add 1 during pos leap, add true secs that passed
+And handle fracsec properly
+support leap seconds at a certain time during day as well
 
 low prio:
 add from iso date support to constructor of julgregbase

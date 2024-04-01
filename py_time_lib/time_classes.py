@@ -85,7 +85,7 @@ class TimeInstant:
     current_utc_tai_offset = cls.UTC_INITIAL_OFFSET_FROM_TAI
     cls.TAI_TO_UTC_OFFSET_TABLE = [
       # format:
-      # [FixedPrec time instant, positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs, leap_utc_delta]
+      # (FixedPrec time instant (TAI), positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs, leap_utc_delta)
       # applies when time is after or equal to this time instant
       # if a positive leap second is occurring, the fixed utc epoch seconds value is given
       # otherwise, the utc-tai delta is given
@@ -104,6 +104,11 @@ class TimeInstant:
         # "negative" leap second (utc clocks skip one second; 11:59:58 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
         cls.TAI_TO_UTC_OFFSET_TABLE.append((leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta))
+    
+    # cls.UTC_TO_TAI_OFFSET_TABLE = [
+    #   # format:
+    #   # (FixedPrec time instant (UTC), utc_tai_delta)
+    # ]
   
   def __init__(self, time: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
