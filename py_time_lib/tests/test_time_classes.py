@@ -195,7 +195,7 @@ class TestTimeClasses(unittest.TestCase):
     ))
   
   def test_utc_conversion_negative_leap_sec(self):
-    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(1, 0))):
+    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(1))):
       #print('\n'.join([repr(i) for i in TimeInstant.TAI_TO_UTC_OFFSET_TABLE]))
       last_leap_index = 54
       second_last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2]['start_instant']
@@ -284,3 +284,31 @@ class TestTimeClasses(unittest.TestCase):
     date = GregorianDate(2018, 1, 1)
     instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
     self.assertEqual(instant.to_gregorian_date_tuple_utc(), (2018, 1, 1, 0, 0, 0, 0.5))
+  
+  def test_from_utc(self):
+    def test_one(time):
+      instant = TimeInstant(time)
+      self.assertEqual(instant, TimeInstant.from_utc_secs_since_epoch(*instant.to_utc_secs_since_epoch()))
+    
+    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(1))):
+      pos_leap_sec_start = 52
+      neg_leap_sec = 54
+      
+      test_one(0)
+      
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] - FixedPrec('0.1'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'])
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] + FixedPrec('0.1'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] + FixedPrec('0.9'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] + FixedPrec('1.0'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] + FixedPrec('1.1'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] + FixedPrec('1.9'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] + FixedPrec('2.0'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[pos_leap_sec_start]['start_instant'] + FixedPrec('2.1'))
+      
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] - FixedPrec('0.1'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'])
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('0.1'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('0.9'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('1.0'))
+      test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('1.1'))
