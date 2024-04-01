@@ -195,10 +195,7 @@ class TestTimeClasses(unittest.TestCase):
     ))
   
   def test_utc_conversion_negative_leap_sec(self):
-    TimeInstant.LEAP_SECONDS.insert(27, ('2017-12-31', FixedPrec(1, 0)))
-    TimeInstant._init_class_vars()
-    
-    try:
+    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(1, 0))):
       #print('\n'.join([repr(i) for i in TimeInstant.TAI_TO_UTC_OFFSET_TABLE]))
       last_leap_index = 54
       second_last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2][0]
@@ -277,9 +274,6 @@ class TestTimeClasses(unittest.TestCase):
         last_leap_utc_secs + FixedPrec('2.1'),
         False,
       ))
-    finally:
-      TimeInstant.LEAP_SECONDS.pop(27)
-      TimeInstant._init_class_vars()
   
   def test_tai_tuple(self):
     date = GregorianDate(2018, 1, 1)

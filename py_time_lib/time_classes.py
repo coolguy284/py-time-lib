@@ -1,5 +1,6 @@
+from contextlib import contextmanager
 from numbers import Integral, Real
-from typing import Self
+from typing import Self, SupportsIndex
 
 from .lib_funcs import binary_search, binary_search_array_split
 from .fixed_prec import FixedPrec
@@ -109,6 +110,36 @@ class TimeInstant:
     #   # format:
     #   # (FixedPrec time instant (UTC), utc_tai_delta)
     # ]
+  
+  @classmethod
+  @contextmanager
+  def _auto_reset_class_vars(cls):
+    'Automatically resets UTC_INITIAL_OFFSET_FROM_TAI, LEAP_SECONDS, and NOMINAL_SECS_PER_DAY after exiting the context block.'
+    UTC_INITIAL_OFFSET_FROM_TAI = cls.UTC_INITIAL_OFFSET_FROM_TAI
+    NOMINAL_SECS_PER_DAY = cls.NOMINAL_SECS_PER_DAY
+    LEAP_SECONDS = cls.LEAP_SECONDS[:]
+    
+    try:
+      yield
+    finally:
+      cls.UTC_INITIAL_OFFSET_FROM_TAI = UTC_INITIAL_OFFSET_FROM_TAI
+      cls.NOMINAL_SECS_PER_DAY = NOMINAL_SECS_PER_DAY
+      cls.LEAP_SECONDS.clear()
+      cls.LEAP_SECONDS.extend(LEAP_SECONDS)
+      cls._init_class_vars()
+  
+  @classmethod
+  @contextmanager
+  def _temp_add_leap_sec(cls, position: SupportsIndex, leap_entry: tuple[str, FixedPrec]):
+    # https://stackoverflow.com/questions/8720179/nesting-python-context-managers/8720431#8720431
+    with cls._auto_reset_class_vars():
+      TimeInstant.LEAP_SECONDS.insert(position, leap_entry)
+      TimeInstant._init_class_vars()
+      
+      try:
+        yield
+      finally:
+        pass
   
   def __init__(self, time: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
