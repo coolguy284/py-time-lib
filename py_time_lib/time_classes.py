@@ -8,6 +8,7 @@ from .calendars.gregorian import GregorianDate
 from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS
 
 class TimeDelta:
+  'Class representing the difference between two times, stored using the TAI length of second.'
   __slots__ = '_time_delta'
   _time_delta: FixedPrec | Real
   
@@ -63,7 +64,7 @@ class TimeDelta:
     return self._time_delta <= other._time_delta
 
 class TimeInstant:
-  '''Class representing an instant of time. Modeled after TAI, with epoch at jan 1, 1 BCE (year 0). Stores seconds since epoch.'''
+  'Class representing an instant of time. Modeled after TAI, with epoch at jan 1, 1 BCE (year 0). Stores seconds since epoch.'
   
   __slots__ = '_time'
   _time: FixedPrec | Real
@@ -86,7 +87,7 @@ class TimeInstant:
     current_utc_tai_offset = cls.UTC_INITIAL_OFFSET_FROM_TAI
     cls.TAI_TO_UTC_OFFSET_TABLE = [
       # format:
-      # (FixedPrec time instant (TAI), positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs, leap_utc_delta)
+      # { start_instant: FixedPrec (TAI), positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs, leap_utc_delta }
       # applies when time is after or equal to this time instant
       # if a positive leap second is occurring, the fixed utc epoch seconds value is given
       # otherwise, the utc-tai delta is given
@@ -99,16 +100,31 @@ class TimeInstant:
       if utc_delta < 0:
         # "positive" leap second (utc clocks are paused for one second; 11:59:59 PM UTC -> 11:59:60 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
-        cls.TAI_TO_UTC_OFFSET_TABLE.append((leap_sec_base_time, True, leap_sec_base_time_utc, utc_delta))
-        cls.TAI_TO_UTC_OFFSET_TABLE.append((leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta))
+        cls.TAI_TO_UTC_OFFSET_TABLE.append({
+          'start_instant': leap_sec_base_time,
+          'positive_leap_second_occurring': True,
+          'utc_epoch_secs': leap_sec_base_time_utc,
+          'leap_utc_delta': utc_delta
+        })
+        cls.TAI_TO_UTC_OFFSET_TABLE.append({
+          'start_instant': leap_sec_base_time - utc_delta,
+          'positive_leap_second_occurring': False,
+          'utc_tai_delta': current_utc_tai_offset,
+          'leap_utc_delta': utc_delta
+        })
       elif utc_delta > 0:
         # "negative" leap second (utc clocks skip one second; 11:59:58 PM UTC -> 12:00:00 AM UTC)
         current_utc_tai_offset += utc_delta
-        cls.TAI_TO_UTC_OFFSET_TABLE.append((leap_sec_base_time - utc_delta, False, current_utc_tai_offset, utc_delta))
+        cls.TAI_TO_UTC_OFFSET_TABLE.append({
+          'start_instant': leap_sec_base_time - utc_delta,
+          'positive_leap_second_occurring': False,
+          'utc_tai_delta': current_utc_tai_offset,
+          'leap_utc_delta': utc_delta
+        })
     
     # cls.UTC_TO_TAI_OFFSET_TABLE = [
     #   # format:
-    #   # (FixedPrec time instant (UTC), utc_tai_delta)
+    #   # { start_instant: FixedPrec (UTC), utc_tai_delta }
     # ]
   
   @classmethod
@@ -224,7 +240,7 @@ class TimeInstant:
         'last_leap_transition_time': None,
       }
     else:
-      if self._time < self.TAI_TO_UTC_OFFSET_TABLE[0][0]:
+      if self._time < self.TAI_TO_UTC_OFFSET_TABLE[0]['start_instant']:
         return {
           'utc_seconds_since_epoch': self._time + self.UTC_INITIAL_OFFSET_FROM_TAI,
           'positive_leap_second_occurring': False,
@@ -232,23 +248,21 @@ class TimeInstant:
           'last_leap_transition_time': None,
         }
       else:
-        tai_table_index = binary_search(lambda x: self._time >= self.TAI_TO_UTC_OFFSET_TABLE[x][0], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
-        start_instant, positive_leap_second_occurring, utc_data, utc_delta = self.TAI_TO_UTC_OFFSET_TABLE[tai_table_index]
-        if positive_leap_second_occurring:
-          utc_epoch_secs = utc_data
+        tai_table_index = binary_search(lambda x: self._time >= self.TAI_TO_UTC_OFFSET_TABLE[x]['start_instant'], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
+        offset_entry = self.TAI_TO_UTC_OFFSET_TABLE[tai_table_index]
+        if offset_entry['positive_leap_second_occurring']:
           return {
-            'utc_seconds_since_epoch': utc_epoch_secs,
+            'utc_seconds_since_epoch': offset_entry['utc_epoch_secs'],
             'positive_leap_second_occurring': True,
-            'last_leap_delta': utc_delta,
-            'last_leap_transition_time': start_instant,
+            'last_leap_delta': offset_entry['leap_utc_delta'],
+            'last_leap_transition_time': offset_entry['start_instant'],
           }
         else:
-          utc_tai_delta = utc_data
           return {
-            'utc_seconds_since_epoch': self._time + utc_tai_delta,
+            'utc_seconds_since_epoch': self._time + offset_entry['utc_tai_delta'],
             'positive_leap_second_occurring': False,
-            'last_leap_delta': utc_delta,
-            'last_leap_transition_time': start_instant,
+            'last_leap_delta': offset_entry['leap_utc_delta'],
+            'last_leap_transition_time': offset_entry['start_instant'],
           }
   
   def to_utc_secs_since_epoch(self) -> tuple[FixedPrec | Real, bool]:

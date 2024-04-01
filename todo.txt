@@ -1,5 +1,3 @@
-convert utc tai table to use dict
-
 add test for positve/negative leap second on utc tuple
 Dont just add 1 during pos leap, add true secs that passed
 And handle fracsec properly

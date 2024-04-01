@@ -84,13 +84,13 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_utc_conversion_positive_leap_sec(self):
     last_leap_index = 53
-    second_last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 3][0]
-    last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1][0]
-    second_last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2][2]
-    last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index][2]
+    second_last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 3]['start_instant']
+    last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['start_instant']
+    second_last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2]['utc_tai_delta']
+    last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index]['utc_tai_delta']
     last_leap_utc_secs = last_leap_start + last_utc_offset + 1
-    second_last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2][3]
-    last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1][3]
+    second_last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2]['leap_utc_delta']
+    last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['leap_utc_delta']
     self.assertEqual(last_leap_utc_secs, GregorianDate(2017, 1, 1).to_days_since_epoch() * 86400)
     self.assertEqual(second_last_utc_offset, -36)
     self.assertEqual(last_utc_offset, -37)
@@ -198,13 +198,13 @@ class TestTimeClasses(unittest.TestCase):
     with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(1, 0))):
       #print('\n'.join([repr(i) for i in TimeInstant.TAI_TO_UTC_OFFSET_TABLE]))
       last_leap_index = 54
-      second_last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2][0]
-      last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index][0]
-      second_last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1][2]
-      last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index][2]
+      second_last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2]['start_instant']
+      last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index]['start_instant']
+      second_last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['utc_tai_delta']
+      last_utc_offset = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index]['utc_tai_delta']
       last_leap_utc_secs = last_leap_start + last_utc_offset - 1
-      second_last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1][3]
-      last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index][3]
+      second_last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['leap_utc_delta']
+      last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index]['leap_utc_delta']
       self.assertEqual(last_leap_utc_secs, GregorianDate(2018, 1, 1).to_days_since_epoch() * 86400 - 1)
       self.assertEqual(second_last_utc_offset, -37)
       self.assertEqual(last_utc_offset, -36)
