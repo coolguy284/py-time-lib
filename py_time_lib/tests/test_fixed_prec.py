@@ -207,6 +207,65 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec.from_basic(3) < 5, True)
     self.assertEqual(FixedPrec.from_basic(3) * -4, -12)
   
-  def test_str_operators(self):
-    with self.assertRaises(AttributeError):
-      print(FixedPrec(3) + '4')
+  def test_op_errors(self):
+    self.assertEqual(FixedPrec.from_basic(FixedPrec(3), cast_only = True), FixedPrec(3))
+    
+    with self.assertRaises(NotImplementedError):
+      FixedPrec.from_basic('3', cast_only = True)
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) + '4'
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) - '4'
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) * '4'
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) // '4'
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) % '4'
+    
+    with self.assertRaises(TypeError):
+      divmod(FixedPrec(3), '4')
+    
+    with self.assertRaises(TypeError):
+      '4' + FixedPrec(3)
+    
+    with self.assertRaises(TypeError):
+      '4' - FixedPrec(3)
+    
+    with self.assertRaises(TypeError):
+      '4' * FixedPrec(3)
+    
+    self.assertEqual(FixedPrec(4) == '4', False)
+    self.assertEqual(FixedPrec(4) != '4', True)
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) > '4'
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) < '4'
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) >= '4'
+    
+    with self.assertRaises(TypeError):
+      FixedPrec(3) <= '4'
+    
+    self.assertEqual('4' == FixedPrec(4), False)
+    self.assertEqual('4' != FixedPrec(4), True)
+    
+    with self.assertRaises(TypeError):
+      '4' > FixedPrec(3)
+    
+    with self.assertRaises(TypeError):
+      '4' < FixedPrec(3)
+    
+    with self.assertRaises(TypeError):
+      '4' >= FixedPrec(3)
+    
+    with self.assertRaises(TypeError):
+      '4' <= FixedPrec(3)

@@ -17,25 +17,29 @@ class FixedPrec:
   def from_basic(cls, value: int | float | str | Self, max_prec: Integral = 12, cast_only: bool = False) -> Self:
     'Converts a value from a basic type like int, float, or FixedPrec to a FixedPrec.'
     if isinstance(value, int):
-      return FixedPrec(value, 0, max_prec = max_prec)
+      return cls(value, 0, max_prec = max_prec)
     elif isinstance(value, float):
       # approximate conversion but floats are approximate anyway so
       prec = floor(log10(abs(value)))
       value /= 10 ** prec
       value *= 10 ** cls.FLOAT_ADDED_PREC
-      return FixedPrec(int(value), -prec + cls.FLOAT_ADDED_PREC)
+      return cls(int(value), -prec + cls.FLOAT_ADDED_PREC)
     elif isinstance(value, str) and not cast_only:
       if match := cls._int_regex.match(value):
-        return FixedPrec(int(match[1]), 0, max_prec = max_prec)
+        return cls(int(match[1]), 0, max_prec = max_prec)
       elif match := cls._float_regex.match(value):
-        result = FixedPrec(int(match[2]) * 10 ** len(match[3]) + int(match[3]), len(match[3]), max_prec = max_prec)
+        result = cls(int(match[2]) * 10 ** len(match[3]) + int(match[3]), len(match[3]), max_prec = max_prec)
         if match[1] == '-':
           result *= -1
         return result
       else:
-        raise Exception(f'Could not convert string {value!r} to FixedPrec.')
+        raise Exception(f'Could not convert string {value!r} to {cls.__name__}.')
     else:
-      return value
+      if hasattr(value, 'value') and hasattr(value, 'place') and hasattr(value, 'max_prec'):
+        # duck typing
+        return value
+      else:
+        raise NotImplementedError()
   
   def __init__(self, *args: tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
     if len(args) == 0:
@@ -161,7 +165,11 @@ class FixedPrec:
       return less_precise_converted, other
   
   def __add__(self, other) -> Self:
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -171,10 +179,19 @@ class FixedPrec:
     )
   
   def __sub__(self, other) -> Self:
-    return self + (-other)
+    other_inv = -other
+    
+    try:
+      return self + other_inv
+    except TypeError:
+      return NotImplemented
   
   def __mul__(self, other) -> Self:
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     return FixedPrec(
       self.value * other.value,
       self.place + other.place,
@@ -182,7 +199,11 @@ class FixedPrec:
     ).reduce_to_max_prec()
   
   def __floordiv__(self, other) -> Self:
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -192,7 +213,11 @@ class FixedPrec:
     )
   
   def __mod__(self, other) -> Self:
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -202,7 +227,11 @@ class FixedPrec:
     )
   
   def __divmod__(self, other) -> Self:
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -216,19 +245,34 @@ class FixedPrec:
     )
   
   def __radd__(self, other) -> Self:
-    return self + other
+    try:
+      return self + other
+    except TypeError:
+      return NotImplemented
   
   def __rsub__(self, other) -> Self:
-    return (-self) + other
+    self_inv = -self
+    
+    try:
+      return self_inv + other
+    except TypeError:
+      return NotImplemented
   
   def __rmul__(self, other) -> Self:
-    return self * other
+    try:
+      return self * other
+    except TypeError:
+      return NotImplemented
   
   def __eq__(self, other):
     if other is None:
       return False
     
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return self.value == other.value
@@ -237,31 +281,51 @@ class FixedPrec:
     if other is None:
       return True
     
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return self.value != other.value
   
   def __gt__(self, other):
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return self.value > other.value
   
   def __lt__(self, other):
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return self.value < other.value
   
   def __ge__(self, other):
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return self.value >= other.value
   
   def __le__(self, other):
-    other = self.from_basic(other, cast_only = True)
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
     self, other = self.convert_to_highest_precision(other)
     
     return self.value <= other.value
