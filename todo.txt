@@ -1,6 +1,14 @@
-add test for positve/negative leap second on utc tuple
-support leap seconds at a certain time during day as well
+add from iso date support to constructor of julgregbase
+timeinstant:
+  add from tai tuple func
+  add from utc tuple func
+jul/greg date:
+  add day of week func
+  add iso week numbering func
+  add "xth thursday in month x" index func
+timeinstant:
+  add timezone support
 
 low prio:
-add from iso date support to constructor of julgregbase
 implement abstract base classes for fixedprec
+support leap seconds at a certain time during day as well

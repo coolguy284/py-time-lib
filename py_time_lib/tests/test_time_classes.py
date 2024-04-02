@@ -365,3 +365,44 @@ class TestTimeClasses(unittest.TestCase):
         TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.2'), round_invalid_time_upwards = False),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.2'))
       )
+  
+  def test_tai_utc_tuple_leap_secs(self):
+    with TimeInstant._temp_add_leap_secs(27, [
+        ('2017-12-31', FixedPrec(1)),
+        ('2018-06-30', FixedPrec(-2)),
+        ('2018-12-31', FixedPrec(2)),
+      ]):
+      
+      leap_normal_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2017, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_normal_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_big_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 7, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_big_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2019, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
+      
+      # positive leap second
+      
+      self.assertEqual((leap_normal_pos_midnight - TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 35, FixedPrec('0.9')))
+      self.assertEqual((leap_normal_pos_midnight - TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 59, FixedPrec('0.9')))
+      
+      self.assertEqual((leap_normal_pos_midnight).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 36, FixedPrec('0')))
+      self.assertEqual((leap_normal_pos_midnight).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 60, FixedPrec('0')))
+      
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 36, FixedPrec('0.1')))
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 60, FixedPrec('0.1')))
+      
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.9'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 36, FixedPrec('0.9')))
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.9'))).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 60, FixedPrec('0.9')))
+      
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 37, FixedPrec('0')))
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 0, FixedPrec('0')))
+      
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 37, FixedPrec('0.1')))
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.1'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 0, FixedPrec('0.1')))
+      
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.9'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 37, FixedPrec('0.9')))
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.9'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 0, FixedPrec('0.9')))
+      
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.0'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 38, FixedPrec('0')))
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.0'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 1, FixedPrec('0')))
+      
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 38, FixedPrec('0.1')))
+      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.1'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 1, FixedPrec('0.1')))

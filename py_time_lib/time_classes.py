@@ -187,6 +187,19 @@ class TimeInstant:
         pass
   
   @classmethod
+  @contextmanager
+  def _temp_add_leap_secs(cls, position: SupportsIndex, leap_entries: list[tuple[str, FixedPrec]]) -> Generator[None, None, None]:
+    # https://stackoverflow.com/questions/8720179/nesting-python-context-managers/8720431#8720431
+    with cls._auto_reset_class_vars():
+      TimeInstant.LEAP_SECONDS[position:position] = leap_entries
+      TimeInstant._init_class_vars()
+      
+      try:
+        yield
+      finally:
+        pass
+  
+  @classmethod
   def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch, second_fold = False, round_invalid_time_upwards = True):
     if len(cls.UTC_TO_TAI_OFFSET_TABLE) == 0:
       return cls(utc_seconds_since_epoch - cls.UTC_INITIAL_OFFSET_FROM_TAI)
@@ -278,7 +291,7 @@ class TimeInstant:
     year, month, day, hour, minute, second, frac_second = self.epoch_instant_to_gregorian_tuple(utc_secs_since_epoch)
     if utc_info['positive_leap_second_occurring']:
       second += 1
-      second_addl, frac_second = divmod(-utc_info['last_leap_delta'] + frac_second, 1)
+      second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
       second = int(second + second_addl)
     return year, month, day, hour, minute, second, frac_second
   
