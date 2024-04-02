@@ -278,23 +278,6 @@ class TimeInstant:
   def __le__(self, other: Self):
     return self._time <= other._time
   
-  def to_gregorian_date_tuple_tai(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
-    'Returns a gregorian date tuple in the TAI timezone (as math is easiest for this).'
-    return self.epoch_instant_to_gregorian_tuple(self._time)
-  
-  def to_gregorian_date_tuple_utc(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
-    'Returns a gregorian date tuple in the UTC timezone.'
-    utc_info = self.to_utc_info()
-    utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
-    if utc_info['positive_leap_second_occurring']:
-      utc_secs_since_epoch -= 1
-    year, month, day, hour, minute, second, frac_second = self.epoch_instant_to_gregorian_tuple(utc_secs_since_epoch)
-    if utc_info['positive_leap_second_occurring']:
-      second += 1
-      second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
-      second = int(second + second_addl)
-    return year, month, day, hour, minute, second, frac_second
-  
   def to_utc_info(self) -> dict[str, FixedPrec | Real | bool | None]:
     'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, last_leap_delta, last_leap_transition_time (when last leap second started or ended)).'
     if len(self.TAI_TO_UTC_OFFSET_TABLE) == 0:
@@ -350,5 +333,22 @@ class TimeInstant:
         return utc_seconds_since_epoch, False
     else:
       return utc_seconds_since_epoch + (self.time - last_leap_transition_time), False
+  
+  def to_gregorian_date_tuple_tai(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
+    'Returns a gregorian date tuple in the TAI timezone (as math is easiest for this).'
+    return self.epoch_instant_to_gregorian_tuple(self._time)
+  
+  def to_gregorian_date_tuple_utc(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
+    'Returns a gregorian date tuple in the UTC timezone.'
+    utc_info = self.to_utc_info()
+    utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
+    if utc_info['positive_leap_second_occurring']:
+      utc_secs_since_epoch -= 1
+    year, month, day, hour, minute, second, frac_second = self.epoch_instant_to_gregorian_tuple(utc_secs_since_epoch)
+    if utc_info['positive_leap_second_occurring']:
+      second += 1
+      second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
+      second = int(second + second_addl)
+    return year, month, day, hour, minute, second, frac_second
 
 TimeInstant._init_class_vars()
