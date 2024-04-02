@@ -137,12 +137,12 @@ class TimeInstant:
           'leap_utc_delta': utc_delta,
         })
         cls.UTC_TO_TAI_OFFSET_TABLE.append({
-          'start_instant': leap_sec_base_time_utc,
+          'start_instant': leap_sec_base_time_utc - utc_delta,
           'utc_tai_delta': (),
           'leap_utc_delta': utc_delta,
         })
         cls.UTC_TO_TAI_OFFSET_TABLE.append({
-          'start_instant': leap_sec_base_time_utc - utc_delta,
+          'start_instant': leap_sec_base_time_utc,
           'utc_tai_delta': (current_utc_tai_offset,),
           'leap_utc_delta': utc_delta,
         })
@@ -190,7 +190,8 @@ class TimeInstant:
         if len(utc_table_entry['utc_tai_delta']) == 0:
           # time cannot map to tai, but can round up
           if round_invalid_time_upwards:
-            return cls(utc_seconds_since_epoch - cls.UTC_TO_TAI_OFFSET_TABLE[utc_table_index + 1]['utc_tai_delta'][0])
+            utc_table_next_entry = cls.UTC_TO_TAI_OFFSET_TABLE[utc_table_index + 1] 
+            return cls(utc_table_entry['start_instant'] - (utc_table_next_entry['utc_tai_delta'][0] - utc_table_entry['leap_utc_delta']))
           else:
             raise Exception('utc time does not map to tai')
         elif len(utc_table_entry['utc_tai_delta']) == 1:

@@ -31,6 +31,7 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(str(TimeInstant(FixedPrec(1000, 0)) + TimeDelta(FixedPrec(3, 0))), 'T+1003')
     self.assertEqual(str(TimeInstant(FixedPrec(1000, 0)) - TimeDelta(FixedPrec(3, 0))), 'T+997')
     self.assertEqual(str(TimeInstant(FixedPrec(1000, 0)) - TimeInstant(FixedPrec(993, 0))), 'TD+7')
+    self.assertEqual(str(TimeInstant(FixedPrec(1000)) + TimeDelta(FixedPrec('0.1'))), 'T+1000.1')
   
   def test_time_delta_relational_ops(self):
     self.assertEqual(TimeDelta(FixedPrec(1, 0)) > TimeDelta(FixedPrec(0, 0)), True)
@@ -312,3 +313,55 @@ class TestTimeClasses(unittest.TestCase):
       test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('0.9'))
       test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('1.0'))
       test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('1.1'))
+      
+      instant_before_neg_leap = TimeInstant(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] - FixedPrec('0.1'))
+      utc_before_neg_leap = instant_before_neg_leap.to_utc_secs_since_epoch()[0]
+      
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap, round_invalid_time_upwards = True),
+        instant_before_neg_leap
+      )
+      #print('\n'.join([repr(i) for i in TimeInstant.UTC_TO_TAI_OFFSET_TABLE]))
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.1'), round_invalid_time_upwards = True),
+        instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
+      )
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.2'), round_invalid_time_upwards = True),
+        instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
+      )
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.0'), round_invalid_time_upwards = True),
+        instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
+      )
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.1'), round_invalid_time_upwards = True),
+        instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
+      )
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.2'), round_invalid_time_upwards = True),
+        instant_before_neg_leap + TimeDelta(FixedPrec('0.2'))
+      )
+      
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap, round_invalid_time_upwards = False),
+        instant_before_neg_leap
+      )
+      
+      with self.assertRaises(Exception):
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.1'), round_invalid_time_upwards = False)
+      
+      with self.assertRaises(Exception):
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.2'), round_invalid_time_upwards = False)
+      
+      with self.assertRaises(Exception):
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.0'), round_invalid_time_upwards = False)
+      
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.1'), round_invalid_time_upwards = False),
+        instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
+      )
+      self.assertEqual(
+        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.2'), round_invalid_time_upwards = False),
+        instant_before_neg_leap + TimeDelta(FixedPrec('0.2'))
+      )
