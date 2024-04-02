@@ -31,8 +31,9 @@ class TestCalendarJulian(unittest.TestCase):
     self.assertEqual(repr(jd), 'JulianDate(2024, 1, 1)')
   
   def test_class_str(self):
-    jd = JulianDate(2024, 1, 1)
-    self.assertEqual(str(jd), '2024-01-01')
+    self.assertEqual(str(cls(2024, 1, 1)), '2024-01-01')
+    self.assertEqual(str(cls(0, 1, 1)), '0-01-01')
+    self.assertEqual(str(cls(-2024, 1, 1)), '-2024-01-01')
   
   def test_month_days_2024_02(self):
     self.assertEqual(cls.days_in_month(2024, 2), 29)
@@ -70,3 +71,13 @@ class TestCalendarJulian(unittest.TestCase):
     with self.assertRaises(AttributeError):
       d1 = cls(2024, 3, 26)
       d1.prop = False
+  
+  def test_from_iso_string(self):
+    self.assertEqual(str(cls.from_iso_string('2024-04-02')), '2024-04-02')
+    self.assertEqual(str(cls.from_iso_string('0-04-02')), '0-04-02')
+    self.assertEqual(str(cls.from_iso_string('-2024-04-02')), '-2024-04-02')
+  
+  def test_from_iso_string_implicit(self):
+    self.assertEqual(str(cls('2024-04-02')), '2024-04-02')
+    self.assertEqual(str(cls('0-04-02')), '0-04-02')
+    self.assertEqual(str(cls('-2024-04-02')), '-2024-04-02')

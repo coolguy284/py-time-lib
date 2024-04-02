@@ -37,12 +37,12 @@ class FixedPrec:
     else:
       return value
   
-  def __init__(self, *args: tuple[()] | tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
+  def __init__(self, *args: tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
     if len(args) == 0:
       raise Exception(f'FixedPrec constructor needs an argument')
     elif len(args) == 1:
       value = args[0]
-      converted = FixedPrec.from_basic(value, max_prec = max_prec)
+      converted = self.from_basic(value, max_prec = max_prec)
       self.value = converted.value
       self.place = converted.place
       self.max_prec = converted.max_prec

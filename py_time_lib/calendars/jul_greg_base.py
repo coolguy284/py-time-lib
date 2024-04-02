@@ -80,16 +80,29 @@ class JulGregBaseDate(ABC):
   _month: Integral
   _day: Integral
   
-  def __init__(self, year: Integral, month: Integral, day: Integral):
-    if not (1 <= month <= self.MONTHS_IN_YEAR):
-      raise Exception(f'month {month} out of range, must be between 1 and {self.MONTHS_IN_YEAR}')
-    
-    if not (1 <= day <= self.days_in_month(year, month)):
-      raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {self.days_in_month(year, month)}')
-    
-    self._year = year
-    self._month = month
-    self._day = day
+  def __init__(self, *args: tuple[str] | tuple[Integral, Integral, Integral]):
+    if len(args) == 0:
+      raise Exception(f'JulGregBaseDate constructor needs an argument')
+    elif len(args) == 1:
+      iso_string = args[0]
+      converted = self.from_iso_string(iso_string)
+      self._year = converted._year
+      self._month = converted._month
+      self._day = converted._day
+    elif len(args) == 3:
+      year, month, day = args
+      
+      if not (1 <= month <= self.MONTHS_IN_YEAR):
+        raise Exception(f'month {month} out of range, must be between 1 and {self.MONTHS_IN_YEAR}')
+      
+      if not (1 <= day <= self.days_in_month(year, month)):
+        raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {self.days_in_month(year, month)}')
+      
+      self._year = year
+      self._month = month
+      self._day = day
+    else:
+      raise Exception(f'JulGregBaseDate constructor takes 1 or 3 arguments')
   
   @classmethod
   def from_unnormalized(cls, year: Integral, month: Integral, day: Integral) -> Self:
