@@ -1,4 +1,5 @@
 add from iso date support to constructor of julgregbase
+fixedprec should not be able to do math with strings
 timeinstant:
   add from tai tuple func
   add from utc tuple func

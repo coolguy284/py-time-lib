@@ -79,9 +79,9 @@ class TimeInstant:
   LEAP_SECONDS = DATA_LEAP_SECONDS
   
   @classmethod
-  def epoch_instant_to_gregorian_tuple(cls, secs_since_epoch) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
+  def epoch_instant_to_gregorian_tuple(cls, secs_since_epoch: FixedPrec) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
     days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
-    date = GregorianDate.from_days_since_epoch(days_since_epoch)
+    date = GregorianDate.from_days_since_epoch(int(days_since_epoch))
     hour, remainder = divmod(time_since_day_start, cls.NOMINAL_SECS_PER_HOUR)
     minute, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
     second, frac_second = divmod(remainder, 1)

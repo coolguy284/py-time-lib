@@ -378,31 +378,66 @@ class TestTimeClasses(unittest.TestCase):
       leap_big_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 7, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
       leap_big_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2019, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
       
-      # positive leap second
+      def test_instant(time_delta, tai_tuple, utc_tuple):
+        instant = current_leap + TimeDelta(FixedPrec(time_delta))
+        self.assertEqual(instant.to_gregorian_date_tuple_tai(), tai_tuple[:6] + (FixedPrec(tai_tuple[6]),))
+        self.assertEqual(instant.to_gregorian_date_tuple_utc(), utc_tuple[:6] + (FixedPrec(utc_tuple[6]),))
       
-      self.assertEqual((leap_normal_pos_midnight - TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 35, FixedPrec('0.9')))
-      self.assertEqual((leap_normal_pos_midnight - TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 59, FixedPrec('0.9')))
+      # positive leap second (36 -> 37)
       
-      self.assertEqual((leap_normal_pos_midnight).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 36, FixedPrec('0')))
-      self.assertEqual((leap_normal_pos_midnight).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 60, FixedPrec('0')))
+      current_leap = leap_normal_pos_midnight
       
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 36, FixedPrec('0.1')))
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.1'))).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 60, FixedPrec('0.1')))
+      test_instant('-0.1', (2017, 1, 1, 0, 0, 35, '0.9'), (2016, 12, 31, 23, 59, 59, '0.9'))
+      test_instant('0',    (2017, 1, 1, 0, 0, 36, '0'  ), (2016, 12, 31, 23, 59, 60, '0'  ))
+      test_instant('0.1',  (2017, 1, 1, 0, 0, 36, '0.1'), (2016, 12, 31, 23, 59, 60, '0.1'))
+      test_instant('0.9',  (2017, 1, 1, 0, 0, 36, '0.9'), (2016, 12, 31, 23, 59, 60, '0.9'))
+      test_instant('1',    (2017, 1, 1, 0, 0, 37, '0'  ), (2017, 1,  1,  0,  0,  0,  '0'  ))
+      test_instant('1.1',  (2017, 1, 1, 0, 0, 37, '0.1'), (2017, 1,  1,  0,  0,  0,  '0.1'))
+      test_instant('1.9',  (2017, 1, 1, 0, 0, 37, '0.9'), (2017, 1,  1,  0,  0,  0,  '0.9'))
+      test_instant('2',    (2017, 1, 1, 0, 0, 38, '0'  ), (2017, 1,  1,  0,  0,  1,  '0'  ))
+      test_instant('2.1',  (2017, 1, 1, 0, 0, 38, '0.1'), (2017, 1,  1,  0,  0,  1,  '0.1'))
       
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.9'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 36, FixedPrec('0.9')))
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('0.9'))).to_gregorian_date_tuple_utc(), (2016, 12, 31, 23, 59, 60, FixedPrec('0.9')))
+      # negative leap second (37 -> 36)
       
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 37, FixedPrec('0')))
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 0, FixedPrec('0')))
+      current_leap = leap_normal_neg_midnight
       
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 37, FixedPrec('0.1')))
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.1'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 0, FixedPrec('0.1')))
+      test_instant('-0.1', (2018, 1, 1, 0, 0, 35, '0.9'), (2017, 12, 31, 23, 59, 58, '0.9'))
+      test_instant('0',    (2018, 1, 1, 0, 0, 36, '0'  ), (2018, 1,  1,  0,  0,  0,  '0'  ))
+      test_instant('0.1',  (2018, 1, 1, 0, 0, 36, '0.1'), (2018, 1,  1,  0,  0,  0,  '0.1'))
+      test_instant('0.9',  (2018, 1, 1, 0, 0, 36, '0.9'), (2018, 1,  1,  0,  0,  0,  '0.9'))
+      test_instant('1',    (2018, 1, 1, 0, 0, 37, '0'  ), (2018, 1,  1,  0,  0,  1,  '0'  ))
+      test_instant('1.1',  (2018, 1, 1, 0, 0, 37, '0.1'), (2018, 1,  1,  0,  0,  1,  '0.1'))
       
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.9'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 37, FixedPrec('0.9')))
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('1.9'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 0, FixedPrec('0.9')))
+      # doubly positive leap second (36 -> 38)
       
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.0'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 38, FixedPrec('0')))
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.0'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 1, FixedPrec('0')))
+      current_leap = leap_big_pos_midnight
       
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.1'))).to_gregorian_date_tuple_tai(), (2017, 1, 1, 0, 0, 38, FixedPrec('0.1')))
-      self.assertEqual((leap_normal_pos_midnight + TimeDelta(FixedPrec('2.1'))).to_gregorian_date_tuple_utc(), (2017, 1, 1, 0, 0, 1, FixedPrec('0.1')))
+      test_instant('-0.1', (2018, 7, 1, 0, 0, 35, '0.9'), (2018, 6, 30, 23, 59, 59, '0.9'))
+      test_instant('0',    (2018, 7, 1, 0, 0, 36, '0'  ), (2018, 6, 30, 23, 59, 60, '0'  ))
+      test_instant('0.1',  (2018, 7, 1, 0, 0, 36, '0.1'), (2018, 6, 30, 23, 59, 60, '0.1'))
+      test_instant('0.9',  (2018, 7, 1, 0, 0, 36, '0.9'), (2018, 6, 30, 23, 59, 60, '0.9'))
+      test_instant('1',    (2018, 7, 1, 0, 0, 37, '0'  ), (2018, 6, 30, 23, 59, 61, '0'  ))
+      test_instant('1.1',  (2018, 7, 1, 0, 0, 37, '0.1'), (2018, 6, 30, 23, 59, 61, '0.1'))
+      test_instant('1.9',  (2018, 7, 1, 0, 0, 37, '0.9'), (2018, 6, 30, 23, 59, 61, '0.9'))
+      test_instant('2',    (2018, 7, 1, 0, 0, 38, '0'  ), (2018, 7,  1,  0,  0,  0, '0'  ))
+      test_instant('2.1',  (2018, 7, 1, 0, 0, 38, '0.1'), (2018, 7,  1,  0,  0,  0, '0.1'))
+      test_instant('2.9',  (2018, 7, 1, 0, 0, 38, '0.9'), (2018, 7,  1,  0,  0,  0, '0.9'))
+      test_instant('3',    (2018, 7, 1, 0, 0, 39, '0'  ), (2018, 7,  1,  0,  0,  1, '0'  ))
+      test_instant('3.1',  (2018, 7, 1, 0, 0, 39, '0.1'), (2018, 7,  1,  0,  0,  1, '0.1'))
+      test_instant('3.9',  (2018, 7, 1, 0, 0, 39, '0.9'), (2018, 7,  1,  0,  0,  1, '0.9'))
+      test_instant('4',    (2018, 7, 1, 0, 0, 40, '0'  ), (2018, 7,  1,  0,  0,  2, '0'  ))
+      test_instant('4.1',  (2018, 7, 1, 0, 0, 40, '0.1'), (2018, 7,  1,  0,  0,  2, '0.1'))
+      
+      # doubly negative leap second (38 -> 36)
+      
+      current_leap = leap_big_neg_midnight
+      
+      test_instant('-0.1', (2019, 1, 1, 0, 0, 35, '0.9'), (2018, 12, 31, 23, 59, 57, '0.9'))
+      test_instant('0',    (2019, 1, 1, 0, 0, 36, '0'  ), (2019, 1,  1,  0,  0,  0,  '0'  ))
+      test_instant('0.1',  (2019, 1, 1, 0, 0, 36, '0.1'), (2019, 1,  1,  0,  0,  0,  '0.1'))
+      test_instant('0.9',  (2019, 1, 1, 0, 0, 36, '0.9'), (2019, 1,  1,  0,  0,  0,  '0.9'))
+      test_instant('1',    (2019, 1, 1, 0, 0, 37, '0'  ), (2019, 1,  1,  0,  0,  1,  '0'  ))
+      test_instant('1.1',  (2019, 1, 1, 0, 0, 37, '0.1'), (2019, 1,  1,  0,  0,  1,  '0.1'))
+      test_instant('1.9',  (2019, 1, 1, 0, 0, 37, '0.9'), (2019, 1,  1,  0,  0,  1,  '0.9'))
+      test_instant('2',    (2019, 1, 1, 0, 0, 38, '0'  ), (2019, 1,  1,  0,  0,  2,  '0'  ))
+      test_instant('2.1',  (2019, 1, 1, 0, 0, 38, '0.1'), (2019, 1,  1,  0,  0,  2,  '0.1'))
