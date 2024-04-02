@@ -79,6 +79,15 @@ class TimeInstant:
   LEAP_SECONDS = DATA_LEAP_SECONDS
   
   @classmethod
+  def epoch_instant_to_gregorian_tuple(cls, secs_since_epoch) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
+    days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
+    date = GregorianDate.from_days_since_epoch(days_since_epoch)
+    hour, remainder = divmod(time_since_day_start, cls.NOMINAL_SECS_PER_HOUR)
+    minute, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
+    second, frac_second = divmod(remainder, 1)
+    return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
+  
+  @classmethod
   def _init_class_vars(cls) -> None:
     leap_secs = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch() + 1, utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
     pre_epoch_leap_secs, _ = binary_search_array_split(leap_secs, lambda x: x[0] < 0)
@@ -258,12 +267,7 @@ class TimeInstant:
   
   def to_gregorian_date_tuple_tai(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
     'Returns a gregorian date tuple in the TAI timezone (as math is easiest for this).'
-    days_since_epoch, time_since_day_start = divmod(self._time, self.NOMINAL_SECS_PER_DAY)
-    date = GregorianDate.from_days_since_epoch(days_since_epoch)
-    hour, remainder = divmod(time_since_day_start, self.NOMINAL_SECS_PER_HOUR)
-    minute, remainder = divmod(remainder, self.NOMINAL_SECS_PER_MIN)
-    second, frac_second = divmod(remainder, 1)
-    return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
+    return self.epoch_instant_to_gregorian_tuple(self._time)
   
   def to_gregorian_date_tuple_utc(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
     'Returns a gregorian date tuple in the UTC timezone.'
@@ -271,14 +275,12 @@ class TimeInstant:
     utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
     if utc_info['positive_leap_second_occurring']:
       utc_secs_since_epoch -= 1
-    days_since_epoch, time_since_day_start = divmod(utc_secs_since_epoch, self.NOMINAL_SECS_PER_DAY)
-    date = GregorianDate.from_days_since_epoch(days_since_epoch)
-    hour, remainder = divmod(time_since_day_start, self.NOMINAL_SECS_PER_HOUR)
-    minute, remainder = divmod(remainder, self.NOMINAL_SECS_PER_MIN)
-    second, frac_second = divmod(remainder, 1)
+    year, month, day, hour, minute, second, frac_second = self.epoch_instant_to_gregorian_tuple(utc_secs_since_epoch)
     if utc_info['positive_leap_second_occurring']:
       second += 1
-    return date.year, date.month, date.day, int(hour), int(minute), int(second), frac_second
+      second_addl, frac_second = divmod(-utc_info['last_leap_delta'] + frac_second, 1)
+      second = int(second + second_addl)
+    return year, month, day, hour, minute, second, frac_second
   
   def to_utc_info(self) -> dict[str, FixedPrec | Real | bool | None]:
     'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, last_leap_delta, last_leap_transition_time (when last leap second started or ended)).'
