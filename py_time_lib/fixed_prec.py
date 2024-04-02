@@ -14,7 +14,7 @@ class FixedPrec:
   _float_regex = re.compile('^(-?)(\\d+)\\.(\\d+)$')
   
   @classmethod
-  def from_basic(cls, value: int | float | str | Self, max_prec = 12) -> Self:
+  def from_basic(cls, value: int | float | str | Self, max_prec: Integral = 12, cast_only: bool = False) -> Self:
     'Converts a value from a basic type like int, float, or FixedPrec to a FixedPrec.'
     if isinstance(value, int):
       return FixedPrec(value, 0, max_prec = max_prec)
@@ -24,7 +24,7 @@ class FixedPrec:
       value /= 10 ** prec
       value *= 10 ** cls.FLOAT_ADDED_PREC
       return FixedPrec(int(value), -prec + cls.FLOAT_ADDED_PREC)
-    elif isinstance(value, str):
+    elif isinstance(value, str) and not cast_only:
       if match := cls._int_regex.match(value):
         return FixedPrec(int(match[1]), 0, max_prec = max_prec)
       elif match := cls._float_regex.match(value):
@@ -161,7 +161,7 @@ class FixedPrec:
       return less_precise_converted, other
   
   def __add__(self, other) -> Self:
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -174,7 +174,7 @@ class FixedPrec:
     return self + (-other)
   
   def __mul__(self, other) -> Self:
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     return FixedPrec(
       self.value * other.value,
       self.place + other.place,
@@ -182,7 +182,7 @@ class FixedPrec:
     ).reduce_to_max_prec()
   
   def __floordiv__(self, other) -> Self:
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -192,7 +192,7 @@ class FixedPrec:
     )
   
   def __mod__(self, other) -> Self:
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -202,7 +202,7 @@ class FixedPrec:
     )
   
   def __divmod__(self, other) -> Self:
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return FixedPrec(
@@ -228,7 +228,7 @@ class FixedPrec:
     if other is None:
       return False
     
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value == other.value
@@ -237,31 +237,31 @@ class FixedPrec:
     if other is None:
       return True
     
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value != other.value
   
   def __gt__(self, other):
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value > other.value
   
   def __lt__(self, other):
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value < other.value
   
   def __ge__(self, other):
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value >= other.value
   
   def __le__(self, other):
-    other = self.from_basic(other)
+    other = self.from_basic(other, cast_only = True)
     self, other = self.convert_to_highest_precision(other)
     
     return self.value <= other.value

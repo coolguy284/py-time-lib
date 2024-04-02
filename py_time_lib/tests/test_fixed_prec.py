@@ -206,3 +206,7 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec.from_basic(3) > 5, False)
     self.assertEqual(FixedPrec.from_basic(3) < 5, True)
     self.assertEqual(FixedPrec.from_basic(3) * -4, -12)
+  
+  def test_str_operators(self):
+    with self.assertRaises(AttributeError):
+      print(FixedPrec(3) + '4')
