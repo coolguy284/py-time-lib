@@ -441,3 +441,7 @@ class TestTimeClasses(unittest.TestCase):
       test_instant('1.9',  (2019, 1, 1, 0, 0, 37, '0.9'), (2019, 1,  1,  0,  0,  1,  '0.9'))
       test_instant('2',    (2019, 1, 1, 0, 0, 38, '0'  ), (2019, 1,  1,  0,  0,  2,  '0'  ))
       test_instant('2.1',  (2019, 1, 1, 0, 0, 38, '0.1'), (2019, 1,  1,  0,  0,  2,  '0.1'))
+  
+  def test_from_tai_tuple(self):
+    tai_tuple = 2018, 1, 1, 3, 2, 9, FixedPrec('0.1')
+    self.assertEqual(TimeInstant.from_gregorian_date_tuple_tai(*tai_tuple).to_gregorian_date_tuple_tai(), tai_tuple)

@@ -73,7 +73,6 @@ class TimeInstant:
   NOMINAL_SECS_PER_HOUR = 3_600
   NOMINAL_SECS_PER_MIN = 60
   
-  # leap second functionality unimplemented for now
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
   UTC_INITIAL_OFFSET_FROM_TAI = FixedPrec(-10, 0)
   LEAP_SECONDS = DATA_LEAP_SECONDS
@@ -200,7 +199,7 @@ class TimeInstant:
         pass
   
   @classmethod
-  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch, second_fold = False, round_invalid_time_upwards = True):
+  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: Integral, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
     if len(cls.UTC_TO_TAI_OFFSET_TABLE) == 0:
       return cls(utc_seconds_since_epoch - cls.UTC_INITIAL_OFFSET_FROM_TAI)
     else:
@@ -212,7 +211,7 @@ class TimeInstant:
         if len(utc_table_entry['utc_tai_delta']) == 0:
           # time cannot map to tai, but can round up
           if round_invalid_time_upwards:
-            utc_table_next_entry = cls.UTC_TO_TAI_OFFSET_TABLE[utc_table_index + 1] 
+            utc_table_next_entry = cls.UTC_TO_TAI_OFFSET_TABLE[utc_table_index + 1]
             return cls(utc_table_entry['start_instant'] - (utc_table_next_entry['utc_tai_delta'][0] - utc_table_entry['leap_utc_delta']))
           else:
             raise Exception('utc time does not map to tai')
@@ -223,6 +222,17 @@ class TimeInstant:
             return cls(utc_seconds_since_epoch - utc_table_entry['utc_tai_delta'][1])
           else:
             return cls(utc_seconds_since_epoch - utc_table_entry['utc_tai_delta'][0])
+  
+  @classmethod
+  def from_gregorian_date_tuple_tai(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real) -> Self:
+    'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) (gregorian date) into a TimeInstant.'
+    date = GregorianDate(year, month, day)
+    time = date.to_days_since_epoch() * cls.NOMINAL_SECS_PER_DAY
+    time += hour * cls.NOMINAL_SECS_PER_HOUR
+    time += minute * cls.NOMINAL_SECS_PER_MIN
+    time += second
+    time += frac_second
+    return TimeInstant(time)
   
   # instance stuff
   

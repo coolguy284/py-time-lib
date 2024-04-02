@@ -10,4 +10,5 @@ timeinstant:
 
 low prio:
 implement abstract base classes for fixedprec
+add __r*__ versions for all fixedprec and timedelta ops
 support leap seconds at a certain time during day as well
