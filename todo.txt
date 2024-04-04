@@ -1,5 +1,4 @@
 jul/greg date:
-  add day of week func
   add iso week numbering func
   add "xth thursday in month x" index func
 timeinstant:
