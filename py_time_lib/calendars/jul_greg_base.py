@@ -145,3 +145,6 @@ class JulGregBaseDate(ABC):
   
   def to_iso_string(self) -> str:
     return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
+  
+  def add_days(self, days: Integral) -> Self:
+    return self.from_days_since_epoch(self.to_days_since_epoch() + days)

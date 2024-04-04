@@ -1,6 +1,3 @@
-timeinstant:
-  add from tai tuple func
-  add from utc tuple func
 jul/greg date:
   add day of week func
   add iso week numbering func

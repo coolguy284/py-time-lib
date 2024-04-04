@@ -445,3 +445,58 @@ class TestTimeClasses(unittest.TestCase):
   def test_from_tai_tuple(self):
     tai_tuple = 2018, 1, 1, 3, 2, 9, FixedPrec('0.1')
     self.assertEqual(TimeInstant.from_gregorian_date_tuple_tai(*tai_tuple).to_gregorian_date_tuple_tai(), tai_tuple)
+  
+  def test_from_utc_tuple(self):
+    with TimeInstant._temp_add_leap_secs(27, [
+        ('2017-12-31', FixedPrec(1)),
+        ('2018-06-30', FixedPrec(-2)),
+        ('2018-12-31', FixedPrec(2)),
+      ]):
+      
+      def test(*date_tuple):
+        date_tuple = *date_tuple[:6], FixedPrec(date_tuple[6])
+        instant = TimeInstant.from_gregorian_date_tuple_utc(*date_tuple)
+        self.assertEqual(date_tuple, instant.to_gregorian_date_tuple_utc())
+      
+      test(2016, 12, 31, 23, 59, 59, '0.9')
+      test(2016, 12, 31, 23, 59, 60, '0'  )
+      test(2016, 12, 31, 23, 59, 60, '0.1')
+      test(2016, 12, 31, 23, 59, 60, '0.9')
+      test(2017, 1,  1,  0,  0,  0,  '0'  )
+      test(2017, 1,  1,  0,  0,  0,  '0.1')
+      test(2017, 1,  1,  0,  0,  0,  '0.9')
+      test(2017, 1,  1,  0,  0,  1,  '0'  )
+      test(2017, 1,  1,  0,  0,  1,  '0.1')
+      
+      test(2017, 12, 31, 23, 59, 58, '0.9')
+      test(2018, 1,  1,  0,  0,  0,  '0'  )
+      test(2018, 1,  1,  0,  0,  0,  '0.1')
+      test(2018, 1,  1,  0,  0,  0,  '0.9')
+      test(2018, 1,  1,  0,  0,  1,  '0'  )
+      test(2018, 1,  1,  0,  0,  1,  '0.1')
+      
+      test(2018, 6, 30, 23, 59, 59, '0.9')
+      test(2018, 6, 30, 23, 59, 60, '0'  )
+      test(2018, 6, 30, 23, 59, 60, '0.1')
+      test(2018, 6, 30, 23, 59, 60, '0.9')
+      test(2018, 6, 30, 23, 59, 61, '0'  )
+      test(2018, 6, 30, 23, 59, 61, '0.1')
+      test(2018, 6, 30, 23, 59, 61, '0.9')
+      test(2018, 7,  1,  0,  0,  0, '0'  )
+      test(2018, 7,  1,  0,  0,  0, '0.1')
+      test(2018, 7,  1,  0,  0,  0, '0.9')
+      test(2018, 7,  1,  0,  0,  1, '0'  )
+      test(2018, 7,  1,  0,  0,  1, '0.1')
+      test(2018, 7,  1,  0,  0,  1, '0.9')
+      test(2018, 7,  1,  0,  0,  2, '0'  )
+      test(2018, 7,  1,  0,  0,  2, '0.1')
+      
+      test(2018, 12, 31, 23, 59, 57, '0.9')
+      test(2019, 1,  1,  0,  0,  0,  '0'  )
+      test(2019, 1,  1,  0,  0,  0,  '0.1')
+      test(2019, 1,  1,  0,  0,  0,  '0.9')
+      test(2019, 1,  1,  0,  0,  1,  '0'  )
+      test(2019, 1,  1,  0,  0,  1,  '0.1')
+      test(2019, 1,  1,  0,  0,  1,  '0.9')
+      test(2019, 1,  1,  0,  0,  2,  '0'  )
+      test(2019, 1,  1,  0,  0,  2,  '0.1')

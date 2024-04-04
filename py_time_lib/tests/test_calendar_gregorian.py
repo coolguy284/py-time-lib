@@ -93,3 +93,8 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(str(cls('2024-04-02')), '2024-04-02')
     self.assertEqual(str(cls('0-04-02')), '0-04-02')
     self.assertEqual(str(cls('-2024-04-02')), '-2024-04-02')
+  
+  # gregorian only tests
+  
+  def test_add_days(self):
+    self.assertEqual(str(cls('2024-04-02').add_days(1)), '2024-04-03')

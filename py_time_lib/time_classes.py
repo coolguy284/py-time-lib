@@ -88,9 +88,11 @@ class TimeInstant:
   
   @classmethod
   def _init_class_vars(cls) -> None:
-    leap_secs = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch() + 1, utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
-    pre_epoch_leap_secs, _ = binary_search_array_split(leap_secs, lambda x: x[0] < 0)
-    pre_epoch_leap_secs.reverse()
+    leap_secs = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch(), utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
+    
+    cls.LEAP_SECONDS_DICT: dict[int, FixedPrec] = dict(leap_secs)
+    
+    leap_secs_adjusted = [(date_num + 1, utc_delta) for date_num, utc_delta in leap_secs]
     
     current_utc_tai_offset = cls.UTC_INITIAL_OFFSET_FROM_TAI
     cls.TAI_TO_UTC_OFFSET_TABLE: dict[str, FixedPrec | bool | None] = [
@@ -106,7 +108,7 @@ class TimeInstant:
       # { start_instant: FixedPrec (UTC), utc_tai_delta: tuple(0 or more elems), leap_utc_delta }
     ]
     
-    for leap_entry in leap_secs:
+    for leap_entry in leap_secs_adjusted:
       days_since_epoch, utc_delta = leap_entry
       leap_sec_base_time_utc = FixedPrec.from_basic(days_since_epoch * cls.NOMINAL_SECS_PER_DAY)
       leap_sec_base_time = FixedPrec.from_basic(leap_sec_base_time_utc - current_utc_tai_offset)
@@ -225,7 +227,7 @@ class TimeInstant:
   
   @classmethod
   def from_gregorian_date_tuple_tai(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real) -> Self:
-    'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) (gregorian date) into a TimeInstant.'
+    'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) (gregorian date) into a tai TimeInstant.'
     date = GregorianDate(year, month, day)
     time = date.to_days_since_epoch() * cls.NOMINAL_SECS_PER_DAY
     time += hour * cls.NOMINAL_SECS_PER_HOUR
@@ -233,6 +235,31 @@ class TimeInstant:
     time += second
     time += frac_second
     return TimeInstant(time)
+  
+  @classmethod
+  def from_gregorian_date_tuple_utc(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real, round_invalid_time_upwards: bool = True) -> Self:
+    'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) (gregorian date) into a utc TimeInstant.'
+    date = GregorianDate(year, month, day)
+    time = date.to_days_since_epoch() * cls.NOMINAL_SECS_PER_DAY
+    time += hour * cls.NOMINAL_SECS_PER_HOUR
+    time += minute * cls.NOMINAL_SECS_PER_MIN
+    time += second
+    time += frac_second
+    prev_date = date.add_days(-1)
+    prev_date_days = prev_date.to_days_since_epoch()
+    if prev_date_days in cls.LEAP_SECONDS_DICT:
+      leap_delta = cls.LEAP_SECONDS_DICT[prev_date_days]
+      if leap_delta < 0:
+        # positive leap second
+        if hour * cls.NOMINAL_SECS_PER_HOUR + minute * cls.NOMINAL_SECS_PER_MIN + second + frac_second < -leap_delta:
+          leap_fold = True
+        else:
+          leap_fold = False
+      else:
+        leap_fold = False
+    else:
+      leap_fold = False
+    return TimeInstant.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
   # instance stuff
   
