@@ -100,5 +100,12 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(str(cls('2024-04-02').add_days(1)), '2024-04-03')
   
   def test_day_of_week(self):
+    # generated with datetime library
     self.assertEqual(cls('2000-01-01').day_of_week(), 6) # saturday
     self.assertEqual(cls('2024-04-04').day_of_week(), 4) # thursday
+  
+  def test_iso_week_tuple(self):
+    # generated with datetime library
+    self.assertEqual(cls('2000-01-01').to_iso_week_tuple(), (1999, 52, 6))
+    self.assertEqual(cls('2024-04-04').to_iso_week_tuple(), (2024, 14, 4))
+    self.assertEqual(cls('2024-12-31').to_iso_week_tuple(), (2025, 1, 2))

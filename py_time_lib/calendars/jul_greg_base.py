@@ -14,6 +14,7 @@ class JulGregBaseDate(ABC):
   MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   DAY_OF_WEEK_OFFSET = -1
+  DAYS_IN_WEEK = 7
   _date_iso_string_regex = re.compile('^(-?\\d+)-(\\d{1,2})-(\\d{1,2})$')
   
   @staticmethod
@@ -147,9 +148,16 @@ class JulGregBaseDate(ABC):
   def to_iso_string(self) -> str:
     return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
   
-  def day_of_week(self) -> str:
+  def ordinal_date(self) -> int:
+    return self.to_days_since_epoch() - self.__class__(self.year, 1, 1).to_days_since_epoch() + 1
+  
+  def day_of_week(self) -> int:
     'Returns the day of week. 0 = sunday, 6 = saturday.'
-    return (self.to_days_since_epoch() + self.DAY_OF_WEEK_OFFSET) % 7
+    return (self.to_days_since_epoch() + self.DAY_OF_WEEK_OFFSET) % self.DAYS_IN_WEEK
+  
+  def iso_day_of_week(self) -> int:
+    'Returns the ISO day of week. 1 = monday, 7 = sunday.'
+    return (self.day_of_week() - 1) % self.DAYS_IN_WEEK + 1
   
   def add_days(self, days: Integral) -> Self:
     return self.from_days_since_epoch(self.to_days_since_epoch() + days)

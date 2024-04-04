@@ -1,5 +1,7 @@
 jul/greg date:
-  add iso week numbering func
+  add intraconversion btwn date classes
+  make iso week system a seperate calendar class
+  make dateDelta class for date subtraction
   add "xth thursday in month x" index func
 timeinstant:
   add timezone support
