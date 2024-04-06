@@ -4,8 +4,9 @@ from numbers import Integral
 from typing import Self
 
 from ..lib_funcs import binary_search
+from .date_base import DateBase
 
-class JulGregBaseDate(ABC):
+class JulGregBaseDate(DateBase):
   'Base class for Julian and Gregorian calendars. This class not intended to be directly instantiated.'
   
   # static stuff
@@ -35,10 +36,6 @@ class JulGregBaseDate(ABC):
       return cls.MONTH_DAYS_LEAP[month - 1]
     else:
       return cls.MONTH_DAYS_NON_LEAP[month - 1]
-  
-  @classmethod
-  def normalize_date[T: Integral](cls, year: T, month: T, day: T) -> tuple[T, T, T]:
-    return cls.days_since_epoch_to_date(cls.date_to_days_since_epoch(year, month, day))
   
   @classmethod
   def date_to_days_since_epoch[T: Integral](cls, year: T, month: T, day: T) -> T:
@@ -83,16 +80,15 @@ class JulGregBaseDate(ABC):
   
   # instance stuff
   
-  __slots__ = '_days_since_epoch', '_year', '_month', '_day'
-  _days_since_epoch: Integral
+  __slots__ = '_year', '_month', '_day'
   _year: Integral
   _month: Integral
   _day: Integral
   
   # https://stackoverflow.com/questions/72644693/new-union-shorthand-giving-unsupported-operand-types-for-str-and-type/72644857#72644857
-  def __init__(self, *args: tuple['str | Integral | JulGregBaseDate'] | tuple[Integral, Integral, Integral]):
+  def __init__(self, *args: tuple['str | Integral | DateBase'] | tuple[Integral, Integral, Integral]):
     if len(args) == 0:
-      raise Exception(f'JulGregBaseDate constructor needs an argument')
+      raise Exception(f'{self.__class__.__name__} constructor needs an argument')
     elif len(args) == 1:
       if isinstance(args[0], str):
         iso_string = args[0]
@@ -106,7 +102,7 @@ class JulGregBaseDate(ABC):
         days_since_epoch = args[0]
         self._days_since_epoch = days_since_epoch
         self._year, self._month, self._day = self.days_since_epoch_to_date(days_since_epoch)
-      elif isinstance(args[0], JulGregBaseDate):
+      elif isinstance(args[0], DateBase):
         date = args[0]
         self._days_since_epoch = date.days_since_epoch
         self._year, self._month, self._day = self.days_since_epoch_to_date(self._days_since_epoch)
@@ -126,16 +122,7 @@ class JulGregBaseDate(ABC):
       self._month = month
       self._day = day
     else:
-      raise Exception(f'JulGregBaseDate constructor takes 1 or 3 arguments')
-  
-  @classmethod
-  def from_unnormalized(cls, year: Integral, month: Integral, day: Integral) -> Self:
-    'Creates a JulianDate object but accepts months and days out of range'
-    return cls(*cls.normalize_date(year, month, day))
-  
-  @classmethod
-  def from_days_since_epoch(cls, days: Integral) -> Self:
-    return cls(*cls.days_since_epoch_to_date(days))
+      raise Exception(f'{self.__class__.__name__} constructor takes 1 or 3 arguments')
   
   @classmethod
   def from_iso_string(cls, string: str) -> Self:
@@ -145,10 +132,6 @@ class JulGregBaseDate(ABC):
   @classmethod
   def from_ordinal_date(cls, year: Integral, ordinal_date: Integral):
     return cls.from_unnormalized(year, 1, ordinal_date)
-  
-  @property
-  def days_since_epoch(self) -> Integral:
-    return self._days_since_epoch
   
   @property
   def year(self) -> Integral:
@@ -171,9 +154,6 @@ class JulGregBaseDate(ABC):
   def to_date_tuple(self) -> tuple[Integral, Integral, Integral]:
     return (self.year, self.month, self.day)
   
-  def to_days_since_epoch(self) -> Integral:
-    return self._days_since_epoch
-  
   def to_iso_string(self) -> str:
     return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
   
@@ -187,6 +167,3 @@ class JulGregBaseDate(ABC):
   def iso_day_of_week(self) -> int:
     'Returns the ISO day of week. 1 = monday, 7 = sunday.'
     return (self.day_of_week() - 1) % self.DAYS_IN_WEEK + 1
-  
-  def add_days(self, days: Integral) -> Self:
-    return self.from_days_since_epoch(self.days_since_epoch + days)
