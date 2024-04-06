@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from numbers import Integral, Real
 from typing import Generator, Self, SupportsIndex
 
-from .lib_funcs import binary_search, binary_search_array_split
+from .lib_funcs import binary_search
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
 from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS
@@ -88,13 +88,29 @@ class TimeInstant:
   
   @classmethod
   def _init_class_vars(cls) -> None:
-    leap_secs = [(GregorianDate.from_iso_string(date_string).to_days_since_epoch(), utc_delta) for date_string, utc_delta in cls.LEAP_SECONDS]
+    leap_secs = []
+    for date_string, time_in_day, utc_delta in cls.LEAP_SECONDS:
+      days_since_epoch = GregorianDate.from_iso_string(date_string).to_days_since_epoch()
+      days_since_epoch_delt, time_in_day = divmod(time_in_day, cls.NOMINAL_SECS_PER_DAY)
+      leap_secs.append({
+        'days_since_epoch': int(days_since_epoch + days_since_epoch_delt),
+        'time_in_day': time_in_day,
+        'utc_delta': utc_delta,
+      })
     
-    cls.LEAP_SECONDS_DICT: dict[int, FixedPrec] = dict(leap_secs)
+    leap_secs_dict_working = {}
     
-    leap_secs_adjusted = [(date_num + 1, utc_delta) for date_num, utc_delta in leap_secs]
+    for leap_entry_dict in leap_secs:
+      if leap_entry_dict['days_since_epoch'] not in leap_secs_dict_working:
+        leap_secs_dict_working[leap_entry_dict['days_since_epoch']] = [leap_entry_dict]
+      else:
+        leap_secs_dict_working[leap_entry_dict['days_since_epoch']].append(leap_entry_dict)
+    
+    # https://stackoverflow.com/questions/3294889/iterating-over-dictionaries-using-for-loops/3294899#3294899
+    cls.LEAP_SECONDS_DICT: dict[int, tuple[dict[str, int | FixedPrec], ...]] = dict([(day, tuple(leap_entries)) for day, leap_entries in leap_secs_dict_working.items()])
     
     current_utc_tai_offset = cls.UTC_INITIAL_OFFSET_FROM_TAI
+    
     cls.TAI_TO_UTC_OFFSET_TABLE: dict[str, FixedPrec | bool | None] = [
       # format:
       # { start_instant: FixedPrec (TAI), positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs, leap_utc_delta }
@@ -108,53 +124,53 @@ class TimeInstant:
       # { start_instant: FixedPrec (UTC), utc_tai_delta: tuple(0 or more elems), leap_utc_delta }
     ]
     
-    for leap_entry in leap_secs_adjusted:
-      days_since_epoch, utc_delta = leap_entry
-      leap_sec_base_time_utc = FixedPrec.from_basic(days_since_epoch * cls.NOMINAL_SECS_PER_DAY)
-      leap_sec_base_time = FixedPrec.from_basic(leap_sec_base_time_utc - current_utc_tai_offset)
-      if utc_delta < 0:
+    for leap_entry in leap_secs:
+      leap_sec_base_time_utc = leap_entry['days_since_epoch'] * cls.NOMINAL_SECS_PER_DAY + leap_entry['time_in_day']
+      leap_sec_base_time = leap_sec_base_time_utc - current_utc_tai_offset
+      leap_utc_delta = leap_entry['utc_delta']
+      if leap_utc_delta < 0:
         # "positive" leap second (utc clocks are paused / loop backward for one second; 11:59:59 PM UTC -> 11:59:60 PM UTC -> 12:00:00 AM UTC)
-        current_utc_tai_offset += utc_delta
+        current_utc_tai_offset += leap_utc_delta
         cls.TAI_TO_UTC_OFFSET_TABLE.append({
           'start_instant': leap_sec_base_time,
           'positive_leap_second_occurring': True,
           'utc_epoch_secs': leap_sec_base_time_utc,
-          'leap_utc_delta': utc_delta,
+          'leap_utc_delta': leap_utc_delta,
         })
         cls.TAI_TO_UTC_OFFSET_TABLE.append({
-          'start_instant': leap_sec_base_time - utc_delta,
+          'start_instant': leap_sec_base_time - leap_utc_delta,
           'positive_leap_second_occurring': False,
           'utc_tai_delta': current_utc_tai_offset,
-          'leap_utc_delta': utc_delta,
+          'leap_utc_delta': leap_utc_delta,
         })
         cls.UTC_TO_TAI_OFFSET_TABLE.append({
           'start_instant': leap_sec_base_time_utc,
-          'utc_tai_delta': (current_utc_tai_offset - utc_delta, current_utc_tai_offset),
-          'leap_utc_delta': utc_delta,
+          'utc_tai_delta': (current_utc_tai_offset - leap_utc_delta, current_utc_tai_offset),
+          'leap_utc_delta': leap_utc_delta,
         })
         cls.UTC_TO_TAI_OFFSET_TABLE.append({
-          'start_instant': leap_sec_base_time_utc - utc_delta,
+          'start_instant': leap_sec_base_time_utc - leap_utc_delta,
           'utc_tai_delta': (current_utc_tai_offset,),
-          'leap_utc_delta': utc_delta,
+          'leap_utc_delta': leap_utc_delta,
         })
-      elif utc_delta > 0:
+      elif leap_utc_delta > 0:
         # "negative" leap second (utc clocks skip one second; 11:59:58 PM UTC -> 12:00:00 AM UTC)
-        current_utc_tai_offset += utc_delta
+        current_utc_tai_offset += leap_utc_delta
         cls.TAI_TO_UTC_OFFSET_TABLE.append({
-          'start_instant': leap_sec_base_time - utc_delta,
+          'start_instant': leap_sec_base_time - leap_utc_delta,
           'positive_leap_second_occurring': False,
           'utc_tai_delta': current_utc_tai_offset,
-          'leap_utc_delta': utc_delta,
+          'leap_utc_delta': leap_utc_delta,
         })
         cls.UTC_TO_TAI_OFFSET_TABLE.append({
-          'start_instant': leap_sec_base_time_utc - utc_delta,
+          'start_instant': leap_sec_base_time_utc - leap_utc_delta,
           'utc_tai_delta': (),
-          'leap_utc_delta': utc_delta,
+          'leap_utc_delta': leap_utc_delta,
         })
         cls.UTC_TO_TAI_OFFSET_TABLE.append({
           'start_instant': leap_sec_base_time_utc,
           'utc_tai_delta': (current_utc_tai_offset,),
-          'leap_utc_delta': utc_delta,
+          'leap_utc_delta': leap_utc_delta,
         })
   
   @classmethod
@@ -238,17 +254,17 @@ class TimeInstant:
   
   @classmethod
   def from_gregorian_date_tuple_utc(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real, round_invalid_time_upwards: bool = True) -> Self:
-    'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) (gregorian date) into a utc TimeInstant.'
+    'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) (gregorian date) into a utc TimeInstant. Does not handle leap seconds that occur during the day.'
     date = GregorianDate(year, month, day)
     time = date.to_days_since_epoch() * cls.NOMINAL_SECS_PER_DAY
     time += hour * cls.NOMINAL_SECS_PER_HOUR
     time += minute * cls.NOMINAL_SECS_PER_MIN
     time += second
     time += frac_second
-    prev_date = date.add_days(-1)
-    prev_date_days = prev_date.to_days_since_epoch()
-    if prev_date_days in cls.LEAP_SECONDS_DICT:
-      leap_delta = cls.LEAP_SECONDS_DICT[prev_date_days]
+    date_days = date.to_days_since_epoch()
+    if date_days in cls.LEAP_SECONDS_DICT:
+      leap_entries = cls.LEAP_SECONDS_DICT[date_days]
+      leap_delta = leap_entries[-1]['utc_delta']
       if leap_delta < 0:
         # positive leap second
         if hour * cls.NOMINAL_SECS_PER_HOUR + minute * cls.NOMINAL_SECS_PER_MIN + second + frac_second < -leap_delta:
@@ -376,7 +392,7 @@ class TimeInstant:
     return self.epoch_instant_to_gregorian_tuple(self._time)
   
   def to_gregorian_date_tuple_utc(self) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
-    'Returns a gregorian date tuple in the UTC timezone.'
+    'Returns a gregorian date tuple in the UTC timezone. Does not handle leap seconds that occur during the day.'
     utc_info = self.to_utc_info()
     utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
     if utc_info['positive_leap_second_occurring']:

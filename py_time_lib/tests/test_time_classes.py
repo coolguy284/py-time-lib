@@ -1,6 +1,7 @@
 import unittest
 
 from ..calendars.gregorian import GregorianDate
+from ..data.leap_seconds import NOMINAL_SECS_PER_DAY
 from ..fixed_prec import FixedPrec
 from ..time_classes import TimeDelta, TimeInstant
 
@@ -196,8 +197,8 @@ class TestTimeClasses(unittest.TestCase):
     ))
   
   def test_utc_conversion_negative_leap_sec(self):
-    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(1))):
-      #print('\n'.join([repr(i) for i in TimeInstant.TAI_TO_UTC_OFFSET_TABLE]))
+    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1))):
+      #print('\n'.join([repr((i, GregorianDate.from_days_since_epoch(round(int(i['start_instant']) / 86400)))) for i in TimeInstant.TAI_TO_UTC_OFFSET_TABLE]))
       last_leap_index = 54
       second_last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2]['start_instant']
       last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index]['start_instant']
@@ -291,7 +292,7 @@ class TestTimeClasses(unittest.TestCase):
       instant = TimeInstant(time)
       self.assertEqual(instant, TimeInstant.from_utc_secs_since_epoch(*instant.to_utc_secs_since_epoch()))
     
-    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(1))):
+    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1))):
       pos_leap_sec_start = 52
       neg_leap_sec = 54
       
@@ -368,9 +369,9 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_tai_utc_tuple_leap_secs(self):
     with TimeInstant._temp_add_leap_secs(27, [
-        ('2017-12-31', FixedPrec(1)),
-        ('2018-06-30', FixedPrec(-2)),
-        ('2018-12-31', FixedPrec(2)),
+        ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1)),
+        ('2018-06-30', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(-2)),
+        ('2018-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(2)),
       ]):
       
       leap_normal_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2017, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
@@ -448,9 +449,9 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_from_utc_tuple(self):
     with TimeInstant._temp_add_leap_secs(27, [
-        ('2017-12-31', FixedPrec(1)),
-        ('2018-06-30', FixedPrec(-2)),
-        ('2018-12-31', FixedPrec(2)),
+        ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1)),
+        ('2018-06-30', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(-2)),
+        ('2018-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(2)),
       ]):
       
       def test(*date_tuple):
