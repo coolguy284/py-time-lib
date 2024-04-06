@@ -50,11 +50,11 @@ class JulGregBaseDate(DateBase):
     return repeat_days + mod_days + (day - 1) + cls.JAN_1_YEAR0_DAY_OFFSET
   
   @classmethod
-  def days_since_epoch_to_date[T: Integral](cls, days: T) -> tuple[T, T, T]:
-    days -= cls.JAN_1_YEAR0_DAY_OFFSET
+  def days_since_epoch_to_date[T: Integral](cls, days_since_epoch: T) -> tuple[T, T, T]:
+    days_since_epoch -= cls.JAN_1_YEAR0_DAY_OFFSET
     
-    repeat_years = days // cls.REPEAT_PERIOD_DAYS * cls.REPEAT_PERIOD_YEARS
-    mod_days = days % cls.REPEAT_PERIOD_DAYS
+    repeat_years = days_since_epoch // cls.REPEAT_PERIOD_DAYS * cls.REPEAT_PERIOD_YEARS
+    mod_days = days_since_epoch % cls.REPEAT_PERIOD_DAYS
     representative_month_index = binary_search(lambda guess: cls.months_start_day[guess] <= mod_days, 0, len(cls.months_start_day))
     
     return (
@@ -146,7 +146,7 @@ class JulGregBaseDate(DateBase):
     return self._day
   
   def __repr__(self) -> str:
-    return f'{self.__class__.__name__}({self.year!r}, {self.month!r}, {self.day!r})'
+    return f'{self.__class__.__name__}(year = {self.year!r}, month = {self.month!r}, day = {self.day!r})'
   
   def __str__(self) -> str:
     return self.to_iso_string()

@@ -3,7 +3,8 @@ jul/greg date:
   make dateDelta class for date subtraction
   add "xth thursday in month x" index func
 timeinstant:
-  add timezone support
+  add fixed-offset timezone support
+  add seasonal-offset timezone support
 
 low prio:
 implement abstract base classes for fixedprec

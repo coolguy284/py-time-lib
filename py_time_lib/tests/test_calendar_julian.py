@@ -28,7 +28,7 @@ class TestCalendarJulian(unittest.TestCase):
   
   def test_class_repr(self):
     jd = cls(2024, 1, 1)
-    self.assertEqual(repr(jd), 'JulianDate(2024, 1, 1)')
+    self.assertEqual(repr(jd), 'JulianDate(year = 2024, month = 1, day = 1)')
   
   def test_class_str(self):
     self.assertEqual(str(cls(2024, 1, 1)), '2024-01-01')
