@@ -14,6 +14,22 @@ class GregorianDate(JulGregBaseDate):
   def is_leap(year) -> bool:
     return (year % 4 == 0) and not (year % 100 == 0) or (year % 400 == 0)
   
+  @classmethod
+  def from_iso_week_tuple(cls, year: Integral, week: Integral, day):
+    d = week * 7 + day - (cls(year, 1, 4).iso_day_of_week() + 3)
+    
+    if d < 1:
+      gregorian_year = year - 1
+      ordinal_day = d + cls.days_in_year(year - 1)
+    elif d > cls.days_in_year(year):
+      gregorian_year = year + 1
+      ordinal_day = d - cls.days_in_year(year)
+    else:
+      gregorian_year = year
+      ordinal_day = d
+    
+    return cls.from_ordinal_date(gregorian_year, ordinal_day)
+  
   # instance stuff
   
   __slots__ = ()
@@ -38,10 +54,10 @@ class GregorianDate(JulGregBaseDate):
     year = self.year
     week_number = (ordinal_date - iso_day_of_week + 10) // 7
     
-    if week_number == 0:
+    if week_number < 1:
       year -= 1
       week_number = self.num_weeks_in_iso_week_year(self.year - 1)
-    elif week_number == 53:
+    elif week_number > self.num_weeks_in_iso_week_year(self.year):
       if self.num_weeks_in_iso_week_year(self.year) != 53:
         year += 1
         week_number = 1

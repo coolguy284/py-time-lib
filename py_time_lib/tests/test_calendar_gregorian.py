@@ -1,4 +1,4 @@
-import random, unittest
+import random, unittest, datetime
 
 from ..calendars.gregorian import GregorianDate
 
@@ -109,3 +109,16 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls('2000-01-01').to_iso_week_tuple(), (1999, 52, 6))
     self.assertEqual(cls('2024-04-04').to_iso_week_tuple(), (2024, 14, 4))
     self.assertEqual(cls('2024-12-31').to_iso_week_tuple(), (2025, 1, 2))
+  
+  def test_iso_week_full(self):
+    start_day = GregorianDate.date_to_days_since_epoch(1999, 12, 20)
+    
+    def test(day_since_epoch):
+      year, month, day = cls.days_since_epoch_to_date(day_since_epoch)
+      date = cls(year, month, day)
+      datetime_date = datetime.date(year, month, day)
+      self.assertEqual(date.iso_day_of_week(), datetime_date.isoweekday())
+      self.assertEqual(date.to_iso_week_tuple(), datetime_date.isocalendar())
+    
+    for day_since_epoch in range(start_day, start_day + 3000):
+      test(day_since_epoch)

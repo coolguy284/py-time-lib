@@ -121,6 +121,10 @@ class JulGregBaseDate(ABC):
     match = cls._date_iso_string_regex.match(string)
     return cls(int(match[1]), int(match[2]), int(match[3]))
   
+  @classmethod
+  def from_ordinal_date(cls, year: Integral, ordinal_date: Integral):
+    return cls.from_unnormalized(year, 1, ordinal_date)
+  
   @property
   def year(self) -> Integral:
     return self._year
