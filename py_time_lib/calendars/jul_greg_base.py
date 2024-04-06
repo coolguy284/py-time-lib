@@ -67,6 +67,12 @@ class JulGregBaseDate(ABC):
     )
   
   @classmethod
+  def parse_iso_string(cls, string: str) -> Self:
+    'Converts a string in format "YYYY-MM-DD" or "-YYYY-MM-DD" to date tuple.'
+    match = cls._date_iso_string_regex.match(string)
+    return int(match[1]), int(match[2]), int(match[3])
+  
+  @classmethod
   def _init_class_vars(cls) -> None:
     cls.months_start_day = [0]
     
@@ -77,20 +83,35 @@ class JulGregBaseDate(ABC):
   
   # instance stuff
   
-  __slots__ = '_year', '_month', '_day'
+  __slots__ = '_days_since_epoch', '_year', '_month', '_day'
+  _days_since_epoch: Integral
   _year: Integral
   _month: Integral
   _day: Integral
   
-  def __init__(self, *args: tuple[str] | tuple[Integral, Integral, Integral]):
+  # https://stackoverflow.com/questions/72644693/new-union-shorthand-giving-unsupported-operand-types-for-str-and-type/72644857#72644857
+  def __init__(self, *args: tuple['str | Integral | JulGregBaseDate'] | tuple[Integral, Integral, Integral]):
     if len(args) == 0:
       raise Exception(f'JulGregBaseDate constructor needs an argument')
     elif len(args) == 1:
-      iso_string = args[0]
-      converted = self.from_iso_string(iso_string)
-      self._year = converted._year
-      self._month = converted._month
-      self._day = converted._day
+      if isinstance(args[0], str):
+        iso_string = args[0]
+        year, month, day = self.parse_iso_string(iso_string)
+        days_since_epoch = self.date_to_days_since_epoch(year, month, day)
+        self._days_since_epoch = days_since_epoch
+        self._year = year
+        self._month = month
+        self._day = day
+      elif isinstance(args[0], Integral):
+        days_since_epoch = args[0]
+        self._days_since_epoch = days_since_epoch
+        self._year, self._month, self._day = self.days_since_epoch_to_date(days_since_epoch)
+      elif isinstance(args[0], JulGregBaseDate):
+        date = args[0]
+        self._days_since_epoch = date.days_since_epoch
+        self._year, self._month, self._day = self.days_since_epoch_to_date(self._days_since_epoch)
+      else:
+        raise Exception(f'Unrecognized single argument {args[0]!r}')
     elif len(args) == 3:
       year, month, day = args
       
@@ -100,6 +121,7 @@ class JulGregBaseDate(ABC):
       if not (1 <= day <= self.days_in_month(year, month)):
         raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {self.days_in_month(year, month)}')
       
+      self._days_since_epoch = self.date_to_days_since_epoch(year, month, day)
       self._year = year
       self._month = month
       self._day = day
@@ -118,12 +140,15 @@ class JulGregBaseDate(ABC):
   @classmethod
   def from_iso_string(cls, string: str) -> Self:
     'Converts a string in format "YYYY-MM-DD" or "-YYYY-MM-DD" to date object.'
-    match = cls._date_iso_string_regex.match(string)
-    return cls(int(match[1]), int(match[2]), int(match[3]))
+    return cls(*cls.parse_iso_string(string))
   
   @classmethod
   def from_ordinal_date(cls, year: Integral, ordinal_date: Integral):
     return cls.from_unnormalized(year, 1, ordinal_date)
+  
+  @property
+  def days_since_epoch(self) -> Integral:
+    return self._days_since_epoch
   
   @property
   def year(self) -> Integral:
@@ -147,21 +172,21 @@ class JulGregBaseDate(ABC):
     return (self.year, self.month, self.day)
   
   def to_days_since_epoch(self) -> Integral:
-    return self.date_to_days_since_epoch(self.year, self.month, self.day)
+    return self._days_since_epoch
   
   def to_iso_string(self) -> str:
     return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
   
   def ordinal_date(self) -> int:
-    return self.to_days_since_epoch() - self.__class__(self.year, 1, 1).to_days_since_epoch() + 1
+    return self.days_since_epoch - self.__class__(self.year, 1, 1).days_since_epoch + 1
   
   def day_of_week(self) -> int:
     'Returns the day of week. 0 = sunday, 6 = saturday.'
-    return (self.to_days_since_epoch() + self.DAY_OF_WEEK_OFFSET) % self.DAYS_IN_WEEK
+    return (self.days_since_epoch + self.DAY_OF_WEEK_OFFSET) % self.DAYS_IN_WEEK
   
   def iso_day_of_week(self) -> int:
     'Returns the ISO day of week. 1 = monday, 7 = sunday.'
     return (self.day_of_week() - 1) % self.DAYS_IN_WEEK + 1
   
   def add_days(self, days: Integral) -> Self:
-    return self.from_days_since_epoch(self.to_days_since_epoch() + days)
+    return self.from_days_since_epoch(self.days_since_epoch + days)

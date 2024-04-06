@@ -27,7 +27,7 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls.days_in_year(1900), 365)
   
   def test_class_repr(self):
-    jd = GregorianDate(2024, 1, 1)
+    jd = cls(2024, 1, 1)
     self.assertEqual(repr(jd), 'GregorianDate(2024, 1, 1)')
   
   def test_class_str(self):
@@ -42,11 +42,11 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls.days_in_month(2023, 2), 28)
   
   def test_feb_29_2024(self):
-    _ = GregorianDate(2024, 2, 29)
+    _ = cls(2024, 2, 29)
   
   def test_feb_29_2023(self):
     with self.assertRaises(Exception):
-      _ = GregorianDate(2023, 2, 29)
+      _ = cls(2023, 2, 29)
   
   def test_date_to_days_since_epoch(self):
     random.seed(42)
@@ -93,6 +93,16 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(str(cls('2024-04-02')), '2024-04-02')
     self.assertEqual(str(cls('0-04-02')), '0-04-02')
     self.assertEqual(str(cls('-2024-04-02')), '-2024-04-02')
+  
+  def test_from_days_since_epoch_implicit(self):
+    self.assertEqual(str(cls(1)), '0-01-02')
+    self.assertEqual(str(cls(0)), '0-01-01')
+    self.assertEqual(str(cls(-1)), '-1-12-31')
+  
+  def test_construct_from_date(self):
+    self.assertEqual(str(cls(cls(1))), '0-01-02')
+    self.assertEqual(str(cls(cls(0))), '0-01-01')
+    self.assertEqual(str(cls(cls(-1))), '-1-12-31')
   
   # gregorian only tests
   

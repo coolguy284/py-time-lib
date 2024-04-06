@@ -27,7 +27,7 @@ class TestCalendarJulian(unittest.TestCase):
     self.assertEqual(cls.days_in_year(1900), 366)
   
   def test_class_repr(self):
-    jd = JulianDate(2024, 1, 1)
+    jd = cls(2024, 1, 1)
     self.assertEqual(repr(jd), 'JulianDate(2024, 1, 1)')
   
   def test_class_str(self):
@@ -42,11 +42,11 @@ class TestCalendarJulian(unittest.TestCase):
     self.assertEqual(cls.days_in_month(2023, 2), 28)
   
   def test_feb_29_2024(self):
-    _ = JulianDate(2024, 2, 29)
+    _ = cls(2024, 2, 29)
   
   def test_feb_29_2023(self):
     with self.assertRaises(Exception):
-      _ = JulianDate(2023, 2, 29)
+      _ = cls(2023, 2, 29)
   
   def test_date_to_days_since_epoch(self):
     random.seed(42)
