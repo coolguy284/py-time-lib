@@ -38,7 +38,7 @@ class JulGregBaseDate(ABC):
   
   @classmethod
   def normalize_date[T: Integral](cls, year: T, month: T, day: T) -> tuple[T, T, T]:
-    return cls.days_since_epoch_to_date(*cls.date_to_days_since_epoch(year, month, day))
+    return cls.days_since_epoch_to_date(cls.date_to_days_since_epoch(year, month, day))
   
   @classmethod
   def date_to_days_since_epoch[T: Integral](cls, year: T, month: T, day: T) -> T:
@@ -109,7 +109,7 @@ class JulGregBaseDate(ABC):
   @classmethod
   def from_unnormalized(cls, year: Integral, month: Integral, day: Integral) -> Self:
     'Creates a JulianDate object but accepts months and days out of range'
-    return cls(cls.normalize_date(year, month, day))
+    return cls(*cls.normalize_date(year, month, day))
   
   @classmethod
   def from_days_since_epoch(cls, days: Integral) -> Self:

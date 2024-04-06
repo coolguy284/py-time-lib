@@ -122,3 +122,20 @@ class TestCalendarGregorian(unittest.TestCase):
     
     for day_since_epoch in range(start_day, start_day + 366 * 7):
       test(day_since_epoch)
+  
+  def test_day_of_week_and_iso_week(self):
+    monday = cls.from_iso_week_tuple(2024, 10, 1)
+    saturday = cls.from_iso_week_tuple(2024, 10, 6)
+    sunday = cls.from_iso_week_tuple(2024, 10, 7)
+    self.assertEqual(monday.day_of_week(), 1)
+    self.assertEqual(monday.iso_day_of_week(), 1)
+    self.assertEqual(saturday.day_of_week(), 6)
+    self.assertEqual(saturday.iso_day_of_week(), 6)
+    self.assertEqual(sunday.day_of_week(), 0)
+    self.assertEqual(sunday.iso_day_of_week(), 7)
+  
+  def test_from_unnormalized(self):
+    date = cls.from_unnormalized(2024, 1, 32)
+    self.assertEqual(date.to_date(), (2024, 2, 1))
+    date = cls.from_unnormalized(2024, 1, 0)
+    self.assertEqual(date.to_date(), (2023, 12, 31))
