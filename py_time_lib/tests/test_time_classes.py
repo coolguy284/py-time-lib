@@ -93,7 +93,7 @@ class TestTimeClasses(unittest.TestCase):
     last_leap_utc_secs = last_leap_start + last_utc_offset + 1
     second_last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 2]['leap_utc_delta']
     last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['leap_utc_delta']
-    self.assertEqual(last_leap_utc_secs, GregorianDate(2017, 1, 1).to_days_since_epoch() * 86400)
+    self.assertEqual(last_leap_utc_secs, GregorianDate(2017, 1, 1).days_since_epoch * 86400)
     self.assertEqual(second_last_utc_offset, -36)
     self.assertEqual(last_utc_offset, -37)
     t1 = TimeInstant(last_leap_start)
@@ -207,7 +207,7 @@ class TestTimeClasses(unittest.TestCase):
       last_leap_utc_secs = last_leap_start + last_utc_offset - 1
       second_last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['leap_utc_delta']
       last_leap_delta = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index]['leap_utc_delta']
-      self.assertEqual(last_leap_utc_secs, GregorianDate(2018, 1, 1).to_days_since_epoch() * 86400 - 1)
+      self.assertEqual(last_leap_utc_secs, GregorianDate(2018, 1, 1).days_since_epoch * 86400 - 1)
       self.assertEqual(second_last_utc_offset, -37)
       self.assertEqual(last_utc_offset, -36)
       t1 = TimeInstant(last_leap_start)
@@ -279,12 +279,12 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_tai_tuple(self):
     date = GregorianDate(2018, 1, 1)
-    instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
+    instant = TimeInstant(date.days_since_epoch * 86400 + 37.5)
     self.assertEqual(instant.to_date_tuple_tai(), (2018, 1, 1, 0, 0, 37, 0.5))
   
   def test_utc_tuple(self):
     date = GregorianDate(2018, 1, 1)
-    instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
+    instant = TimeInstant(date.days_since_epoch * 86400 + 37.5)
     self.assertEqual(instant.to_date_tuple_utc(), (2018, 1, 1, 0, 0, 0, 0.5))
   
   def test_from_utc(self):
@@ -374,10 +374,10 @@ class TestTimeClasses(unittest.TestCase):
         ('2018-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(2)),
       ]):
       
-      leap_normal_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2017, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
-      leap_normal_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
-      leap_big_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 7, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
-      leap_big_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2019, 1, 1).to_days_since_epoch() * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_normal_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2017, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_normal_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_big_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 7, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_big_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2019, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
       
       def test_instant(time_delta, tai_tuple, utc_tuple):
         instant = current_leap + TimeDelta(FixedPrec(time_delta))

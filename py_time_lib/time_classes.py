@@ -91,7 +91,7 @@ class TimeInstant:
   def _init_class_vars(cls) -> None:
     leap_secs = []
     for date_string, time_in_day, utc_delta in cls.LEAP_SECONDS:
-      days_since_epoch = GregorianDate.from_iso_string(date_string).to_days_since_epoch()
+      days_since_epoch = GregorianDate.from_iso_string(date_string).days_since_epoch
       days_since_epoch_delt, time_in_day = divmod(time_in_day, cls.NOMINAL_SECS_PER_DAY)
       leap_secs.append({
         'days_since_epoch': int(days_since_epoch + days_since_epoch_delt),
@@ -246,7 +246,7 @@ class TimeInstant:
   def from_date_tuple_tai(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a tai TimeInstant.'
     date = date_cls(year, month, day)
-    time = date.to_days_since_epoch() * cls.NOMINAL_SECS_PER_DAY
+    time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
     time += hour * cls.NOMINAL_SECS_PER_HOUR
     time += minute * cls.NOMINAL_SECS_PER_MIN
     time += second
@@ -257,12 +257,12 @@ class TimeInstant:
   def from_date_tuple_utc(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real, round_invalid_time_upwards: bool = True, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a utc TimeInstant. Does not handle leap seconds that occur during the day.'
     date = date_cls(year, month, day)
-    time = date.to_days_since_epoch() * cls.NOMINAL_SECS_PER_DAY
+    time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
     time += hour * cls.NOMINAL_SECS_PER_HOUR
     time += minute * cls.NOMINAL_SECS_PER_MIN
     time += second
     time += frac_second
-    date_days = date.to_days_since_epoch()
+    date_days = date.days_since_epoch
     if date_days in cls.LEAP_SECONDS_DICT:
       leap_entries = cls.LEAP_SECONDS_DICT[date_days]
       leap_delta = leap_entries[-1]['utc_delta']
