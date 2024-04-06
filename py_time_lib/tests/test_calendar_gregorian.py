@@ -136,6 +136,6 @@ class TestCalendarGregorian(unittest.TestCase):
   
   def test_from_unnormalized(self):
     date = cls.from_unnormalized(2024, 1, 32)
-    self.assertEqual(date.to_date(), (2024, 2, 1))
+    self.assertEqual(date.to_date_tuple(), (2024, 2, 1))
     date = cls.from_unnormalized(2024, 1, 0)
-    self.assertEqual(date.to_date(), (2023, 12, 31))
+    self.assertEqual(date.to_date_tuple(), (2023, 12, 31))

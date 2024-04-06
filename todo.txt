@@ -1,6 +1,3 @@
-convert all gregorian date in timeprec to instead be a func argument with a default (which is a const actually with default val gregoriandate)
-add support for leapsecond occurring at a certain second of the day
-
 jul/greg date:
   add intraconversion btwn date classes
   make iso week system a seperate calendar class
@@ -12,4 +9,6 @@ timeinstant:
 low prio:
 implement abstract base classes for fixedprec
 add __r*__ versions for all fixedprec and timedelta ops
-support leap seconds at a certain time during day as well
+tests:
+  timeinstant: tests for leap seconds during day
+  timeinstant: test for passing in non-gregoriandate into to/from date tuple

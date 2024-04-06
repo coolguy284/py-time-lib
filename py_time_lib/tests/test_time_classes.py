@@ -280,12 +280,12 @@ class TestTimeClasses(unittest.TestCase):
   def test_tai_tuple(self):
     date = GregorianDate(2018, 1, 1)
     instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
-    self.assertEqual(instant.to_gregorian_date_tuple_tai(), (2018, 1, 1, 0, 0, 37, 0.5))
+    self.assertEqual(instant.to_date_tuple_tai(), (2018, 1, 1, 0, 0, 37, 0.5))
   
   def test_utc_tuple(self):
     date = GregorianDate(2018, 1, 1)
     instant = TimeInstant(date.to_days_since_epoch() * 86400 + 37.5)
-    self.assertEqual(instant.to_gregorian_date_tuple_utc(), (2018, 1, 1, 0, 0, 0, 0.5))
+    self.assertEqual(instant.to_date_tuple_utc(), (2018, 1, 1, 0, 0, 0, 0.5))
   
   def test_from_utc(self):
     def test_one(time):
@@ -381,8 +381,8 @@ class TestTimeClasses(unittest.TestCase):
       
       def test_instant(time_delta, tai_tuple, utc_tuple):
         instant = current_leap + TimeDelta(FixedPrec(time_delta))
-        self.assertEqual(instant.to_gregorian_date_tuple_tai(), tai_tuple[:6] + (FixedPrec(tai_tuple[6]),))
-        self.assertEqual(instant.to_gregorian_date_tuple_utc(), utc_tuple[:6] + (FixedPrec(utc_tuple[6]),))
+        self.assertEqual(instant.to_date_tuple_tai(), tai_tuple[:6] + (FixedPrec(tai_tuple[6]),))
+        self.assertEqual(instant.to_date_tuple_utc(), utc_tuple[:6] + (FixedPrec(utc_tuple[6]),))
       
       # positive leap second (36 -> 37)
       
@@ -445,7 +445,7 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_from_tai_tuple(self):
     tai_tuple = 2018, 1, 1, 3, 2, 9, FixedPrec('0.1')
-    self.assertEqual(TimeInstant.from_gregorian_date_tuple_tai(*tai_tuple).to_gregorian_date_tuple_tai(), tai_tuple)
+    self.assertEqual(TimeInstant.from_date_tuple_tai(*tai_tuple).to_date_tuple_tai(), tai_tuple)
   
   def test_from_utc_tuple(self):
     with TimeInstant._temp_add_leap_secs(27, [
@@ -456,8 +456,8 @@ class TestTimeClasses(unittest.TestCase):
       
       def test(*date_tuple):
         date_tuple = *date_tuple[:6], FixedPrec(date_tuple[6])
-        instant = TimeInstant.from_gregorian_date_tuple_utc(*date_tuple)
-        self.assertEqual(date_tuple, instant.to_gregorian_date_tuple_utc())
+        instant = TimeInstant.from_date_tuple_utc(*date_tuple)
+        self.assertEqual(date_tuple, instant.to_date_tuple_utc())
       
       test(2016, 12, 31, 23, 59, 59, '0.9')
       test(2016, 12, 31, 23, 59, 60, '0'  )

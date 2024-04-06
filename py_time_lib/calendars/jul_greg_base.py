@@ -143,7 +143,7 @@ class JulGregBaseDate(ABC):
   def __str__(self) -> str:
     return self.to_iso_string()
   
-  def to_date(self) -> tuple[Integral, Integral, Integral]:
+  def to_date_tuple(self) -> tuple[Integral, Integral, Integral]:
     return (self.year, self.month, self.day)
   
   def to_days_since_epoch(self) -> Integral:

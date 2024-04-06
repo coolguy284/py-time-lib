@@ -35,7 +35,7 @@ class GregorianDate(JulGregBaseDate):
   __slots__ = ()
   
   def days_diff_from_julian(self) -> Integral:
-    return JulianDate(*self.to_date()).to_days_since_epoch() - self.to_days_since_epoch()
+    return JulianDate(*self.to_date_tuple()).to_days_since_epoch() - self.to_days_since_epoch()
   
   @classmethod
   def num_weeks_in_iso_week_year(cls, year):
