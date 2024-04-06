@@ -1,3 +1,8 @@
+check much more dates for iso weekday using datetime and going thru several years incl leap week year
+add from iso weekday func as well
+add test for day of week and iso day of week that tests boundary conditions
+convert all gregorian date in timeprec to instead be a func argument with a default (which is a const actually with default val gregoriandate)
+
 jul/greg date:
   add intraconversion btwn date classes
   make iso week system a seperate calendar class
