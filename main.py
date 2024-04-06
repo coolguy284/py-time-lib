@@ -1,3 +1,4 @@
+import datetime
 from py_time_lib.calendars.gregorian import GregorianDate
 from py_time_lib.calendars.julian import JulianDate
 from py_time_lib.fixed_prec import FixedPrec
@@ -40,3 +41,10 @@ if mode == 0:
   
   print(GregorianDate.from_iso_string('2024-03-27'))
   print()
+elif mode == 1:
+  def print_date_info(year):
+    prev_date = (datetime.date(year, 12, 31) + datetime.timedelta(days = 1)).isocalendar()
+    next_date = (datetime.date(year, 1, 1) - datetime.timedelta(days = 1)).isocalendar()
+    print([prev_date, next_date])
+  for i in range(2020, 2030):
+    print_date_info(i)

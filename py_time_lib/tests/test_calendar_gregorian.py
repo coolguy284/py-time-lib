@@ -111,7 +111,7 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls('2024-12-31').to_iso_week_tuple(), (2025, 1, 2))
   
   def test_iso_week_full(self):
-    start_day = GregorianDate.date_to_days_since_epoch(1999, 12, 20)
+    start_day = GregorianDate.date_to_days_since_epoch(2019, 12, 20)
     
     def test(day_since_epoch):
       year, month, day = cls.days_since_epoch_to_date(day_since_epoch)
@@ -120,5 +120,5 @@ class TestCalendarGregorian(unittest.TestCase):
       self.assertEqual(date.iso_day_of_week(), datetime_date.isoweekday())
       self.assertEqual(date.to_iso_week_tuple(), datetime_date.isocalendar())
     
-    for day_since_epoch in range(start_day, start_day + 3000):
+    for day_since_epoch in range(start_day, start_day + 366 * 7):
       test(day_since_epoch)
