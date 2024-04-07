@@ -6,7 +6,7 @@ from .lib_funcs import binary_search
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
 from .calendars.date_base import DateBase
-from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS
+from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS, NOMINAL_SECS_PER_DAY as DATA_NOMINAL_SECS_PER_DAY
 
 class TimeDelta:
   'Class representing the difference between two times, stored using the TAI length of second.'
@@ -70,7 +70,7 @@ class TimeInstant:
   
   # static stuff
   
-  NOMINAL_SECS_PER_DAY = 86_400
+  NOMINAL_SECS_PER_DAY = DATA_NOMINAL_SECS_PER_DAY
   NOMINAL_SECS_PER_HOUR = 3_600
   NOMINAL_SECS_PER_MIN = 60
   
