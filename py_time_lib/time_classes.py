@@ -4,15 +4,18 @@ from typing import Generator, Self, SupportsIndex
 
 from .lib_funcs import binary_search
 from .fixed_prec import FixedPrec
-from .calendars.gregorian import GregorianDate
 from .calendars.date_base import DateBase
+from .calendars.gregorian import GregorianDate
+from .calendars.julian import JulianDate
 from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS, NOMINAL_SECS_PER_DAY as DATA_NOMINAL_SECS_PER_DAY
+
+type TimeStorageType = FixedPrec | Real
 
 class TimeDelta:
   'Class representing the difference between two times, stored using the TAI length of second.'
   
   __slots__ = '_time_delta'
-  _time_delta: FixedPrec | Real
+  _time_delta: TimeStorageType
   
   def __init__(self, time_delta: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(time_delta, FixedPrec):
@@ -75,11 +78,11 @@ class TimeInstant:
   NOMINAL_SECS_PER_MIN = 60
   
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
-  UTC_INITIAL_OFFSET_FROM_TAI = FixedPrec(-10, 0)
+  UTC_INITIAL_OFFSET_FROM_TAI = FixedPrec(-10)
   LEAP_SECONDS = DATA_LEAP_SECONDS
   
   @classmethod
-  def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
+  def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
     days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
     date = date_cls.from_days_since_epoch(int(days_since_epoch))
     hour, remainder = divmod(time_since_day_start, cls.NOMINAL_SECS_PER_HOUR)
@@ -224,7 +227,7 @@ class TimeInstant:
   # instance stuff
   
   __slots__ = '_time'
-  _time: FixedPrec | Real
+  _time: TimeStorageType
   
   def __init__(self, time: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
@@ -233,7 +236,7 @@ class TimeInstant:
     self._time = time
   
   @classmethod
-  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: FixedPrec | Real, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
+  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: TimeStorageType, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
     if len(cls.UTC_TO_TAI_OFFSET_TABLE) == 0:
       return cls(utc_seconds_since_epoch - cls.UTC_INITIAL_OFFSET_FROM_TAI)
     else:
@@ -258,7 +261,7 @@ class TimeInstant:
             return cls(utc_seconds_since_epoch - utc_table_entry['utc_tai_delta'][0])
   
   @classmethod
-  def from_date_tuple_tai(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real, date_cls: type[DateBase] = GregorianDate) -> Self:
+  def from_date_tuple_tai(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, date_cls: type[DateBase] = GregorianDate) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a tai TimeInstant.'
     date = date_cls(year, month, day)
     time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
@@ -269,7 +272,7 @@ class TimeInstant:
     return TimeInstant(time)
   
   @classmethod
-  def from_date_tuple_utc(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: FixedPrec | Real, round_invalid_time_upwards: bool = True, date_cls: type[DateBase] = GregorianDate) -> Self:
+  def from_date_tuple_utc(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, round_invalid_time_upwards: bool = True, date_cls: type[DateBase] = GregorianDate) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a utc TimeInstant. Does not handle leap seconds that occur during the day.'
     date = date_cls(year, month, day)
     time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
@@ -294,7 +297,7 @@ class TimeInstant:
     return TimeInstant.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
   @classmethod
-  def from_unix_timestamp(cls, unix_secs_since_epoch: FixedPrec | Real, second_fold: bool = False):
+  def from_unix_timestamp(cls, unix_secs_since_epoch: TimeStorageType, second_fold: bool = False):
     return cls.from_utc_secs_since_epoch(unix_secs_since_epoch + cls.UNIX_TIMESTAMP_ORIGIN_OFFSET, second_fold)
   
   def __repr__(self) -> str:
@@ -304,7 +307,7 @@ class TimeInstant:
     return f'T{self._time:+}'
   
   @property
-  def time(self) -> FixedPrec | Real:
+  def time(self) -> TimeStorageType:
     return self._time
   
   def __add__(self, other: TimeDelta) -> Self:
@@ -340,7 +343,7 @@ class TimeInstant:
   def __le__(self, other: Self):
     return self._time <= other._time
   
-  def to_utc_info(self) -> dict[str, FixedPrec | Real | bool | None]:
+  def to_utc_info(self) -> dict[str, TimeStorageType | bool | None]:
     'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, last_leap_delta, last_leap_transition_time (when last leap second started or ended)).'
     if len(self.TAI_TO_UTC_OFFSET_TABLE) == 0:
       return {
@@ -375,7 +378,7 @@ class TimeInstant:
             'last_leap_transition_time': tai_table_entry['start_instant'],
           }
   
-  def to_utc_secs_since_epoch(self) -> tuple[FixedPrec | Real, bool]:
+  def to_utc_secs_since_epoch(self) -> tuple[TimeStorageType, bool]:
     '''
     Returns a tuple of the form (utc_seconds_since_epoch, second_fold).
     After a positive leap second, the counter goes back one second,
@@ -400,11 +403,11 @@ class TimeInstant:
     else:
       return utc_seconds_since_epoch + (self.time - last_leap_transition_time), False
   
-  def to_date_tuple_tai(self, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
+  def to_date_tuple_tai(self, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
     'Returns a date tuple in the TAI timezone (as math is easiest for this).'
     return self.epoch_instant_to_date_tuple(self._time, date_cls = date_cls)
   
-  def to_date_tuple_utc(self, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, FixedPrec | Real]:
+  def to_date_tuple_utc(self, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
     'Returns a date tuple in the UTC timezone. Does not handle leap seconds that occur during the day.'
     utc_info = self.to_utc_info()
     utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
@@ -417,7 +420,7 @@ class TimeInstant:
       second = int(second + second_addl)
     return *date, hour, minute, second, frac_second
   
-  def to_unix_timestamp(self) -> tuple[FixedPrec | Real, bool]:
+  def to_unix_timestamp(self) -> tuple[TimeStorageType, bool]:
     '''
     Returns a unix timestamp tuple in the form of (unix_secs_since_epoch, second_fold).
     After a positive leap second, the counter gets set back one second and second_fold

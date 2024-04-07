@@ -1,10 +1,10 @@
-add truediv support to fixedprec, uncomment timedelta div test case
 add julian date, mjd support
 switch utc timestamp set to be in minutely intervals
+add microsoft epoch ticks, .net ticks
+add leap smear support
 pull leap seconds file from https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list if local copy is past expiry
 
 jul/greg date:
-  make iso week system a seperate calendar class
   make dateDelta class for date subtraction
   add "xth thursday in month x" index func
 timeinstant:
