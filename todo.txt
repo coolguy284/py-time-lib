@@ -1,7 +1,6 @@
 add aliases to match datetime library, maybe add strftime and stuff as well (maybe only to the simplified wrapper classes)
 holocene calendar
 simpledatetime/simpletimedelta wrapper around the date classes
-top level import of all the classes and data?
 add julian date, mjd, and unix timestamp funcs to timeinstant
 bonus is add ut1 timestamp func
 switch utc timestamp set to be in minutely intervals

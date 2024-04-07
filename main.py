@@ -1,10 +1,7 @@
 import datetime
-from py_time_lib.calendars.gregorian import GregorianDate
-from py_time_lib.calendars.julian import JulianDate
-from py_time_lib.fixed_prec import FixedPrec
-from py_time_lib.time_classes import TimeInstant
+from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate
 
-mode = 1
+mode = 2
 
 if mode == 0:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
