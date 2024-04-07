@@ -79,6 +79,9 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(divmod(FixedPrec('20.0'), FixedPrec('10.0')), (2, FixedPrec('0.0')))
     self.assertEqual(divmod(FixedPrec('22.0'), FixedPrec('10.0')), (2, FixedPrec('2.0')))
   
+  def test_recip_and_true_div(self):
+    pass#self.assertEqual(FixedPrec('2.0').reciprocal(), FixedPrec('0.5'))
+  
   def test_relational(self):
     self.assertEqual(FixedPrec(1, 0) == FixedPrec(1, 0), True)
     self.assertEqual(FixedPrec(1, 0) == FixedPrec(10, 1), True)

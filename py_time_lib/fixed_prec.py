@@ -10,6 +10,7 @@ class FixedPrec:
   max_prec: Integral
   
   FLOAT_ADDED_PREC = 15
+  RECIPROCAL_ADDED_PREC = 15
   _int_regex = re.compile('^(-?\\d+)$')
   _float_regex = re.compile('^(-?)(\\d+)\\.(\\d+)$')
   
@@ -243,6 +244,27 @@ class FixedPrec:
       self.place,
       self.max_prec
     )
+  
+  def reciprocal(self) -> Self:
+    if self.value == 0:
+      raise ZeroDivisionError('division by zero')
+    else:
+      dividend_exponent = len(str(self.value)) + self.RECIPROCAL_ADDED_PREC + 1
+      dividend = 10 ** dividend_exponent
+      result = dividend // self.value
+      return FixedPrec(
+        result,
+        -self.place + self.RECIPROCAL_ADDED_PREC + 1 + 1,
+        self.max_prec,
+      ).reduce_to_max_prec()
+  
+  def __truediv__(self, other) -> Self:
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
+    return self * other.reciprocal()
   
   def __radd__(self, other) -> Self:
     try:
