@@ -221,6 +221,17 @@ class TimeInstant:
       finally:
         pass
   
+  # instance stuff
+  
+  __slots__ = '_time'
+  _time: FixedPrec | Real
+  
+  def __init__(self, time: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
+    if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
+      time = FixedPrec.from_basic(time)
+    
+    self._time = time
+  
   @classmethod
   def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: Integral, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
     if len(cls.UTC_TO_TAI_OFFSET_TABLE) == 0:
@@ -281,17 +292,6 @@ class TimeInstant:
     else:
       leap_fold = False
     return TimeInstant.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
-  
-  # instance stuff
-  
-  __slots__ = '_time'
-  _time: FixedPrec | Real
-  
-  def __init__(self, time: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
-    if coerce_to_fixed_prec and not isinstance(time, FixedPrec):
-      time = FixedPrec.from_basic(time)
-    
-    self._time = time
   
   def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time!r})'
