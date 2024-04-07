@@ -1,3 +1,13 @@
+move day of week and iso day of week to datebase class
+add epoch to docstring for datebase class
+add aliases to match datetime library, maybe add strftime and stuff as well (maybe only to the simplified wrapper classes)
+holocene calendar
+simpledatetime/simpletimedelta wrapper around the date classes
+top level import of all the classes and data?
+add julian date, mjd, and unix timestamp funcs to timeinstant
+bonus is add ut1 timestamp func
+switch utc timestamp set to be in minutely intervals
+
 jul/greg date:
   make iso week system a seperate calendar class
   make dateDelta class for date subtraction
@@ -12,3 +22,4 @@ add __r*__ versions for all fixedprec and timedelta ops
 tests:
   timeinstant: tests for leap seconds during day
   timeinstant: test for passing in non-gregoriandate into to/from date tuple
+pull leap seconds file from https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list if local copy is past expiry
