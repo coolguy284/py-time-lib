@@ -1,4 +1,3 @@
-move day of week and iso day of week to datebase class
 add epoch to docstring for datebase class
 add aliases to match datetime library, maybe add strftime and stuff as well (maybe only to the simplified wrapper classes)
 holocene calendar

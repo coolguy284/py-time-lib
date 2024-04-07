@@ -7,6 +7,9 @@ class DateBase(ABC):
   
   # static stuff
   
+  DAY_OF_WEEK_OFFSET = -1
+  DAYS_IN_WEEK = 7
+  
   @classmethod
   @abstractmethod
   def date_to_days_since_epoch[T: Integral](cls, *date: tuple[T, ...]) -> T:
@@ -67,3 +70,11 @@ class DateBase(ABC):
   
   def add_days(self, days: Integral) -> Self:
     return self.from_days_since_epoch(self.days_since_epoch + days)
+  
+  def day_of_week(self) -> int:
+    'Returns the day of week. 0 = sunday, 6 = saturday.'
+    return (self.days_since_epoch + self.DAY_OF_WEEK_OFFSET) % self.DAYS_IN_WEEK
+  
+  def iso_day_of_week(self) -> int:
+    'Returns the ISO day of week. 1 = monday, 7 = sunday.'
+    return (self.day_of_week() - 1) % self.DAYS_IN_WEEK + 1
