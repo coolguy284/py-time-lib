@@ -173,6 +173,10 @@ class TimeInstant:
           'utc_tai_delta': (current_utc_tai_offset,),
           'leap_utc_delta': leap_utc_delta,
         })
+    
+    # basic functionality of TimeInstant created by this point so TimeInstant methods can be called
+    
+    cls.UNIX_TIMESTAMP_ORIGIN_OFFSET = cls.from_date_tuple_utc(1970, 1, 1, 0, 0, 0, 0).to_utc_secs_since_epoch()[0]
   
   @classmethod
   @contextmanager
@@ -368,7 +372,11 @@ class TimeInstant:
           }
   
   def to_utc_secs_since_epoch(self) -> tuple[FixedPrec | Real, bool]:
-    'Returns a tuple of the form (utc_seconds_since_epoch, second_fold). For a leap second, the counter goes back one second, and fold gets set to true.'
+    '''
+    Returns a tuple of the form (utc_seconds_since_epoch, second_fold).
+    After a positive leap second, the counter goes back one second,
+    and fold gets set to true for one second.
+    '''
     utc_info = self.to_utc_info()
     utc_seconds_since_epoch = utc_info['utc_seconds_since_epoch']
     positive_leap_second_occurring = utc_info['positive_leap_second_occurring']
@@ -404,5 +412,15 @@ class TimeInstant:
       second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
       second = int(second + second_addl)
     return *date, hour, minute, second, frac_second
+  
+  def to_unix_timestamp(self) -> tuple[FixedPrec | Real, bool]:
+    '''
+    Returns a unix timestamp tuple in the form of (unix_secs_since_epoch, second_fold).
+    After a positive leap second, the counter gets set back one second and second_fold
+    becomes true for one second.
+    '''
+    utc_secs_since_epoch, second_fold = self.to_utc_secs_since_epoch()
+    unix_secs_since_epoch = utc_secs_since_epoch - self.UNIX_TIMESTAMP_ORIGIN_OFFSET
+    return unix_secs_since_epoch, second_fold
 
 TimeInstant._init_class_vars()
