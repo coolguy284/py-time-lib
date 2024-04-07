@@ -1,8 +1,4 @@
-add aliases to match datetime library, maybe add strftime and stuff as well (maybe only to the simplified wrapper classes)
-holocene calendar
-simpledatetime/simpletimedelta wrapper around the date classes
 add julian date, mjd, and unix timestamp funcs to timeinstant
-bonus is add ut1 timestamp func
 switch utc timestamp set to be in minutely intervals
 
 jul/greg date:
@@ -20,3 +16,7 @@ tests:
   timeinstant: tests for leap seconds during day
   timeinstant: test for passing in non-gregoriandate into to/from date tuple
 pull leap seconds file from https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list if local copy is past expiry
+possibly add strftime function and others to timeinstant (maybe only to the simplified wrapper classes)
+add aliases from datetime library, maybe full compatibility class
+simpledatetime/simpletimedelta wrapper around the date classes
+bonus is add ut1 timestamp func

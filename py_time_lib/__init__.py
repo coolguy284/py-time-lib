@@ -6,3 +6,4 @@ from .calendars.jul_greg_base import JulGregBaseDate
 from .calendars.julian import JulianDate
 from .calendars.gregorian import GregorianDate
 from .calendars.iso_weekdate import IsoWeekDate
+from .calendars.holocene import HoloceneDate
