@@ -1,9 +1,17 @@
-import datetime
+import code, datetime
+from enum import Enum
+
 from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate
 
-mode = 2
+RunModes = Enum('RunModes', [
+  'BASIC_DATE_TESTING',
+  'ISO_WEEK_TESTING',
+  'REPL',
+])
 
-if mode == 0:
+mode = RunModes.REPL
+
+if mode == RunModes.BASIC_DATE_TESTING:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
   
   print(date_to_days_since_epoch(1901, 1, 1) - date_to_days_since_epoch(1900, 1, 1))
@@ -38,10 +46,13 @@ if mode == 0:
   
   print(GregorianDate.from_iso_string('2024-03-27'))
   print()
-elif mode == 1:
+elif mode == RunModes.ISO_WEEK_TESTING:
   def print_date_info(year):
     prev_date = (datetime.date(year, 12, 31) + datetime.timedelta(days = 1)).isocalendar()
     next_date = (datetime.date(year, 1, 1) - datetime.timedelta(days = 1)).isocalendar()
     print([prev_date, next_date])
   for i in range(2020, 2030):
     print_date_info(i)
+elif mode == RunModes.REPL:
+  # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
+  code.interact(local = globals())
