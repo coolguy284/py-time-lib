@@ -129,6 +129,16 @@ class FixedPrec:
     else:
       return self
   
+  def increase_to_max_prec(self) -> Self:
+    if self.place < self.max_prec:
+      return FixedPrec(
+        self.value * 10 ** (self.max_prec - self.place),
+        self.max_prec,
+        self.max_prec
+      )
+    else:
+      return self
+  
   def force_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
       return FixedPrec(
@@ -266,14 +276,15 @@ class FixedPrec:
     except NotImplementedError:
       return NotImplemented
     
-    self_max_prec = self.force_to_max_prec()
+    self_max_prec = self.increase_to_max_prec()
     
     if other.value == 0:
       raise ZeroDivisionError('division by zero')
     else:
+      additional_precision = max((other.place - self_max_prec.max_prec) - (self_max_prec.place - self_max_prec.max_prec), 0)
       return FixedPrec(
-        self_max_prec.value // other.value,
-        self_max_prec.place - other.place,
+        self_max_prec.value * 10 ** additional_precision // other.value,
+        self_max_prec.place - other.place + additional_precision,
         max(self_max_prec.max_prec, other.max_prec)
       ).reduce_to_max_prec()
   

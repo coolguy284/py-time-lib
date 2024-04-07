@@ -86,6 +86,9 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(9, 1) / FixedPrec(3), FixedPrec('0.3'))
     self.assertEqual(FixedPrec(9) / FixedPrec(3, -1), FixedPrec('0.3'))
     self.assertEqual(FixedPrec(9) / FixedPrec(3, 1), FixedPrec(30))
+    self.assertEqual(FixedPrec(1) / FixedPrec('0.25'), FixedPrec(4))
+    self.assertEqual(FixedPrec(1) / FixedPrec('0.250000000000'), FixedPrec(4))
+    self.assertEqual(FixedPrec(1) / FixedPrec('0.2500000000000'), FixedPrec(4))
   
   def test_relational(self):
     self.assertEqual(FixedPrec(1, 0) == FixedPrec(1, 0), True)
