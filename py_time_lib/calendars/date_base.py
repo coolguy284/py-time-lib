@@ -3,7 +3,11 @@ from numbers import Integral
 from typing import Self
 
 class DateBase(ABC):
-  'Base class for all date objects. Not directly instantiated.'
+  '''
+  Base class for all date objects. Represents a date stored as days since
+  the epoch of Jan 1, 1 BCE in the proleptic gregorian calendar.
+  Not directly instantiated.
+  '''
   
   # static stuff
   
