@@ -1,30 +1,65 @@
+import re
 from numbers import Integral
 from typing import Self
 
 from .date_base import DateBase
-from .gregorian import GregorianDate
+from . import gregorian
 
 class IsoWeekDate(DateBase):
   # static stuff
   
-  DAYS_IN_WEEK = 7
+  _date_iso_string_regex = re.compile('^(-?\\d+)-W(\\d{1,2})-(\\d)$')
   
   @staticmethod
   def weeks_in_year(year: Integral) -> int:
-    ...
+    day_of_week_dec_31 = gregorian.GregorianDate(year, 12, 31).iso_day_of_week()
+    day_of_week_dec_31_past_year = gregorian.GregorianDate(year - 1, 12, 31).iso_day_of_week()
+    if day_of_week_dec_31 == 4 or day_of_week_dec_31_past_year == 3:
+      return 53
+    else:
+      return 52
   
   @classmethod
   def date_to_days_since_epoch[T: Integral](cls, year: T, week: T, day: T) -> T:
-    ...
+    # https://en.wikipedia.org/wiki/ISO_week_date#Algorithms
+    d = week * 7 + day - (gregorian.GregorianDate(year, 1, 4).iso_day_of_week() + 3)
+    
+    if d < 1:
+      gregorian_year = year - 1
+      ordinal_day = d + gregorian.GregorianDate.days_in_year(year - 1)
+    elif d > gregorian.GregorianDate.days_in_year(year):
+      gregorian_year = year + 1
+      ordinal_day = d - gregorian.GregorianDate.days_in_year(year)
+    else:
+      gregorian_year = year
+      ordinal_day = d
+    
+    return gregorian.GregorianDate.from_ordinal_date(gregorian_year, ordinal_day).days_since_epoch
   
   @classmethod
   def days_since_epoch_to_date[T: Integral](cls, days_since_epoch: T) -> tuple[T, T, T]:
-    ...
+    # https://en.wikipedia.org/wiki/ISO_week_date#Algorithms
+    gregorian_date = gregorian.GregorianDate(days_since_epoch)
+    ordinal_date = gregorian_date.ordinal_date()
+    iso_day_of_week = gregorian_date.iso_day_of_week()
+    year = gregorian_date.year
+    week_number = (ordinal_date - iso_day_of_week + 10) // 7
+    
+    if week_number < 1:
+      year -= 1
+      week_number = cls.weeks_in_year(gregorian_date.year - 1)
+    elif week_number > cls.weeks_in_year(gregorian_date.year):
+      if cls.weeks_in_year(gregorian_date.year) != 53:
+        year += 1
+        week_number = 1
+    
+    return year, week_number, iso_day_of_week
   
   @classmethod
   def parse_iso_string(cls, string: str) -> Self:
     'Converts a string in format "YYYY-WXX-DD" or "-YYYY-WXX-DD" to date tuple.'
-    ...
+    match = cls._date_iso_string_regex.match(string)
+    return int(match[1]), int(match[2]), int(match[3])
   
   # instance stuff
   
@@ -76,7 +111,7 @@ class IsoWeekDate(DateBase):
   @classmethod
   def from_iso_string(cls, string: str) -> Self:
     'Converts a string in format "YYYY-WXX-DD" or "-YYYY-WXX-DD" to date object.'
-    ...
+    return cls(*cls.parse_iso_string(string))
   
   @property
   def year(self) -> Integral:
@@ -97,7 +132,7 @@ class IsoWeekDate(DateBase):
     return self.to_iso_string()
   
   def to_date_tuple(self) -> tuple[Integral, Integral, Integral]:
-    ...
+    return (self.year, self.week, self.day)
   
   def to_iso_string(self) -> str:
-    ...
+    return f'{self.year}-W{self.week:0>2}-{self.day}'

@@ -2,6 +2,7 @@ from numbers import Integral
 
 from .jul_greg_base import JulGregBaseDate
 from .julian import JulianDate
+from .iso_weekdate import IsoWeekDate
 
 class GregorianDate(JulGregBaseDate):
   # static stuff
@@ -15,53 +16,23 @@ class GregorianDate(JulGregBaseDate):
     return (year % 4 == 0) and not (year % 100 == 0) or (year % 400 == 0)
   
   @classmethod
-  def from_iso_week_tuple(cls, year: Integral, week: Integral, day):
-    d = week * 7 + day - (cls(year, 1, 4).iso_day_of_week() + 3)
-    
-    if d < 1:
-      gregorian_year = year - 1
-      ordinal_day = d + cls.days_in_year(year - 1)
-    elif d > cls.days_in_year(year):
-      gregorian_year = year + 1
-      ordinal_day = d - cls.days_in_year(year)
-    else:
-      gregorian_year = year
-      ordinal_day = d
-    
-    return cls.from_ordinal_date(gregorian_year, ordinal_day)
+  def from_iso_week_tuple(cls, year: Integral, week: Integral, day: Integral):
+    return cls(IsoWeekDate(year, week, day))
   
   # instance stuff
   
   __slots__ = ()
   
   def days_diff_from_julian(self) -> Integral:
+    '''
+    Reports the difference in days between the julian and gregorian calendar.
+    Positive numbers mean the gregorian date corresponding to today is ahead
+    of the julian date.
+    '''
     return JulianDate(*self.to_date_tuple()).days_since_epoch - self.days_since_epoch
-  
-  @classmethod
-  def num_weeks_in_iso_week_year(cls, year):
-    day_of_week_dec_31 = cls(year, 12, 31).iso_day_of_week()
-    day_of_week_dec_31_past_year = cls(year - 1, 12, 31).iso_day_of_week()
-    if day_of_week_dec_31 == 4 or day_of_week_dec_31_past_year == 3:
-      return 53
-    else:
-      return 52
   
   def to_iso_week_tuple(self) -> tuple[int, int, int]:
     'Converts the current date to a tuple of (year, week, day)'
-    # https://en.wikipedia.org/wiki/ISO_week_date#Algorithms
-    ordinal_date = self.ordinal_date()
-    iso_day_of_week = self.iso_day_of_week()
-    year = self.year
-    week_number = (ordinal_date - iso_day_of_week + 10) // 7
-    
-    if week_number < 1:
-      year -= 1
-      week_number = self.num_weeks_in_iso_week_year(self.year - 1)
-    elif week_number > self.num_weeks_in_iso_week_year(self.year):
-      if self.num_weeks_in_iso_week_year(self.year) != 53:
-        year += 1
-        week_number = 1
-    
-    return year, week_number, iso_day_of_week
+    return IsoWeekDate(self).to_date_tuple()
 
 GregorianDate._init_class_vars()

@@ -1,5 +1,5 @@
 import re
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 from numbers import Integral
 from typing import Self
 
