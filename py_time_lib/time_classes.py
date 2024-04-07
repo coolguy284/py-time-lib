@@ -233,7 +233,7 @@ class TimeInstant:
     self._time = time
   
   @classmethod
-  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: Integral, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
+  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: FixedPrec | Real, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
     if len(cls.UTC_TO_TAI_OFFSET_TABLE) == 0:
       return cls(utc_seconds_since_epoch - cls.UTC_INITIAL_OFFSET_FROM_TAI)
     else:
@@ -292,6 +292,10 @@ class TimeInstant:
     else:
       leap_fold = False
     return TimeInstant.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
+  
+  @classmethod
+  def from_unix_timestamp(cls, unix_secs_since_epoch: FixedPrec | Real, second_fold: bool = False):
+    return cls.from_utc_secs_since_epoch(unix_secs_since_epoch + cls.UNIX_TIMESTAMP_ORIGIN_OFFSET, second_fold)
   
   def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time!r})'

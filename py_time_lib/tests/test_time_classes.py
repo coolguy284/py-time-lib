@@ -504,3 +504,6 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_to_unix_timestamp(self):
     self.assertEqual(TimeInstant.from_date_tuple_utc(1970, 1, 1, 0, 0, 0, 0).to_unix_timestamp(), (0, False))
+  
+  def test_from_unix_timestamp(self):
+    self.assertEqual(TimeInstant.from_unix_timestamp(0).to_date_tuple_utc(), (1970, 1, 1, 0, 0, 0, 0))
