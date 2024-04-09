@@ -81,6 +81,11 @@ class TimeInstant:
   UTC_INITIAL_OFFSET_FROM_TAI = FixedPrec(-10)
   LEAP_SECONDS = DATA_LEAP_SECONDS
   
+  # https://en.wikipedia.org/wiki/Julian_day
+  JULIAN_DATE_ORIGIN_TUPLE: tuple[int, int, int, int, int, int, int] = -4712, 1, 1, 12, 0, 0, 0
+  REDUCED_JULIAN_DATE_OFFSET_FROM_JD: FixedPrec = FixedPrec('-2400000')
+  MODIFIED_JULIAN_DATE_OFFSET_FROM_JD: FixedPrec = FixedPrec('-2400000.5')
+  
   @classmethod
   def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
     days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
@@ -179,7 +184,8 @@ class TimeInstant:
     
     # basic functionality of TimeInstant created by this point so TimeInstant methods can be called
     
-    cls.UNIX_TIMESTAMP_ORIGIN_OFFSET = cls.from_date_tuple_utc(1970, 1, 1, 0, 0, 0, 0).to_utc_secs_since_epoch()[0]
+    cls.UNIX_TIMESTAMP_ORIGIN_OFFSET: TimeStorageType = cls.from_date_tuple_utc(1970, 1, 1, 0, 0, 0, 0).to_utc_secs_since_epoch()[0]
+    cls.JULIAN_DATE_OFFSET: TimeStorageType = cls.from_date_tuple_tai(*cls.JULIAN_DATE_ORIGIN_TUPLE, date_cls = JulianDate).time
   
   @classmethod
   @contextmanager
@@ -297,8 +303,20 @@ class TimeInstant:
     return TimeInstant.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
   @classmethod
-  def from_unix_timestamp(cls, unix_secs_since_epoch: TimeStorageType, second_fold: bool = False):
+  def from_unix_timestamp(cls, unix_secs_since_epoch: TimeStorageType, second_fold: bool = False) -> Self:
     return cls.from_utc_secs_since_epoch(unix_secs_since_epoch + cls.UNIX_TIMESTAMP_ORIGIN_OFFSET, second_fold)
+  
+  @classmethod
+  def from_julian_date_tai(cls, julian_date: TimeStorageType) -> Self:
+    return cls((julian_date * cls.NOMINAL_SECS_PER_DAY) + cls.JULIAN_DATE_OFFSET)
+  
+  @classmethod
+  def from_reduced_julian_date_tai(cls, reduced_julian_date: TimeStorageType) -> Self:
+    return cls.from_julian_date_tai(reduced_julian_date - cls.REDUCED_JULIAN_DATE_OFFSET_FROM_JD)
+  
+  @classmethod
+  def from_modified_julian_date_tai(cls, modified_julian_date: TimeStorageType) -> Self:
+    return cls.from_julian_date_tai(modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD)
   
   def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time!r})'
@@ -429,5 +447,14 @@ class TimeInstant:
     utc_secs_since_epoch, second_fold = self.to_utc_secs_since_epoch()
     unix_secs_since_epoch = utc_secs_since_epoch - self.UNIX_TIMESTAMP_ORIGIN_OFFSET
     return unix_secs_since_epoch, second_fold
+  
+  def to_julian_date_tai(self) -> TimeStorageType:
+    return (self.time - self.JULIAN_DATE_OFFSET) / self.NOMINAL_SECS_PER_DAY
+  
+  def to_reduced_julian_date_tai(self) -> TimeStorageType:
+    return self.to_julian_date_tai() + self.REDUCED_JULIAN_DATE_OFFSET_FROM_JD
+  
+  def to_modified_julian_date_tai(self) -> TimeStorageType:
+    return self.to_julian_date_tai() + self.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD
 
 TimeInstant._init_class_vars()
