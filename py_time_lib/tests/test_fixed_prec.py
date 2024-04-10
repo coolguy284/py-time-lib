@@ -22,6 +22,9 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(f'{FixedPrec(1, 0):+}', '+1')
     self.assertEqual(f'{FixedPrec(0, 0):+}', '+0')
     self.assertEqual(f'{FixedPrec(-1, 0):+}', '-1')
+    self.assertEqual(f'{FixedPrec(1, 0)}', '1')
+    self.assertEqual(f'{FixedPrec(0, 0)}', '0')
+    self.assertEqual(f'{FixedPrec(-1, 0)}', '-1')
   
   def test_neg(self):
     self.assertEqual(str(-FixedPrec(1, 0)), '-1')

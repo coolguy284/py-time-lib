@@ -511,4 +511,15 @@ class TestTimeClasses(unittest.TestCase):
   def test_jd(self):
     # https://aa.usno.navy.mil/calculated/juliandate?ID=AA&date=2024-04-09&era=AD&time=20%3A30%3A55.000&submit=Get+Date
     instant = TimeInstant.from_date_tuple_tai(2024, 4, 9, 20, 30, 55, 0)
-    #self.assertTrue(abs(instant.to_julian_date_tai() - FixedPrec('2460410.354803')) < FixedPrec('0.000001'))
+    self.assertTrue(
+      abs(instant.to_julian_date_tai() - FixedPrec('2460410.354803')) < FixedPrec('0.000001'),
+      f'{instant.to_julian_date_tai()} {FixedPrec('2460410.354803')}'
+    )
+    self.assertTrue(
+      abs(instant.to_reduced_julian_date_tai() - FixedPrec('60410.354803')) < FixedPrec('0.000001'),
+      f'{instant.to_reduced_julian_date_tai()} {FixedPrec('60410.354803')}'
+    )
+    self.assertTrue(
+      abs(instant.to_modified_julian_date_tai() - FixedPrec('60409.854803')) < FixedPrec('0.000001'),
+      f'{instant.to_modified_julian_date_tai()} {FixedPrec('60409.854803')}'
+    )

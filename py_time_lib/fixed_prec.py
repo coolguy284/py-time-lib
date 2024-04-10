@@ -82,7 +82,9 @@ class FixedPrec:
         return f'{"-" if negative else ""}{pos_string[:-self.place]}.{pos_string[-self.place:]}'
   
   def __format__(self, format_spec: str) -> str:
-    if format_spec == '+':
+    if format_spec == '':
+      return str(self)
+    elif format_spec == '+':
       if self.value >= 0:
         return f'+{self!s}'
       else:
