@@ -510,7 +510,9 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_jd(self):
     # https://aa.usno.navy.mil/calculated/juliandate?ID=AA&date=2024-04-09&era=AD&time=20%3A30%3A55.000&submit=Get+Date
-    instant = TimeInstant.from_date_tuple_tai(2024, 4, 9, 20, 30, 55, 0)
+    past_date_tuple = 2024, 4, 9, 20, 30, 54, 0
+    date_tuple = 2024, 4, 9, 20, 30, 55, 0
+    instant = TimeInstant.from_date_tuple_tai(*date_tuple)
     self.assertTrue(
       abs(instant.to_julian_date_tai() - FixedPrec('2460410.354803')) < FixedPrec('0.000001'),
       f'{instant.to_julian_date_tai()} {FixedPrec('2460410.354803')}'
@@ -523,3 +525,9 @@ class TestTimeClasses(unittest.TestCase):
       abs(instant.to_modified_julian_date_tai() - FixedPrec('60409.854803')) < FixedPrec('0.000001'),
       f'{instant.to_modified_julian_date_tai()} {FixedPrec('60409.854803')}'
     )
+    from_jd = TimeInstant.from_julian_date_tai(instant.to_julian_date_tai()).to_date_tuple_tai()
+    self.assertTrue(from_jd[:6] == date_tuple[:6] or from_jd[:6] == past_date_tuple[:6])
+    from_jd = TimeInstant.from_reduced_julian_date_tai(instant.to_reduced_julian_date_tai()).to_date_tuple_tai()
+    self.assertTrue(from_jd[:6] == date_tuple[:6] or from_jd[:6] == past_date_tuple[:6])
+    from_jd = TimeInstant.from_modified_julian_date_tai(instant.to_modified_julian_date_tai()).to_date_tuple_tai()
+    self.assertTrue(from_jd[:6] == date_tuple[:6] or from_jd[:6] == past_date_tuple[:6])
