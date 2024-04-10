@@ -507,3 +507,8 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_from_unix_timestamp(self):
     self.assertEqual(TimeInstant.from_unix_timestamp(0).to_date_tuple_utc(), (1970, 1, 1, 0, 0, 0, 0))
+  
+  def test_jd(self):
+    # https://aa.usno.navy.mil/calculated/juliandate?ID=AA&date=2024-04-09&era=AD&time=20%3A30%3A55.000&submit=Get+Date
+    instant = TimeInstant.from_date_tuple_tai(2024, 4, 9, 20, 30, 55, 0)
+    #self.assertTrue(abs(instant.to_julian_date_tai() - FixedPrec('2460410.354803')) < FixedPrec('0.000001'))

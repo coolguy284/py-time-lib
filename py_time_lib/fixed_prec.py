@@ -100,6 +100,15 @@ class FixedPrec:
       self.max_prec
     )
   
+  def __pos__(self) -> Self:
+    return self
+  
+  def __abs__(self) -> Self:
+    if self < 0:
+      return -self
+    else:
+      return self
+  
   def __int__(self):
     if self.place < 0:
       return int(self.value * 10 ** -self.place)
