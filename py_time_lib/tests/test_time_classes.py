@@ -531,3 +531,23 @@ class TestTimeClasses(unittest.TestCase):
     self.assertTrue(from_jd[:6] == date_tuple[:6] or from_jd[:6] == past_date_tuple[:6])
     from_jd = TimeInstant.from_modified_julian_date_tai(instant.to_modified_julian_date_tai()).to_date_tuple_tai()
     self.assertTrue(from_jd[:6] == date_tuple[:6] or from_jd[:6] == past_date_tuple[:6])
+  
+  def test_days_and_secs_to_mins_since_epoch(self):
+    self.assertEqual(TimeInstant.days_and_secs_to_mins_since_epoch(2, FixedPrec('120.3')), (2 * 1440 + 2, FixedPrec('0.3')))
+    self.assertEqual(TimeInstant.mins_to_days_and_secs_since_epoch(2 * 1440 + 2, FixedPrec('0.3')), (2, FixedPrec('120.3')))
+    
+    self.assertEqual(TimeInstant.days_and_secs_to_mins_since_epoch(-2, FixedPrec('120.3')), (-2 * 1440 + 2, FixedPrec('0.3')))
+    self.assertEqual(TimeInstant.mins_to_days_and_secs_since_epoch(-2 * 1440 + 2, FixedPrec('0.3')), (-2, FixedPrec('120.3')))
+    
+    self.assertEqual(TimeInstant.days_and_secs_to_mins_since_epoch(0, FixedPrec('120.3')), (2, FixedPrec('0.3')))
+    self.assertEqual(TimeInstant.mins_to_days_and_secs_since_epoch(2, FixedPrec('0.3')), (0, FixedPrec('120.3')))
+  
+  def test_days_h_m_to_mins_since_epoch(self):
+    self.assertEqual(TimeInstant.days_h_m_to_mins_since_epoch(2, 3, 4), 2 * 1440 + 3 * 60 + 4)
+    self.assertEqual(TimeInstant.mins_since_epoch_to_days_h_m(2 * 1440 + 3 * 60 + 4), (2, 3, 4))
+    
+    self.assertEqual(TimeInstant.days_h_m_to_mins_since_epoch(-2, 3, 4), -2 * 1440 + 3 * 60 + 4)
+    self.assertEqual(TimeInstant.mins_since_epoch_to_days_h_m(-2 * 1440 + 3 * 60 + 4), (-2, 3, 4))
+    
+    self.assertEqual(TimeInstant.days_h_m_to_mins_since_epoch(0, 3, 4), 3 * 60 + 4)
+    self.assertEqual(TimeInstant.mins_since_epoch_to_days_h_m(3 * 60 + 4), (0, 3, 4))

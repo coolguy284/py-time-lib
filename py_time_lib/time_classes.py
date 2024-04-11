@@ -99,14 +99,14 @@ class TimeInstant:
     return *date.to_date_tuple(), int(hour), int(minute), int(second), frac_second
   
   @classmethod
-  def days_and_secs_to_mins_since_epoch(cls, days_since_epoch: Integral, time_in_day: FixedPrec) -> tuple[int, FixedPrec]:
+  def days_and_secs_to_mins_since_epoch(cls, days_since_epoch: Integral, time_in_day: TimeStorageType) -> tuple[int, TimeStorageType]:
     mins_in_day, remainder_secs = divmod(time_in_day, cls.NOMINAL_SECS_PER_MIN)
     return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + int(mins_in_day), remainder_secs
   
   @classmethod
-  def mins_to_days_and_secs_since_epoch(cls, mins_since_epoch: Integral, remainder_secs: FixedPrec = FixedPrec(0)) -> tuple[int, FixedPrec]:
+  def mins_to_days_and_secs_since_epoch(cls, mins_since_epoch: Integral, remainder_secs: TimeStorageType = FixedPrec(0)) -> tuple[int, TimeStorageType]:
     days_since_epoch, mins_in_day = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_DAY)
-    return days_since_epoch, mins_in_day + remainder_secs
+    return days_since_epoch, mins_in_day * cls.NOMINAL_SECS_PER_MIN + remainder_secs
   
   @classmethod
   def days_h_m_to_mins_since_epoch(cls, days_since_epoch: Integral, hour: Integral, minute: Integral) -> int:
