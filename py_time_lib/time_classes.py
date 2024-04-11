@@ -76,6 +76,9 @@ class TimeInstant:
   NOMINAL_SECS_PER_DAY = DATA_NOMINAL_SECS_PER_DAY
   NOMINAL_SECS_PER_HOUR = 3_600
   NOMINAL_SECS_PER_MIN = 60
+  NOMINAL_MINS_PER_DAY = 1440
+  NOMINAL_MINS_PER_HOUR = 60
+  NOMINAL_HOURS_PER_DAY = 24
   
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
   UTC_INITIAL_OFFSET_FROM_TAI = FixedPrec(-10)
@@ -96,6 +99,26 @@ class TimeInstant:
     return *date.to_date_tuple(), int(hour), int(minute), int(second), frac_second
   
   @classmethod
+  def days_and_secs_to_mins_since_epoch(cls, days_since_epoch: Integral, time_in_day: FixedPrec) -> tuple[int, FixedPrec]:
+    mins_in_day, remainder_secs = divmod(time_in_day, cls.NOMINAL_SECS_PER_MIN)
+    return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + int(mins_in_day), remainder_secs
+  
+  @classmethod
+  def mins_to_days_and_secs_since_epoch(cls, mins_since_epoch: Integral, remainder_secs: FixedPrec = FixedPrec(0)) -> tuple[int, FixedPrec]:
+    days_since_epoch, mins_in_day = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_DAY)
+    return days_since_epoch, mins_in_day + remainder_secs
+  
+  @classmethod
+  def days_h_m_to_mins_since_epoch(cls, days_since_epoch: Integral, hour: Integral, minute: Integral) -> int:
+    return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + hour * cls.NOMINAL_MINS_PER_HOUR + minute
+  
+  @classmethod
+  def mins_since_epoch_to_days_h_m(cls, mins_since_epoch: Integral) -> tuple[int, int, int]:
+    hrs_since_epoch, minute = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_HOUR)
+    days_since_epoch, hour = divmod(hrs_since_epoch, cls.NOMINAL_HOURS_PER_DAY)
+    return days_since_epoch, hour, minute
+  
+  @classmethod
   def _init_class_vars(cls) -> None:
     leap_secs = []
     for date_string, time_in_day, utc_delta in cls.LEAP_SECONDS:
@@ -110,10 +133,11 @@ class TimeInstant:
     leap_secs_dict_working = {}
     
     for leap_entry_dict in leap_secs:
-      if leap_entry_dict['days_since_epoch'] not in leap_secs_dict_working:
-        leap_secs_dict_working[leap_entry_dict['days_since_epoch']] = [leap_entry_dict]
+      mins_in_day = cls.days_and_secs_to_mins_since_epoch(leap_entry_dict['days_since_epoch'], leap_entry_dict['time_in_day'])[0]
+      if mins_in_day not in leap_secs_dict_working:
+        leap_secs_dict_working[mins_in_day] = [leap_entry_dict]
       else:
-        leap_secs_dict_working[leap_entry_dict['days_since_epoch']].append(leap_entry_dict)
+        leap_secs_dict_working[mins_in_day].append(leap_entry_dict)
     
     # https://stackoverflow.com/questions/3294889/iterating-over-dictionaries-using-for-loops/3294899#3294899
     cls.LEAP_SECONDS_DICT: dict[int, tuple[dict[str, int | FixedPrec], ...]] = dict([(day, tuple(leap_entries)) for day, leap_entries in leap_secs_dict_working.items()])
@@ -286,9 +310,9 @@ class TimeInstant:
     time += minute * cls.NOMINAL_SECS_PER_MIN
     time += second
     time += frac_second
-    date_days = date.days_since_epoch
-    if date_days in cls.LEAP_SECONDS_DICT:
-      leap_entries = cls.LEAP_SECONDS_DICT[date_days]
+    date_mins = cls.days_h_m_to_mins_since_epoch(date.days_since_epoch, hour, minute)
+    if date_mins in cls.LEAP_SECONDS_DICT:
+      leap_entries = cls.LEAP_SECONDS_DICT[date_mins]
       leap_delta = leap_entries[-1]['utc_delta']
       if leap_delta < 0:
         # positive leap second

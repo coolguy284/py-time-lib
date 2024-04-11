@@ -1,5 +1,3 @@
-switch utc timestamp set to be in minutely intervals
-add microsoft epoch ticks, .net ticks
 add leap smear support
 pull leap seconds file from https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list if local copy is past expiry
 
@@ -12,6 +10,7 @@ timeinstant:
 
 add now method to timeinstant
 func to generate calendar for a given year
+bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
 
 low prio:
 implement abstract base classes for fixedprec
@@ -24,5 +23,6 @@ add aliases from datetime library, maybe full compatibility class
 simpledatetime/simpletimedelta wrapper around the date classes
 bonus is add ut1 timestamp func
 support other timescales and julian dates in other timescales
+  add microsoft epoch ticks, .net ticks
   add gps timescale to timescales list?
   make all timescales except utc be derived from a list of offset, rate tuples; enables adding tcg, tcb, maybe time comoving frame as well
