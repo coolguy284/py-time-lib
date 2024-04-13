@@ -10,8 +10,8 @@ class FixedPrec:
   max_prec: Integral
   
   FLOAT_ADDED_PREC = 15
-  _int_regex = re.compile('^(-?\\d+)$')
-  _float_regex = re.compile('^(-?)(\\d+)\\.(\\d+)$')
+  _int_regex = re.compile(r'^(-?\d+)$')
+  _float_regex = re.compile(r'^(-?)(\d+)\.(\d+)$')
   
   @classmethod
   def from_basic(cls, value: int | float | str | Self, max_prec: Integral = 12, cast_only: bool = False) -> Self:

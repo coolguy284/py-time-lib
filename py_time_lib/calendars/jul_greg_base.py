@@ -14,7 +14,7 @@ class JulGregBaseDate(DateBase):
   MONTHS_IN_YEAR = 12
   MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  _date_iso_string_regex = re.compile('^(-?\\d+)-(\\d{1,2})-(\\d{1,2})$')
+  _date_iso_string_regex = re.compile(r'^(-?\d+)-(\d{1,2})-(\d{1,2})$')
   
   @staticmethod
   @abstractmethod

@@ -8,7 +8,7 @@ from . import gregorian
 class IsoWeekDate(DateBase):
   # static stuff
   
-  _date_iso_string_regex = re.compile('^(-?\\d+)-W(\\d{1,2})-(\\d)$')
+  _date_iso_string_regex = re.compile(r'^(-?\d+)-W(\d{1,2})-(\d)$')
   
   @staticmethod
   def weeks_in_year(year: Integral) -> int:

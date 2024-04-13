@@ -12,7 +12,6 @@ add now method to timeinstant
 func to generate calendar for a given year
 bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
 add func for utc tai offset on timeinstant
-change all regex compile literals to raw string literals
 
 low prio:
 implement abstract base classes for fixedprec
