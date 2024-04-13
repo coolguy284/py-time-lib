@@ -403,6 +403,7 @@ class TimeInstant:
         'positive_leap_second_occurring': False,
         'last_leap_delta': None,
         'last_leap_transition_time': None,
+        'current_utc_tai_offset': self.UTC_INITIAL_OFFSET_FROM_TAI,
       }
     else:
       if self._time < self.TAI_TO_UTC_OFFSET_TABLE[0]['start_instant']:
@@ -411,6 +412,7 @@ class TimeInstant:
           'positive_leap_second_occurring': False,
           'last_leap_delta': None,
           'last_leap_transition_time': None,
+          'current_utc_tai_offset': self.UTC_INITIAL_OFFSET_FROM_TAI,
         }
       else:
         tai_table_index = binary_search(lambda x: self._time >= self.TAI_TO_UTC_OFFSET_TABLE[x]['start_instant'], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
@@ -421,6 +423,7 @@ class TimeInstant:
             'positive_leap_second_occurring': True,
             'last_leap_delta': tai_table_entry['leap_utc_delta'],
             'last_leap_transition_time': tai_table_entry['start_instant'],
+            'current_utc_tai_offset': tai_table_entry['utc_epoch_secs'] - tai_table_entry['start_instant'],
           }
         else:
           return {
@@ -428,6 +431,7 @@ class TimeInstant:
             'positive_leap_second_occurring': False,
             'last_leap_delta': tai_table_entry['leap_utc_delta'],
             'last_leap_transition_time': tai_table_entry['start_instant'],
+            'current_utc_tai_offset': tai_table_entry['utc_tai_delta'],
           }
   
   def to_utc_secs_since_epoch(self) -> tuple[TimeStorageType, bool]:
@@ -490,5 +494,8 @@ class TimeInstant:
   
   def to_modified_julian_date_tai(self) -> TimeStorageType:
     return self.to_julian_date_tai() + self.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD
+  
+  def get_utc_tai_offset(self) -> FixedPrec:
+    return self.to_utc_info()['current_utc_tai_offset']
 
 TimeInstant._init_class_vars()

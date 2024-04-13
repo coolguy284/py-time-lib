@@ -11,7 +11,6 @@ add now method to timeinstant
   and replace datetime now in auto leap seconds
 func to generate calendar for a given year
 bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
-add func for utc tai offset on timeinstant
 
 low prio:
 implement abstract base classes for fixedprec

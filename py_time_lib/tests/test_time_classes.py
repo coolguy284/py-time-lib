@@ -110,6 +110,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': False,
       'last_leap_delta': second_last_leap_delta,
       'last_leap_transition_time': second_last_leap_start + 1,
+      'current_utc_tai_offset': -36,
     })
     self.assertEqual(t0.to_utc_secs_since_epoch(), (
       last_leap_utc_secs - FixedPrec('0.1'),
@@ -120,6 +121,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': True,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start,
+      'current_utc_tai_offset': -36,
     })
     self.assertEqual(t1.to_utc_secs_since_epoch(), (
       last_leap_utc_secs,
@@ -130,6 +132,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': True,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start,
+      'current_utc_tai_offset': -36,
     })
     self.assertEqual(t2.to_utc_secs_since_epoch(), (
       last_leap_utc_secs + FixedPrec('0.1'),
@@ -140,6 +143,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': True,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start,
+      'current_utc_tai_offset': -36,
     })
     self.assertEqual(t3.to_utc_secs_since_epoch(), (
       last_leap_utc_secs + FixedPrec('0.9'),
@@ -150,6 +154,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': False,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start + 1,
+      'current_utc_tai_offset': -37,
     })
     self.assertEqual(t4.to_utc_secs_since_epoch(), (
       last_leap_utc_secs,
@@ -160,6 +165,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': False,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start + 1,
+      'current_utc_tai_offset': -37,
     })
     self.assertEqual(t5.to_utc_secs_since_epoch(), (
       last_leap_utc_secs + FixedPrec('0.1'),
@@ -170,6 +176,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': False,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start + 1,
+      'current_utc_tai_offset': -37,
     })
     self.assertEqual(t6.to_utc_secs_since_epoch(), (
       last_leap_utc_secs + FixedPrec('0.9'),
@@ -180,6 +187,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': False,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start + 1,
+      'current_utc_tai_offset': -37,
     })
     self.assertEqual(t7.to_utc_secs_since_epoch(), (
       last_leap_utc_secs + FixedPrec('1.0'),
@@ -190,6 +198,7 @@ class TestTimeClasses(unittest.TestCase):
       'positive_leap_second_occurring': False,
       'last_leap_delta': last_leap_delta,
       'last_leap_transition_time': last_leap_start + 1,
+      'current_utc_tai_offset': -37,
     })
     self.assertEqual(t8.to_utc_secs_since_epoch(), (
       last_leap_utc_secs + FixedPrec('1.1'),
@@ -221,6 +230,7 @@ class TestTimeClasses(unittest.TestCase):
         'positive_leap_second_occurring': False,
         'last_leap_delta': second_last_leap_delta,
         'last_leap_transition_time': second_last_leap_start + 1,
+        'current_utc_tai_offset': -37,
       })
       self.assertEqual(t0.to_utc_secs_since_epoch(), (
         last_leap_utc_secs - FixedPrec('0.1'),
@@ -231,6 +241,7 @@ class TestTimeClasses(unittest.TestCase):
         'positive_leap_second_occurring': False,
         'last_leap_delta': last_leap_delta,
         'last_leap_transition_time': last_leap_start,
+        'current_utc_tai_offset': -36,
       })
       self.assertEqual(t1.to_utc_secs_since_epoch(), (
         last_leap_utc_secs + FixedPrec('1.0'),
@@ -241,6 +252,7 @@ class TestTimeClasses(unittest.TestCase):
         'positive_leap_second_occurring': False,
         'last_leap_delta': last_leap_delta,
         'last_leap_transition_time': last_leap_start,
+        'current_utc_tai_offset': -36,
       })
       self.assertEqual(t2.to_utc_secs_since_epoch(), (
         last_leap_utc_secs + FixedPrec('1.1'),
@@ -251,6 +263,7 @@ class TestTimeClasses(unittest.TestCase):
         'positive_leap_second_occurring': False,
         'last_leap_delta': last_leap_delta,
         'last_leap_transition_time': last_leap_start,
+        'current_utc_tai_offset': -36,
       })
       self.assertEqual(t3.to_utc_secs_since_epoch(), (
         last_leap_utc_secs + FixedPrec('1.9'),
@@ -261,6 +274,7 @@ class TestTimeClasses(unittest.TestCase):
         'positive_leap_second_occurring': False,
         'last_leap_delta': last_leap_delta,
         'last_leap_transition_time': last_leap_start,
+        'current_utc_tai_offset': -36,
       })
       self.assertEqual(t4.to_utc_secs_since_epoch(), (
         last_leap_utc_secs + FixedPrec('2.0'),
@@ -271,6 +285,7 @@ class TestTimeClasses(unittest.TestCase):
         'positive_leap_second_occurring': False,
         'last_leap_delta': last_leap_delta,
         'last_leap_transition_time': last_leap_start,
+        'current_utc_tai_offset': -36,
       })
       self.assertEqual(t5.to_utc_secs_since_epoch(), (
         last_leap_utc_secs + FixedPrec('2.1'),
@@ -551,3 +566,47 @@ class TestTimeClasses(unittest.TestCase):
     
     self.assertEqual(TimeInstant.days_h_m_to_mins_since_epoch(0, 3, 4), 3 * 60 + 4)
     self.assertEqual(TimeInstant.mins_since_epoch_to_days_h_m(3 * 60 + 4), (0, 3, 4))
+  
+  def test_get_utc_tai_offset(self):
+    first_leap_index = 0
+    last_leap_index = 53
+    
+    t1 = TimeInstant(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[first_leap_index]['start_instant'])
+    t0 = t1 - TimeDelta('0.1')
+    t2 = t1 + TimeDelta('0.1')
+    t3 = t1 + TimeDelta('0.9')
+    t4 = t1 + TimeDelta('1.0')
+    t5 = t1 + TimeDelta('1.1')
+    t6 = t1 + TimeDelta('1.9')
+    t7 = t1 + TimeDelta('2.0')
+    t8 = t1 + TimeDelta('2.1')
+    
+    self.assertEqual(t0.get_utc_tai_offset(), -10)
+    self.assertEqual(t1.get_utc_tai_offset(), -10)
+    self.assertEqual(t2.get_utc_tai_offset(), -10)
+    self.assertEqual(t3.get_utc_tai_offset(), -10)
+    self.assertEqual(t4.get_utc_tai_offset(), -11)
+    self.assertEqual(t5.get_utc_tai_offset(), -11)
+    self.assertEqual(t6.get_utc_tai_offset(), -11)
+    self.assertEqual(t7.get_utc_tai_offset(), -11)
+    self.assertEqual(t8.get_utc_tai_offset(), -11)
+    
+    t1 = TimeInstant(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['start_instant'])
+    t0 = t1 - TimeDelta('0.1')
+    t2 = t1 + TimeDelta('0.1')
+    t3 = t1 + TimeDelta('0.9')
+    t4 = t1 + TimeDelta('1.0')
+    t5 = t1 + TimeDelta('1.1')
+    t6 = t1 + TimeDelta('1.9')
+    t7 = t1 + TimeDelta('2.0')
+    t8 = t1 + TimeDelta('2.1')
+    
+    self.assertEqual(t0.get_utc_tai_offset(), -36)
+    self.assertEqual(t1.get_utc_tai_offset(), -36)
+    self.assertEqual(t2.get_utc_tai_offset(), -36)
+    self.assertEqual(t3.get_utc_tai_offset(), -36)
+    self.assertEqual(t4.get_utc_tai_offset(), -37)
+    self.assertEqual(t5.get_utc_tai_offset(), -37)
+    self.assertEqual(t6.get_utc_tai_offset(), -37)
+    self.assertEqual(t7.get_utc_tai_offset(), -37)
+    self.assertEqual(t8.get_utc_tai_offset(), -37)
