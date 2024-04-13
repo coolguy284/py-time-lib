@@ -1,5 +1,4 @@
 add leap smear support
-pull leap seconds file from https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list if local copy is past expiry
 
 jul/greg date:
   make dateDelta class for date subtraction
@@ -9,8 +8,11 @@ timeinstant:
   add seasonal-offset timezone support
 
 add now method to timeinstant
+  and replace datetime now in auto leap seconds
 func to generate calendar for a given year
 bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
+add func for utc tai offset on timeinstant
+change all regex compile literals to raw string literals
 
 low prio:
 implement abstract base classes for fixedprec
@@ -25,4 +27,6 @@ bonus is add ut1 timestamp func
 support other timescales and julian dates in other timescales
   add microsoft epoch ticks, .net ticks
   add gps timescale to timescales list?
+  ntp timestamps
+    remove temp ntp timestamp code in auto leap seconds
   make all timescales except utc be derived from a list of offset, rate tuples; enables adding tcg, tcb, maybe time comoving frame as well

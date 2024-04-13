@@ -3,11 +3,12 @@ from numbers import Integral, Real
 from typing import Generator, Self, SupportsIndex
 
 from .lib_funcs import binary_search
+from .auto_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
 from .fixed_prec import FixedPrec
 from .calendars.date_base import DateBase
 from .calendars.gregorian import GregorianDate
 from .calendars.julian import JulianDate
-from .data.leap_seconds import LEAP_SECONDS as DATA_LEAP_SECONDS, NOMINAL_SECS_PER_DAY as DATA_NOMINAL_SECS_PER_DAY
+from .data import leap_seconds
 
 type TimeStorageType = FixedPrec | Real
 
@@ -73,7 +74,7 @@ class TimeInstant:
   
   # static stuff
   
-  NOMINAL_SECS_PER_DAY = DATA_NOMINAL_SECS_PER_DAY
+  NOMINAL_SECS_PER_DAY = leap_seconds.NOMINAL_SECS_PER_DAY
   NOMINAL_SECS_PER_HOUR = 3_600
   NOMINAL_SECS_PER_MIN = 60
   NOMINAL_MINS_PER_DAY = 1440
@@ -81,8 +82,8 @@ class TimeInstant:
   NOMINAL_HOURS_PER_DAY = 24
   
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
-  UTC_INITIAL_OFFSET_FROM_TAI = FixedPrec(-10)
-  LEAP_SECONDS = DATA_LEAP_SECONDS
+  UTC_INITIAL_OFFSET_FROM_TAI = leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
+  LEAP_SECONDS = leap_seconds.LEAP_SECONDS
   
   # https://en.wikipedia.org/wiki/Julian_day
   JULIAN_DATE_ORIGIN_TUPLE: tuple[int, int, int, int, int, int, int] = -4712, 1, 1, 12, 0, 0, 0
@@ -117,6 +118,15 @@ class TimeInstant:
     hrs_since_epoch, minute = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_HOUR)
     days_since_epoch, hour = divmod(hrs_since_epoch, cls.NOMINAL_HOURS_PER_DAY)
     return days_since_epoch, hour, minute
+  
+  @classmethod
+  def update_leap_seconds(cls, file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FILE_URL):
+    leap_sec_data = get_leap_sec_data(file_path = file_path, url = url)
+    leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI = leap_sec_data['initial_utc_tai_offset']
+    leap_seconds.LEAP_SECONDS = leap_sec_data['leap_seconds']
+    cls.UTC_INITIAL_OFFSET_FROM_TAI = leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
+    cls.LEAP_SECONDS = leap_seconds.LEAP_SECONDS
+    cls._init_class_vars()
   
   @classmethod
   def _init_class_vars(cls) -> None:

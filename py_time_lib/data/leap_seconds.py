@@ -3,7 +3,8 @@ from ..fixed_prec import FixedPrec
 NOMINAL_SECS_PER_DAY = 86_400
 
 # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
-LEAP_SECONDS: list[tuple[str, FixedPrec]] = [
+UTC_INITIAL_OFFSET_FROM_TAI: FixedPrec = FixedPrec(-10)
+LEAP_SECONDS: list[tuple[str, FixedPrec, FixedPrec]] = [
   # (date, time in day, utc delta)
   ('1972-06-30', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(-1)),
   ('1972-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(-1)),
