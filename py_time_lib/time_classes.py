@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from numbers import Integral, Real
+from time import time_ns
 from typing import Generator, Self, SupportsIndex
 
 from .lib_funcs import binary_search
@@ -351,6 +352,10 @@ class TimeInstant:
   @classmethod
   def from_modified_julian_date_tai(cls, modified_julian_date: TimeStorageType) -> Self:
     return cls.from_julian_date_tai(modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD)
+  
+  @classmethod
+  def now(cls) -> Self:
+    return cls.from_unix_timestamp(FixedPrec(time_ns(), 9))
   
   def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time!r})'

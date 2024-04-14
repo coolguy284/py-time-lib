@@ -1,3 +1,5 @@
+from time import time_ns
+import datetime
 import unittest
 
 from ..calendars.gregorian import GregorianDate
@@ -610,3 +612,28 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(t6.get_utc_tai_offset(), -37)
     self.assertEqual(t7.get_utc_tai_offset(), -37)
     self.assertEqual(t8.get_utc_tai_offset(), -37)
+  
+  def test_now(self):
+    now = TimeInstant.now()
+    current_unix_time_ns = time_ns()
+    current_datetime = datetime.datetime.now(datetime.UTC)
+    
+    now_unix_time_ns = now.to_unix_timestamp()[0] * FixedPrec('1000000000')
+    self.assertTrue(abs(now_unix_time_ns - current_unix_time_ns) <= 1000000, f'{now_unix_time_ns} {current_unix_time_ns}')
+    
+    now_date_tuple = now.to_date_tuple_utc()
+    self.assertEqual(
+      (
+        *now_date_tuple[:6],
+        int(now_date_tuple[6] * 1000000),
+      ),
+      (
+        current_datetime.year,
+        current_datetime.month,
+        current_datetime.day,
+        current_datetime.hour,
+        current_datetime.minute,
+        current_datetime.second,
+        current_datetime.microsecond,
+      )
+    )
