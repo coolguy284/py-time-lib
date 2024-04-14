@@ -198,7 +198,7 @@ class JulGregBaseDate(DateBase):
     
     return result
   
-  def get_yearly_calendar(self, num_cols: Integral = 3) -> str:
+  def get_yearly_calendar(self, num_cols: Integral = 3, horizontal_padding: Integral = 1, vertical_padding: Integral = 1) -> str:
     result = ''
     
     working_rows = []
@@ -211,29 +211,40 @@ class JulGregBaseDate(DateBase):
       
       if past_row != row and past_row != None:
         if past_row != 0:
-          result += '\n\n'
+          result += '\n' + '\n' * vertical_padding
         result += '\n'.join((
-          row_text + self._empty_calendar_month_row * ((len(self._empty_calendar_month_row) * num_cols - len(row_text)) // len(self._empty_calendar_month_row))
+          row_text + self._empty_calendar_month_row * (
+            (
+              (len(self._empty_calendar_month_row) + horizontal_padding) * num_cols - horizontal_padding - len(row_text)
+            ) // len(self._empty_calendar_month_row)
+          )
           for row_text in working_rows
         ))
         working_rows.clear()
       
       for month_line_index in range(len(new_month_rows)):
         if month_line_index < len(working_rows):
-          working_rows[month_line_index] += new_month_rows[month_line_index]
+          working_rows[month_line_index] += (' ' * horizontal_padding) + new_month_rows[month_line_index]
         else:
           if col != 0:
-            working_rows.append(self._empty_calendar_month_row * col + new_month_rows[month_line_index])
+            working_rows.append((self._empty_calendar_month_row + (' ' * horizontal_padding)) * col + new_month_rows[month_line_index])
           else:
             working_rows.append(new_month_rows[month_line_index])
       
       past_row = row
     
     if past_row != 0:
-      result += '\n\n'
-    num_cols_last_row = max((len(row_text) // len(self._empty_calendar_month_row) for row_text in working_rows))
+      result += '\n' + '\n' * vertical_padding
+    num_cols_last_row = max((
+      (len(row_text) + horizontal_padding) // (len(self._empty_calendar_month_row) + horizontal_padding)
+      for row_text in working_rows
+    ))
     result += '\n'.join((
-      row_text + self._empty_calendar_month_row * ((len(self._empty_calendar_month_row) * num_cols_last_row - len(row_text)) // len(self._empty_calendar_month_row))
+      row_text + self._empty_calendar_month_row * (
+        (
+          (len(self._empty_calendar_month_row) + horizontal_padding) * num_cols_last_row - horizontal_padding - len(row_text)
+        ) // len(self._empty_calendar_month_row)
+      )
       for row_text in working_rows
     ))
     
