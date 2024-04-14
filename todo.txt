@@ -20,17 +20,21 @@ add default high detail tostring for tai and utc
 low prio:
 implement abstract base classes for fixedprec
 add __r*__ versions for all fixedprec and timedelta ops
-tests:
-  timeinstant: tests for leap seconds during day
-  timeinstant: test for passing in non-gregoriandate into to/from date tuple
 possibly add strftime function and others to timeinstant (maybe only to the simplified wrapper classes)
 add aliases from datetime library, maybe full compatibility class
 simpledatetime/simpletimedelta wrapper around the date classes
-bonus is add ut1 timestamp func
 support other timescales and julian dates in other timescales
   add microsoft epoch ticks, .net ticks
   add gps timescale to timescales list?
   ntp timestamps
     remove temp ntp timestamp code in auto leap seconds
-  make all timescales except utc be derived from a list of offset, rate tuples; enables adding tcg, tcb, maybe time comoving frame as well
+  make all timescales except utc be derived from a list of offset, rate tuples; enables adding tcg, tcb, maybe time center galaxy and time comoving frame as well
+  bonus is add ut1 timestamp funcs
+tests:
+  timeinstant: tests for leap seconds during day
+  timeinstant: test for passing in non-gregoriandate into to/from date tuple
+
+prob not doing:
 add calendar functionality for isoweekdate
+tests:
+  date: monthly/yearly calendar generation funcs
