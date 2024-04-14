@@ -10,10 +10,11 @@ RunModes = Enum('RunModes', [
   'BASIC_DATE_TESTING',
   'ISO_WEEK_TESTING',
   'AUTO_LEAP_SECONDS_TESTS',
+  'TEST_CALENDARS',
   'REPL',
 ])
 
-mode = RunModes.REPL
+mode = RunModes.TEST_CALENDARS
 
 if mode == RunModes.BASIC_DATE_TESTING:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
@@ -62,6 +63,8 @@ elif mode == RunModes.AUTO_LEAP_SECONDS_TESTS:
   #print(get_current_ntp_timestamp())
   print(get_leap_sec_data())
   pass
+elif mode == RunModes.TEST_CALENDARS:
+  print(GregorianDate(2024, 4, 13).get_yearly_calendar())
 elif mode == RunModes.REPL:
   # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
   code.interact(local = globals())

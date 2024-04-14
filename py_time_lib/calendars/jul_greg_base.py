@@ -14,6 +14,14 @@ class JulGregBaseDate(DateBase):
   MONTHS_IN_YEAR = 12
   MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  MONTH_NAMES_LONG = [
+    'January', 'February', 'March', 'April',
+    'May', 'June', 'July', 'August',
+    'September', 'October', 'November', 'December',
+  ]
+  MONTH_NAMES_SHORT = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ]
   _date_iso_string_regex = re.compile(r'^(-?\d+)-(\d{1,2})-(\d{1,2})$')
   
   @staticmethod
@@ -157,3 +165,56 @@ class JulGregBaseDate(DateBase):
   
   def ordinal_date(self) -> int:
     return self.days_since_epoch - self.__class__(self.year, 1, 1).days_since_epoch + 1
+  
+  def get_monthly_calendar(self) -> str:
+    result = f'|       {self.MONTH_NAMES_SHORT[self.month - 1]} {self.year}       |\n'
+    result += '------------------------\n'
+    result += '| Su Mo Tu We Th Fr Sa |\n'
+    start_of_month = self.__class__(self.year, self.month, 1)
+    starting_index = start_of_month.day_of_week()
+    num_days = self.days_in_month(self.year, self.month)
+    past_week_row = None
+    
+    for i in range(num_days):
+      week_row, current_week_index = divmod(i + starting_index, self.DAYS_IN_WEEK)
+      if past_week_row == None:
+        result += '| ' + '   ' * starting_index
+      elif week_row > past_week_row:
+        result += '|\n| '
+      result += f'{i + 1:>2} '
+      past_week_row = week_row
+    
+    result += '   ' * (self.DAYS_IN_WEEK - current_week_index - 1) + '|'
+    
+    return result
+  
+  def get_yearly_calendar(self, num_cols = 3) -> str:
+    result = ''
+    
+    working_rows = []
+    past_row = None
+    
+    for month_index in range(self.MONTHS_IN_YEAR):
+      row = month_index // num_cols
+      
+      new_month_rows = self.__class__(self.year, month_index + 1, 1).get_monthly_calendar().split('\n')
+      
+      if past_row != row and past_row != None:
+        if past_row != 0:
+          result += '\n'
+        result += '\n'.join(working_rows)
+        working_rows.clear()
+      
+      for month_line_index in range(len(new_month_rows)):
+        if month_line_index < len(working_rows):
+          working_rows[month_line_index] += new_month_rows[month_line_index]
+        else:
+          working_rows.append(new_month_rows[month_line_index])
+      
+      past_row = row
+    
+    if past_row != 0:
+      result += '\n'
+    result += '\n'.join(working_rows)
+    
+    return result
