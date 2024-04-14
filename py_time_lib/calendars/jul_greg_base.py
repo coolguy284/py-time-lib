@@ -1,5 +1,6 @@
 import re
 from abc import abstractmethod
+from math import ceil, floor
 from numbers import Integral
 from typing import Self
 
@@ -23,6 +24,8 @@ class JulGregBaseDate(DateBase):
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ]
   _date_iso_string_regex = re.compile(r'^(-?\d+)-(\d{1,2})-(\d{1,2})$')
+  _calendar_month_row_inside_len = 22
+  _empty_calendar_month_row = f'|{' ' * _calendar_month_row_inside_len}|'
   
   @staticmethod
   @abstractmethod
@@ -167,7 +170,14 @@ class JulGregBaseDate(DateBase):
     return self.days_since_epoch - self.__class__(self.year, 1, 1).days_since_epoch + 1
   
   def get_monthly_calendar(self) -> str:
-    result = f'|       {self.MONTH_NAMES_SHORT[self.month - 1]} {self.year}       |\n'
+    header = f'{self.MONTH_NAMES_SHORT[self.month - 1]} {self.year}'
+    header_half_blank_space = (self._calendar_month_row_inside_len - len(header)) / 2
+    if header_half_blank_space > 0:
+      header_low_half_blank_space = floor(header_half_blank_space)
+      header_high_half_blank_space = ceil(header_half_blank_space)
+      result = f'|{' ' * header_low_half_blank_space}{header}{' ' * header_high_half_blank_space}|\n'
+    else:
+      result = f'|{header}|\n'
     result += '------------------------\n'
     result += '| Su Mo Tu We Th Fr Sa |\n'
     start_of_month = self.__class__(self.year, self.month, 1)
@@ -188,33 +198,43 @@ class JulGregBaseDate(DateBase):
     
     return result
   
-  def get_yearly_calendar(self, num_cols = 3) -> str:
+  def get_yearly_calendar(self, num_cols: Integral = 3) -> str:
     result = ''
     
     working_rows = []
     past_row = None
     
     for month_index in range(self.MONTHS_IN_YEAR):
-      row = month_index // num_cols
+      row, col = divmod(month_index, num_cols)
       
       new_month_rows = self.__class__(self.year, month_index + 1, 1).get_monthly_calendar().split('\n')
       
       if past_row != row and past_row != None:
         if past_row != 0:
-          result += '\n'
-        result += '\n'.join(working_rows)
+          result += '\n\n'
+        result += '\n'.join((
+          row_text + self._empty_calendar_month_row * ((len(self._empty_calendar_month_row) * num_cols - len(row_text)) // len(self._empty_calendar_month_row))
+          for row_text in working_rows
+        ))
         working_rows.clear()
       
       for month_line_index in range(len(new_month_rows)):
         if month_line_index < len(working_rows):
           working_rows[month_line_index] += new_month_rows[month_line_index]
         else:
-          working_rows.append(new_month_rows[month_line_index])
+          if col != 0:
+            working_rows.append(self._empty_calendar_month_row * col + new_month_rows[month_line_index])
+          else:
+            working_rows.append(new_month_rows[month_line_index])
       
       past_row = row
     
     if past_row != 0:
-      result += '\n'
-    result += '\n'.join(working_rows)
+      result += '\n\n'
+    num_cols_last_row = max((len(row_text) // len(self._empty_calendar_month_row) for row_text in working_rows))
+    result += '\n'.join((
+      row_text + self._empty_calendar_month_row * ((len(self._empty_calendar_month_row) * num_cols_last_row - len(row_text)) // len(self._empty_calendar_month_row))
+      for row_text in working_rows
+    ))
     
     return result

@@ -1,7 +1,7 @@
 import code, datetime
 from enum import Enum
 
-from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate
+from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, HoloceneDate
 from py_time_lib.auto_leap_seconds import *
 
 TimeInstant.update_leap_seconds()
@@ -64,7 +64,17 @@ elif mode == RunModes.AUTO_LEAP_SECONDS_TESTS:
   print(get_leap_sec_data())
   pass
 elif mode == RunModes.TEST_CALENDARS:
+  print('Julian:')
+  print(JulianDate(2024, 4, 13).get_yearly_calendar())
+  print()
+  
+  print('Gregorian:')
   print(GregorianDate(2024, 4, 13).get_yearly_calendar())
+  print()
+  
+  print('Holocene:')
+  print(HoloceneDate(12024, 4, 13).get_yearly_calendar())
+  print()
 elif mode == RunModes.REPL:
   # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
   code.interact(local = globals())
