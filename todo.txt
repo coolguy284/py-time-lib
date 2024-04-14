@@ -1,4 +1,3 @@
-check random seeding on pytimelib tests
 add leap smear support
 
 jul/greg date:
