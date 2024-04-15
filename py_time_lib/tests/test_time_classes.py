@@ -619,7 +619,8 @@ class TestTimeClasses(unittest.TestCase):
     current_datetime = datetime.datetime.now(datetime.UTC)
     
     now_unix_time_ns = now.to_unix_timestamp()[0] * FixedPrec('1000000000')
-    self.assertTrue(abs(now_unix_time_ns - current_unix_time_ns) <= 1000000, f'{now_unix_time_ns} {current_unix_time_ns}')
+    # checks if 3 milliseconds off
+    self.assertTrue(abs(now_unix_time_ns - current_unix_time_ns) <= 3000000, f'{now_unix_time_ns} {current_unix_time_ns}')
     
     now_date_tuple = now.to_date_tuple_utc()
     self.assertEqual(

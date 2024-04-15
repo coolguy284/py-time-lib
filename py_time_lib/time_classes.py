@@ -31,6 +31,10 @@ class TimeDelta:
   def __str__(self) -> str:
     return f'TD{self._time_delta:+}'
   
+  @property
+  def time_delta(self) -> TimeStorageType:
+    return self._time_delta
+  
   def __neg__(self) -> Self:
     return TimeDelta(-self._time_delta)
   

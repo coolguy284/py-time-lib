@@ -1,11 +1,11 @@
 from pathlib import PurePath
 import re
 import urllib.request
-import datetime
 
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
 from .data.leap_seconds import NOMINAL_SECS_PER_DAY
+from . import time_classes
 
 DEFAULT_LEAP_FILE_PATH = 'data/leap-seconds.list'
 DEFAULT_LEAP_FILE_URL = 'https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list'
@@ -18,9 +18,15 @@ def ntp_timestamp_to_days_and_secs(ntp: int) -> tuple[int, int]:
   days, seconds = divmod(ntp, NOMINAL_SECS_PER_DAY)
   return GregorianDate(1900, 1, 1).to_days_since_epoch() + days, seconds
 
+_ntp_epoch_instant = None
+
 def get_current_ntp_timestamp() -> int:
-  timedelta = datetime.datetime.now(datetime.UTC) - datetime.datetime(1900, 1, 1, 0, 0, 0, 0, datetime.UTC)
-  return timedelta.days * NOMINAL_SECS_PER_DAY + timedelta.seconds
+  global _ntp_epoch_instant
+  
+  if _ntp_epoch_instant == None:
+    _ntp_epoch_instant = time_classes.TimeInstant.from_date_tuple_utc(1900, 1, 1, 0, 0, 0, 0)
+  
+  return int((time_classes.TimeInstant.now() - _ntp_epoch_instant).time_delta)
 
 def get_leap_sec_stored_file(file_path: str = DEFAULT_LEAP_FILE_PATH) -> str | None:
   try:
