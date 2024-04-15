@@ -8,6 +8,7 @@ from .auto_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, ge
 from .fixed_prec import FixedPrec
 from .calendars.date_base import DateBase
 from .calendars.gregorian import GregorianDate
+from .calendars.jul_greg_base import JulGregBaseDate
 from .calendars.julian import JulianDate
 from .data import leap_seconds
 
@@ -506,5 +507,93 @@ class TimeInstant:
   
   def get_utc_tai_offset(self) -> FixedPrec:
     return self.to_utc_info()['current_utc_tai_offset']
+  
+  def get_date_object[T: DateBase](self, date_cls: type[T] = GregorianDate) -> T:
+    days_since_epoch, _ = divmod(self.time, self.NOMINAL_SECS_PER_DAY)
+    return date_cls.from_days_since_epoch(int(days_since_epoch))
+  
+  def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    'Returns a time string formatted in the strftime style'
+    
+    percent_mode = False
+    
+    result = ''
+    
+    date = self.get_date_object(date_cls = date_cls)
+    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_tai(date_cls = date_cls)
+    day_of_week = date.day_of_week()
+    ordinal_day = date.ordinal_date()
+    
+    for char in format_str:
+      if not percent_mode:
+        if char == '%':
+          percent_mode = True
+        else:
+          result += char
+      else:
+        if char == '%':
+          result += '%'
+        elif char == 'a':
+          result += date.WEEK_NAMES_SHORT[day_of_week]
+        elif char == 'A':
+          result += date.WEEK_NAMES_LONG[day_of_week]
+        elif char == 'b':
+          result += date.MONTH_NAMES_SHORT[month - 1]
+        elif char == 'B':
+          result += date.MONTH_NAMES_LONG[month - 1]
+        elif char == 'c':
+          result += self.to_format_string_tai('%a %b %d %H:%M:%S %Y')
+        elif char == 'd':
+          result += f'{day:0>2}'
+        elif char == 'f':
+          result += f'{int(frac_second * 1_000_000):0>2}'
+        elif char == 'H':
+          result += f'{hour:0>2}'
+        elif char == 'I':
+          result += f'{(hour - 1) % 12 + 1:0>2}'
+        elif char == 'j':
+          result += f'{ordinal_day:0>3}'
+        elif char == 'm':
+          result += f'{month:0>2}'
+        elif char == 'M':
+          result += f'{minute:0>2}'
+        elif char == 'p':
+          result += 'PM' if hour >= 12 else 'AM'
+        elif char == 'S':
+          result += f'{second:0>2}'
+        elif char == 'U':
+          raise NotImplementedError()
+        elif char == 'w':
+          result += str(day_of_week)
+        elif char == 'W':
+          raise NotImplementedError()
+        elif char == 'x':
+          result += self.to_format_string_tai('%m/%d/%y')
+        elif char == 'X':
+          result += self.to_format_string_tai('%H:%M:%S')
+        elif char == 'y':
+          result += f'{year % 100:0>2}'
+        elif char == 'Y':
+          result += str(year)
+        elif char == 'z':
+          tai_utc_offset = -self.get_utc_tai_offset()
+          offset_sign = '+' if tai_utc_offset >= 0 else '-'
+          offset_hrs, remainder = divmod(abs(tai_utc_offset), self.NOMINAL_SECS_PER_HOUR)
+          offset_mins, remainder = divmod(remainder, self.NOMINAL_SECS_PER_MIN)
+          offset_secs, offset_frac_secs = divmod(remainder, 1)
+          result += f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
+          if offset_frac_secs != 0:
+            result += f':{int(offset_secs):0>2}.{str(offset_frac_secs).split('.')[1]}'
+          elif offset_secs != 0:
+            result += f':{int(offset_secs):0>2}'
+        elif char == 'Z':
+          result += 'Time Atomic International'
+        else:
+          raise ValueError(f'Invalid format string sequence %{char}')
+        percent_mode = False
+    
+    return result
+  
+  strftime = to_format_string_tai
 
 TimeInstant._init_class_vars()

@@ -13,6 +13,12 @@ class DateBase(ABC):
   
   DAY_OF_WEEK_OFFSET = -1
   DAYS_IN_WEEK = 7
+  WEEK_NAMES_LONG = [
+    'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+  ]
+  WEEK_NAMES_SHORT = [
+    'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat',
+  ]
   
   @classmethod
   @abstractmethod

@@ -620,13 +620,13 @@ class TestTimeClasses(unittest.TestCase):
     
     now_unix_time_ns = now.to_unix_timestamp()[0] * FixedPrec('1000000000')
     # checks if 3 milliseconds off
-    self.assertTrue(abs(now_unix_time_ns - current_unix_time_ns) <= 3000000, f'{now_unix_time_ns} {current_unix_time_ns}')
+    self.assertTrue(abs(now_unix_time_ns - current_unix_time_ns) <= 3_000_000, f'{now_unix_time_ns} {current_unix_time_ns}')
     
     now_date_tuple = now.to_date_tuple_utc()
     self.assertEqual(
       (
         *now_date_tuple[:6],
-        int(now_date_tuple[6] * 1000000),
+        int(now_date_tuple[6] * 1_000_000),
       ),
       (
         current_datetime.year,
@@ -637,4 +637,11 @@ class TestTimeClasses(unittest.TestCase):
         current_datetime.second,
         current_datetime.microsecond,
       )
+    )
+  
+  def test_to_format_string_tai(self):
+    time_instant = TimeInstant.from_date_tuple_tai(2024, 4, 14, 13, 2, 3, FixedPrec('0.45678913'))
+    self.assertEqual(
+      time_instant.to_format_string_tai('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%%U15 w:%w W:%%W16 x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:456789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:%U15 w:0 W:%W16 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+0000:37 Z:Time Atomic International %:% str:test'
     )
