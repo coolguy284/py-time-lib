@@ -139,8 +139,12 @@ class JulGregBaseDate(DateBase):
     return cls(*cls.parse_iso_string(string))
   
   @classmethod
-  def from_ordinal_date(cls, year: Integral, ordinal_date: Integral):
+  def from_ordinal_date(cls, year: Integral, ordinal_date: Integral) -> Self:
     return cls.from_unnormalized(year, 1, ordinal_date)
+  
+  @classmethod
+  def from_month_week_day(cls, year: Integral, month: Integral, week: Integral, day: Integral) -> Self:
+    raise NotImplementedError()
   
   @property
   def year(self) -> Integral:
@@ -168,6 +172,13 @@ class JulGregBaseDate(DateBase):
   
   def ordinal_date(self) -> int:
     return self.days_since_epoch - self.__class__(self.year, 1, 1).days_since_epoch + 1
+  
+  def to_month_week_day(self) -> tuple[Integral, Integral, Integral, Integral]:
+    '''
+    Returns a tuple of the form (year, month, week, day); for example "the second monday in january 2024"
+    would result in (2024, 1, 2, 1). Weeks are numbered 0-6.
+    '''
+    raise NotImplementedError()
   
   def get_monthly_calendar(self) -> str:
     header = f'{self.MONTH_NAMES_SHORT[self.month - 1]} {self.year}'

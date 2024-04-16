@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from numbers import Integral, Real
+from re import compile as re_compile
 from time import time_ns
 from typing import Generator, Self, SupportsIndex
 
@@ -96,6 +97,9 @@ class TimeInstant:
   REDUCED_JULIAN_DATE_OFFSET_FROM_JD: FixedPrec = FixedPrec('-2400000')
   MODIFIED_JULIAN_DATE_OFFSET_FROM_JD: FixedPrec = FixedPrec('-2400000.5')
   
+  _str_offset_to_fixedprec_minute = re_compile(r'([+-])(\d{2})(\d{2})')
+  _str_offset_to_fixedprec_any = re_compile(r'([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?')
+  
   @classmethod
   def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
     days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
@@ -124,6 +128,53 @@ class TimeInstant:
     hrs_since_epoch, minute = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_HOUR)
     days_since_epoch, hour = divmod(hrs_since_epoch, cls.NOMINAL_HOURS_PER_DAY)
     return days_since_epoch, hour, minute
+  
+  @classmethod
+  def fixedprec_offset_to_str(cls, offset_secs: TimeStorageType) -> str:
+    offset_sign = '+' if offset_secs >= 0 else '-'
+    offset_hrs, remainder = divmod(abs(offset_secs), cls.NOMINAL_SECS_PER_HOUR)
+    offset_mins, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
+    offset_secs, offset_frac_secs = divmod(remainder, 1)
+    
+    if offset_frac_secs != 0:
+      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs):0>2}.{str(offset_frac_secs).split('.')[1]}'
+    elif offset_secs != 0:
+      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs):0>2}'
+    elif offset_mins != 0 or offset_hrs != 0:
+      return f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
+    else:
+      return 'Z'
+  
+  @classmethod
+  def str_offset_to_fixedprec(cls, offset_str: str) -> FixedPrec:
+    if offset_str == 'Z':
+      return FixedPrec(0)
+    elif match := cls._str_offset_to_fixedprec_minute.match(offset_str):
+      return FixedPrec(
+        int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+        int(match[3]) * cls.NOMINAL_SECS_PER_MIN
+      ) * (1 if match[1] == '+' else -1)
+    elif match := cls._str_offset_to_fixedprec_any.match(offset_str):
+      if match[5] != None:
+        return (
+          int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+          int(match[3]) * cls.NOMINAL_SECS_PER_MIN +
+          int(match[4]) +
+          FixedPrec('0.' + match[5])
+        ) * (1 if match[1] == '+' else -1)
+      elif match[4] != None:
+        return FixedPrec(
+          int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+          int(match[3]) * cls.NOMINAL_SECS_PER_MIN +
+          int(match[4])
+        ) * (1 if match[1] == '+' else -1)
+      else:
+        return FixedPrec(
+          int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+          int(match[3]) * cls.NOMINAL_SECS_PER_MIN
+        ) * (1 if match[1] == '+' else -1)
+    else:
+      raise Exception('Offset string cannot be converted, form invalid')
   
   @classmethod
   def update_leap_seconds(cls, file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FILE_URL):
@@ -359,6 +410,14 @@ class TimeInstant:
     return cls.from_julian_date_tai(modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD)
   
   @classmethod
+  def from_format_string_tai(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+    raise NotImplementedError()
+  
+  @classmethod
+  def from_format_string_utc(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+    raise NotImplementedError()
+  
+  @classmethod
   def now(cls) -> Self:
     return cls.from_unix_timestamp(FixedPrec(time_ns(), 9))
   
@@ -576,16 +635,7 @@ class TimeInstant:
         elif char == 'Y':
           result += str(year)
         elif char == 'z':
-          tai_utc_offset = -self.get_utc_tai_offset()
-          offset_sign = '+' if tai_utc_offset >= 0 else '-'
-          offset_hrs, remainder = divmod(abs(tai_utc_offset), self.NOMINAL_SECS_PER_HOUR)
-          offset_mins, remainder = divmod(remainder, self.NOMINAL_SECS_PER_MIN)
-          offset_secs, offset_frac_secs = divmod(remainder, 1)
-          result += f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
-          if offset_frac_secs != 0:
-            result += f':{int(offset_secs):0>2}.{str(offset_frac_secs).split('.')[1]}'
-          elif offset_secs != 0:
-            result += f':{int(offset_secs):0>2}'
+          result += self.fixedprec_offset_to_str(-self.get_utc_tai_offset())
         elif char == 'Z':
           result += 'Time Atomic International'
         else:
@@ -594,6 +644,9 @@ class TimeInstant:
     
     return result
   
-  strftime = to_format_string_tai
+  def to_format_string_utc(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    raise NotImplementedError()
+  
+  strftime = to_format_string_utc
 
 TimeInstant._init_class_vars()
