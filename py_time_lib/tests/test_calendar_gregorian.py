@@ -149,3 +149,9 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(date.to_date_tuple(), (2024, 2, 1))
     date = cls.from_unnormalized(2024, 1, 0)
     self.assertEqual(date.to_date_tuple(), (2023, 12, 31))
+  
+  def test_from_to_month_week_day(self):
+    self.assertEqual(cls(2024, 4, 14).to_month_week_day(), (2024, 4, 2, 0))
+    self.assertEqual(cls(2024, 4, 15).to_month_week_day(), (2024, 4, 3, 1))
+    self.assertEqual(cls.from_month_week_day(2024, 4, 2, 0).to_date_tuple(), (2024, 4, 14))
+    self.assertEqual(cls.from_month_week_day(2024, 4, 3, 1).to_date_tuple(), (2024, 4, 15))

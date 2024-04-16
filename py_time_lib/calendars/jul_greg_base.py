@@ -143,8 +143,12 @@ class JulGregBaseDate(DateBase):
     return cls.from_unnormalized(year, 1, ordinal_date)
   
   @classmethod
-  def from_month_week_day(cls, year: Integral, month: Integral, week: Integral, day: Integral) -> Self:
-    raise NotImplementedError()
+  def from_month_week_day(cls, year: Integral, month: Integral, week: Integral, day_of_week: Integral) -> Self:
+    first_day_of_week = cls(year, month, 1).day_of_week()
+    if day_of_week >= first_day_of_week:
+      return cls(year, month, (week - 1) * cls.DAYS_IN_WEEK + (day_of_week - first_day_of_week) + 1)
+    else:
+      return cls(year, month, week * cls.DAYS_IN_WEEK + (day_of_week - first_day_of_week) + 1)
   
   @property
   def year(self) -> Integral:
@@ -175,10 +179,14 @@ class JulGregBaseDate(DateBase):
   
   def to_month_week_day(self) -> tuple[Integral, Integral, Integral, Integral]:
     '''
-    Returns a tuple of the form (year, month, week, day); for example "the second monday in january 2024"
+    Returns a tuple of the form (year, month, week, day_of_week); for example "the second monday in january 2024"
     would result in (2024, 1, 2, 1). Weeks are numbered 0-6.
     '''
-    raise NotImplementedError()
+    
+    # 1 = first 7 days of month, 2 = second 7 days of month, etc.
+    week_num = (self.day - 1) // self.DAYS_IN_WEEK + 1
+    
+    return (self.year, self.month, week_num, self.day_of_week())
   
   def get_monthly_calendar(self) -> str:
     header = f'{self.MONTH_NAMES_SHORT[self.month - 1]} {self.year}'
