@@ -1,6 +1,6 @@
 import random, unittest, datetime
 
-from ..calendars.gregorian import GregorianDate
+from .. import GregorianDate
 
 cls = GregorianDate
 

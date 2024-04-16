@@ -5,7 +5,7 @@ import urllib.request
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
 from .data.leap_seconds import NOMINAL_SECS_PER_DAY
-from . import time_classes
+from .time_classes import time_instant
 
 DEFAULT_LEAP_FILE_PATH = 'data/leap-seconds.list'
 DEFAULT_LEAP_FILE_URL = 'https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list'
@@ -24,9 +24,9 @@ def get_current_ntp_timestamp() -> int:
   global _ntp_epoch_instant
   
   if _ntp_epoch_instant == None:
-    _ntp_epoch_instant = time_classes.TimeInstant.from_date_tuple_utc(1900, 1, 1, 0, 0, 0, 0)
+    _ntp_epoch_instant = time_instant.TimeInstant.from_date_tuple_utc(1900, 1, 1, 0, 0, 0, 0)
   
-  return int((time_classes.TimeInstant.now() - _ntp_epoch_instant).time_delta)
+  return int((time_instant.TimeInstant.now() - _ntp_epoch_instant).time_delta)
 
 def get_leap_sec_stored_file(file_path: str = DEFAULT_LEAP_FILE_PATH) -> str | None:
   try:

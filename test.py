@@ -1,6 +1,6 @@
 import unittest
 
-from py_time_lib.time_classes import TimeInstant
+from py_time_lib import TimeInstant
 
 from py_time_lib.tests.test_calendar_gregorian import TestCalendarGregorian
 from py_time_lib.tests.test_calendar_holocene import TestCalendarHolocene

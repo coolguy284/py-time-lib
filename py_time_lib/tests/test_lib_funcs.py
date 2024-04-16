@@ -1,6 +1,6 @@
 import unittest
 
-from ..lib_funcs import binary_search, binary_search_array_split
+from .. import binary_search, binary_search_array_split
 
 class TestLibFuncs(unittest.TestCase):
   def test_binary_search(self):

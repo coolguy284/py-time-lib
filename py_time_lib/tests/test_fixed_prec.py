@@ -1,6 +1,6 @@
 import unittest
 
-from ..fixed_prec import FixedPrec
+from .. import FixedPrec
 
 class TestFixedPrec(unittest.TestCase):
   def test_str(self):

@@ -1,6 +1,6 @@
 import random, unittest
 
-from ..calendars.julian import JulianDate
+from .. import JulianDate
 
 cls = JulianDate
 
