@@ -22,7 +22,7 @@ class IsoWeekDate(DateBase):
   @classmethod
   def date_to_days_since_epoch[T: Integral](cls, year: T, week: T, day: T) -> T:
     # https://en.wikipedia.org/wiki/ISO_week_date#Algorithms
-    d = week * 7 + day - (gregorian.GregorianDate(year, 1, 4).iso_day_of_week() + 3)
+    d = week * cls.DAYS_IN_WEEK + day - (gregorian.GregorianDate(year, 1, 4).iso_day_of_week() + 3)
     
     if d < 1:
       gregorian_year = year - 1
@@ -43,7 +43,7 @@ class IsoWeekDate(DateBase):
     ordinal_date = gregorian_date.ordinal_date()
     iso_day_of_week = gregorian_date.iso_day_of_week()
     year = gregorian_date.year
-    week_number = (ordinal_date - iso_day_of_week + 10) // 7
+    week_number = (ordinal_date - iso_day_of_week + 10) // cls.DAYS_IN_WEEK
     
     if week_number < 1:
       year -= 1
