@@ -8,6 +8,11 @@ class TestCalendarDateBase(unittest.TestCase):
     self.assertEqual(str(DateDelta(-1000)), '-1000 days')
     self.assertEqual(str(DateDelta(0)), '0 days')
   
+  def test_date_delta_repr(self):
+    self.assertEqual(repr(DateDelta(1000)), 'DateDelta(1000)')
+    self.assertEqual(repr(DateDelta(-1000)), 'DateDelta(-1000)')
+    self.assertEqual(repr(DateDelta(0)), 'DateDelta(0)')
+  
   def test_date_delta_basic_ops(self):
     self.assertEqual(str(-DateDelta(1)), '-1 days')
     self.assertEqual(str(-DateDelta(0)), '0 days')

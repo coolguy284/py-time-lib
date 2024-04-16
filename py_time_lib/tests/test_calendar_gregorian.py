@@ -27,8 +27,8 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls.days_in_year(1900), 365)
   
   def test_class_repr(self):
-    jd = cls(2024, 1, 1)
-    self.assertEqual(repr(jd), 'GregorianDate(year = 2024, month = 1, day = 1)')
+    date = cls(2024, 1, 1)
+    self.assertEqual(repr(date), 'GregorianDate(year = 2024, month = 1, day = 1)')
   
   def test_class_str(self):
     self.assertEqual(str(cls(2024, 1, 1)), '2024-01-01')
