@@ -36,8 +36,8 @@ if mode == RunModes.BASIC_DATE_TESTING:
   print(GregorianDate.DAYS_IN_YEAR)
   print()
   
-  t1 = TimeInstant(FixedPrec(1000, 0))
-  t2 = TimeInstant(FixedPrec(1003, 0))
+  t1 = TimeInstant(FixedPrec(1000))
+  t2 = TimeInstant(FixedPrec(1003))
   print(t1)
   print(t2)
   print(t2 - t1)
