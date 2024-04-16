@@ -371,13 +371,13 @@ class TimeInstant:
     return self._time
   
   def __add__(self, other: TimeDelta) -> Self:
-    return TimeInstant(self._time + other._time_delta)
+    return self.__class__(self._time + other._time_delta)
   
   def __sub__(self, other: Self | TimeDelta) -> Self | TimeDelta:
     if hasattr(other, '_time'):
       return TimeDelta(self._time - other._time)
     else:
-      return TimeInstant(self._time - other._time_delta)
+      return self.__class__(self._time - other._time_delta)
   
   def __eq__(self, other: Self | None):
     if other is None:

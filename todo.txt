@@ -1,27 +1,27 @@
-add leap smear support
+fixedprec (, 0) in tests remove
+time/date delta/instant dunder methods return notimplemented properly
+add __r*__ versions for all fixedprec and date/time delta/instant ops
+implement abstract base classes for fixedprec
+split timeinstant class into many classes
+to make fixedprec hashable (only do if decimal is hashable) can make a reduce func that reduces a fixedprec to simplest form such that all reduced fixedprec that compare equal have same internal vars
+  then make timedelta and timeinstant hashable, and also date classes
 
-jul/greg date:
-  make dateDelta class for date subtraction
-  add "xth thursday in month x" index func
-    and finish strftime support
 timeinstant:
   add fixed-offset timezone support
   add seasonal-offset timezone support
 
-add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable)
-to make fixedprec hashable (only do if decimal is hashable) can make a reduce func that reduces a fixedprec to simplest form such that all reduced fixedprec that compare equal have same internal vars
-  then make timedelta and timeinstant hashable, and also date classes
+add leap smear support
 strptime support
+add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable)
+bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
+  default true option to do this
 
 low prio:
 add leap second support to now
-bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
 add default high detail tostring for tai and utc
-implement abstract base classes for fixedprec
-add __r*__ versions for all fixedprec and timedelta ops
-possibly add strftime function and others to timeinstant (maybe only to the simplified wrapper classes)
 add aliases from datetime library, maybe full compatibility class
 simpledatetime/simpletimedelta wrapper around the date classes
+  maybe holds a timezone value to use for setyear and stuff
 support other timescales and julian dates in other timescales
   add microsoft epoch ticks, .net ticks
   add gps timescale to timescales list?

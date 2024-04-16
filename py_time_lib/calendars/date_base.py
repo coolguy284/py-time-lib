@@ -2,6 +2,8 @@ from abc import abstractmethod, ABC
 from numbers import Integral
 from typing import Self
 
+from .date_delta import DateDelta
+
 class DateBase(ABC):
   '''
   Base class for all date objects. Represents a date stored as days since
@@ -59,10 +61,6 @@ class DateBase(ABC):
   def from_days_since_epoch(cls, days: Integral) -> Self:
     return cls(days)
   
-  @property
-  def days_since_epoch(self) -> Integral:
-    return self._days_since_epoch
-  
   @abstractmethod
   def __repr__(self) -> str:
     ...
@@ -70,6 +68,43 @@ class DateBase(ABC):
   @abstractmethod
   def __str__(self) -> str:
     ...
+  
+  @property
+  def days_since_epoch(self) -> Integral:
+    return self._days_since_epoch
+  
+  def __add__(self, other: DateDelta) -> Self:
+    return self.__class__(self._days_since_epoch + other._date_delta)
+  
+  def __sub__(self, other: Self | DateDelta) -> Self | DateDelta:
+    if hasattr(other, '_days_since_epoch'):
+      return DateDelta(self._days_since_epoch - other._days_since_epoch)
+    else:
+      return self.__class__(self._days_since_epoch - other._date_delta)
+  
+  def __eq__(self, other: Self | None):
+    if other is None:
+      return False
+    
+    return self._days_since_epoch == other._days_since_epoch
+  
+  def __ne__(self, other: Self | None):
+    if other is None:
+      return True
+    
+    return self._days_since_epoch != other._days_since_epoch
+  
+  def __gt__(self, other: Self):
+    return self._days_since_epoch > other._days_since_epoch
+  
+  def __lt__(self, other: Self):
+    return self._days_since_epoch < other._days_since_epoch
+  
+  def __ge__(self, other: Self):
+    return self._days_since_epoch >= other._days_since_epoch
+  
+  def __le__(self, other: Self):
+    return self._days_since_epoch <= other._days_since_epoch
   
   def to_days_since_epoch(self) -> Integral:
     return self._days_since_epoch
