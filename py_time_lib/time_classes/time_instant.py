@@ -560,11 +560,15 @@ class TimeInstant:
         elif char == 'S':
           result += f'{second:0>2}'
         elif char == 'U':
-          raise NotImplementedError()
+          week_1_start_ordinal = date_cls.from_month_week_day(year, 1, 1, 0).ordinal_date()
+          week_num = (ordinal_day - week_1_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
+          result += f'{week_num:0>2}'
         elif char == 'w':
           result += str(day_of_week)
         elif char == 'W':
-          raise NotImplementedError()
+          week_1_start_ordinal = date_cls.from_month_week_day(year, 1, 1, 1).ordinal_date()
+          week_num = (ordinal_day - week_1_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
+          result += f'{week_num:0>2}'
         elif char == 'x':
           result += self.to_format_string_tai('%m/%d/%y')
         elif char == 'X':
