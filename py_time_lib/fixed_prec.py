@@ -216,10 +216,8 @@ class FixedPrec:
     )
   
   def __sub__(self, other) -> Self:
-    other_inv = -other
-    
     try:
-      return self + other_inv
+      return self + (-other)
     except TypeError:
       return NotImplemented
   
@@ -306,10 +304,8 @@ class FixedPrec:
       return NotImplemented
   
   def __rsub__(self, other) -> Self:
-    self_inv = -self
-    
     try:
-      return self_inv + other
+      return (-self) + other
     except TypeError:
       return NotImplemented
   

@@ -74,37 +74,81 @@ class DateBase(ABC):
     return self._days_since_epoch
   
   def __add__(self, other: DateDelta) -> Self:
-    return self.__class__(self._days_since_epoch + other._date_delta)
+    if hasattr(other, 'date_delta'):
+      try:
+        new_days_since_epoch = self._days_since_epoch + other.date_delta
+      except TypeError:
+        return NotImplemented
+      return self.__class__(new_days_since_epoch)
+    else:
+      return NotImplemented
   
   def __sub__(self, other: Self | DateDelta) -> Self | DateDelta:
-    if hasattr(other, '_days_since_epoch'):
-      return DateDelta(self._days_since_epoch - other._days_since_epoch)
+    if hasattr(other, 'days_since_epoch'):
+      try:
+        delta_days = self._days_since_epoch - other.days_since_epoch
+      except TypeError:
+        return NotImplemented
+      return DateDelta(delta_days)
     else:
-      return self.__class__(self._days_since_epoch - other._date_delta)
+      try:
+        return self + (-other)
+      except TypeError:
+        return NotImplemented
   
   def __eq__(self, other: Self | None):
     if other is None:
       return False
     
-    return self._days_since_epoch == other._days_since_epoch
+    if hasattr(other, 'days_since_epoch'):
+      return self._days_since_epoch == other.days_since_epoch
+    else:
+      return NotImplemented
   
   def __ne__(self, other: Self | None):
     if other is None:
       return True
     
-    return self._days_since_epoch != other._days_since_epoch
+    if hasattr(other, 'days_since_epoch'):
+      return self._days_since_epoch != other.days_since_epoch
+    else:
+      return NotImplemented
   
   def __gt__(self, other: Self):
-    return self._days_since_epoch > other._days_since_epoch
+    if hasattr(other, 'days_since_epoch'):
+      try:
+        return self._days_since_epoch > other.days_since_epoch
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __lt__(self, other: Self):
-    return self._days_since_epoch < other._days_since_epoch
+    if hasattr(other, 'days_since_epoch'):
+      try:
+        return self._days_since_epoch < other.days_since_epoch
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __ge__(self, other: Self):
-    return self._days_since_epoch >= other._days_since_epoch
+    if hasattr(other, 'days_since_epoch'):
+      try:
+        return self._days_since_epoch >= other.days_since_epoch
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __le__(self, other: Self):
-    return self._days_since_epoch <= other._days_since_epoch
+    if hasattr(other, 'days_since_epoch'):
+      try:
+        return self._days_since_epoch <= other.days_since_epoch
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def to_days_since_epoch(self) -> Integral:
     return self._days_since_epoch

@@ -371,37 +371,81 @@ class TimeInstant:
     return self._time
   
   def __add__(self, other: TimeDelta) -> Self:
-    return self.__class__(self._time + other._time_delta)
+    if hasattr(other, 'time_delta'):
+      try:
+        new_time = self._time + other.time_delta
+      except TypeError:
+        return NotImplemented
+      return self.__class__(new_time)
+    else:
+      return NotImplemented
   
   def __sub__(self, other: Self | TimeDelta) -> Self | TimeDelta:
-    if hasattr(other, '_time'):
-      return TimeDelta(self._time - other._time)
+    if hasattr(other, 'time'):
+      try:
+        delta_time = self._time - other.time
+      except TypeError:
+        return NotImplemented
+      return TimeDelta(delta_time)
     else:
-      return self.__class__(self._time - other._time_delta)
+      try:
+        return self + (-other)
+      except TypeError:
+        return NotImplemented
   
   def __eq__(self, other: Self | None):
     if other is None:
       return False
     
-    return self._time == other._time
+    if hasattr(other, 'time'):
+      return self._time == other.time
+    else:
+      return NotImplemented
   
   def __ne__(self, other: Self | None):
     if other is None:
       return True
     
-    return self._time != other._time
+    if hasattr(other, 'time'):
+      return self._time != other.time
+    else:
+      return NotImplemented
   
   def __gt__(self, other: Self):
-    return self._time > other._time
+    if hasattr(other, 'time'):
+      try:
+        return self._time > other.time
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __lt__(self, other: Self):
-    return self._time < other._time
+    if hasattr(other, 'time'):
+      try:
+        return self._time < other.time
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __ge__(self, other: Self):
-    return self._time >= other._time
+    if hasattr(other, 'time'):
+      try:
+        return self._time >= other.time
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __le__(self, other: Self):
-    return self._time <= other._time
+    if hasattr(other, 'time'):
+      try:
+        return self._time <= other.time
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def to_utc_info(self) -> dict[str, TimeStorageType | bool | None]:
     'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, last_leap_delta, last_leap_transition_time (when last leap second started or ended)).'

@@ -21,40 +21,91 @@ class DateDelta:
     return self._date_delta
   
   def __neg__(self) -> Self:
-    return DateDelta(-self._date_delta)
+    return self.__class__(-self._date_delta)
   
   def __add__(self, other: Self) -> Self:
-    return DateDelta(self._date_delta + other._date_delta)
+    if hasattr(other, 'date_delta'):
+      try:
+        return self.__class__(self._date_delta + other.date_delta)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __sub__(self, other: Self) -> Self:
-    return self + (-other)
+    try:
+      return self + (-other)
+    except TypeError:
+      return NotImplemented
   
   def __mul__(self, other) -> Self:
-    return DateDelta(self._date_delta * other)
+    if hasattr(other, 'date_delta'):
+      return NotImplemented
+    else:
+      try:
+        return self.__class__(self._date_delta * other)
+      except TypeError:
+        return NotImplemented
   
   def __floordiv__(self, other) -> Self:
-    return DateDelta(self._date_delta // other)
+    if hasattr(other, 'date_delta'):
+      return NotImplemented
+    else:
+      try:
+        return self.__class__(self._date_delta // other)
+      except TypeError:
+        return NotImplemented
   
   def __eq__(self, other: Self | None):
     if other is None:
       return False
     
-    return self._date_delta == other._date_delta
+    if hasattr(other, 'date_delta'):
+      return self._date_delta == other.date_delta
+    else:
+      return NotImplemented
   
   def __ne__(self, other: Self | None):
     if other is None:
       return True
     
-    return self._date_delta != other._date_delta
+    if hasattr(other, 'date_delta'):
+      return self._date_delta != other.date_delta
+    else:
+      return NotImplemented
   
   def __gt__(self, other: Self):
-    return self._date_delta > other._date_delta
+    if hasattr(other, 'date_delta'):
+      try:
+        return self._date_delta > other.date_delta
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __lt__(self, other: Self):
-    return self._date_delta < other._date_delta
+    if hasattr(other, 'date_delta'):
+      try:
+        return self._date_delta < other.date_delta
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __ge__(self, other: Self):
-    return self._date_delta >= other._date_delta
+    if hasattr(other, 'date_delta'):
+      try:
+        return self._date_delta >= other.date_delta
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __le__(self, other: Self):
-    return self._date_delta <= other._date_delta
+    if hasattr(other, 'date_delta'):
+      try:
+        return self._date_delta <= other.date_delta
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
