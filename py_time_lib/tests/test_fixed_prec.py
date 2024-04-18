@@ -48,6 +48,9 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(str(FixedPrec(1, 0) - FixedPrec(3, 0)), '-2')
     self.assertEqual(str(FixedPrec(1, 0) - FixedPrec(3, 3)), '0.997')
     self.assertEqual(str(FixedPrec(1, 0) - FixedPrec(3, -3)), '-2999')
+    
+    self.assertEqual((FixedPrec(3) + 5).to_hashable_tuple(), ('FixedPrec', 8, 0, 12))
+    self.assertEqual((5 + FixedPrec(3)).to_hashable_tuple(), ('FixedPrec', 8, 0, 12))
   
   def test_mul(self):
     self.assertEqual(str(FixedPrec(1, 0) * FixedPrec(3, 0)), '3')
@@ -55,6 +58,9 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(str(FixedPrec(8, 0) * FixedPrec(12, 1)), '9.6')
     self.assertEqual(str(FixedPrec(8, 1) * FixedPrec(12, 1)), '0.96')
     self.assertEqual(str(FixedPrec(8, 1) * FixedPrec(12, 20)), '0.000000000000')
+    
+    self.assertEqual((FixedPrec(3) * 5).to_hashable_tuple(), ('FixedPrec', 15, 0, 12))
+    self.assertEqual((5 * FixedPrec(3)).to_hashable_tuple(), ('FixedPrec', 15, 0, 12))
   
   def test_div_mod(self):
     self.assertEqual(FixedPrec('-21.0') // FixedPrec('10.0'), -3)
@@ -92,6 +98,15 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(divmod(FixedPrec('12.0'), FixedPrec('10.0')), (1, FixedPrec('2.0')))
     self.assertEqual(divmod(FixedPrec('20.0'), FixedPrec('10.0')), (2, FixedPrec('0.0')))
     self.assertEqual(divmod(FixedPrec('22.0'), FixedPrec('10.0')), (2, FixedPrec('2.0')))
+    
+    self.assertEqual((FixedPrec(11) // 3).to_hashable_tuple(), ('FixedPrec', 3, 0, 12))
+    self.assertEqual((11 // FixedPrec(3)).to_hashable_tuple(), ('FixedPrec', 3, 0, 12))
+    
+    self.assertEqual((FixedPrec(11) % 3).to_hashable_tuple(), ('FixedPrec', 2, 0, 12))
+    self.assertEqual((11 % FixedPrec(3)).to_hashable_tuple(), ('FixedPrec', 2, 0, 12))
+    
+    self.assertEqual(tuple(x.to_hashable_tuple() for x in divmod(FixedPrec(11), 3)), (('FixedPrec', 3, 0, 12), ('FixedPrec', 2, 0, 12)))
+    self.assertEqual(tuple(x.to_hashable_tuple() for x in divmod(11, FixedPrec(3))), (('FixedPrec', 3, 0, 12), ('FixedPrec', 2, 0, 12)))
   
   def test_true_div(self):
     self.assertEqual(FixedPrec(1) / FixedPrec(2), FixedPrec('0.5'))
@@ -103,6 +118,9 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(1) / FixedPrec('0.25'), FixedPrec(4))
     self.assertEqual(FixedPrec(1) / FixedPrec('0.250000000000'), FixedPrec(4))
     self.assertEqual(FixedPrec(1) / FixedPrec('0.2500000000000'), FixedPrec(4))
+    
+    self.assertEqual((FixedPrec(12) / 3).to_hashable_tuple(), ('FixedPrec', 4_000_000_000_000, 12, 12))
+    self.assertEqual((12 / FixedPrec(3)).to_hashable_tuple(), ('FixedPrec', 4_000_000_000_000, 12, 12))
   
   def test_relational(self):
     self.assertEqual(FixedPrec(1, 0) == FixedPrec(1, 0), True)
@@ -117,6 +135,28 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(1, 0) <= FixedPrec(10, 0), True)
     self.assertEqual(FixedPrec(1, 0) == None, False)
     self.assertEqual(FixedPrec(1, 0) != None, True)
+    
+    self.assertEqual(1 == FixedPrec(1, 0), True)
+    self.assertEqual(1 == FixedPrec(10, 1), True)
+    self.assertEqual(1 == FixedPrec(10, 0), False)
+    self.assertEqual(1 != FixedPrec(1, 0), False)
+    self.assertEqual(1 != FixedPrec(10, 1), False)
+    self.assertEqual(1 != FixedPrec(10, 0), True)
+    self.assertEqual(1 > FixedPrec(-1, 0), True)
+    self.assertEqual(1 < FixedPrec(10, 0), True)
+    self.assertEqual(1 >= FixedPrec(-1, 0), True)
+    self.assertEqual(1 <= FixedPrec(10, 0), True)
+    
+    self.assertEqual(FixedPrec(1, 0) == 1, True)
+    self.assertEqual(FixedPrec(1, 0) == 1, True)
+    self.assertEqual(FixedPrec(1, 0) == 10, False)
+    self.assertEqual(FixedPrec(1, 0) != 1, False)
+    self.assertEqual(FixedPrec(1, 0) != 1, False)
+    self.assertEqual(FixedPrec(1, 0) != 10, True)
+    self.assertEqual(FixedPrec(1, 0) > -1, True)
+    self.assertEqual(FixedPrec(1, 0) < 10, True)
+    self.assertEqual(FixedPrec(1, 0) >= -1, True)
+    self.assertEqual(FixedPrec(1, 0) <= 10, True)
   
   def test_to_int(self):
     self.assertEqual(int(FixedPrec('0')), 0)

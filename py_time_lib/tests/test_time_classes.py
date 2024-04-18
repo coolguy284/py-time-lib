@@ -636,21 +636,9 @@ class TestTimeClasses(unittest.TestCase):
     self.assertTrue(abs(now_unix_time_ns - current_unix_time_ns) <= 3_000_000, f'{now_unix_time_ns} {current_unix_time_ns}')
     
     now_date_tuple = now.to_date_tuple_utc()
-    self.assertEqual(
-      (
-        *now_date_tuple[:6],
-        int(now_date_tuple[6] * 1_000_000),
-      ),
-      (
-        current_datetime.year,
-        current_datetime.month,
-        current_datetime.day,
-        current_datetime.hour,
-        current_datetime.minute,
-        current_datetime.second,
-        current_datetime.microsecond,
-      )
-    )
+    now_datetime = datetime.datetime(*now_date_tuple[:6], int(now_date_tuple[6] * 1_000_000), datetime.UTC)
+    
+    self.assertTrue(abs(now_datetime - current_datetime) < datetime.timedelta(microseconds = 30))
   
   def test_fixedprec_offset_to_str(self):
     # test inverse func as well

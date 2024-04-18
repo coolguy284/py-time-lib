@@ -269,12 +269,14 @@ class FixedPrec:
     
     self, other = self.convert_to_highest_precision(other)
     
+    div, mod = divmod(self.value, other.value)
+    
     return FixedPrec(
-      self.value // other.value,
+      div,
       0,
       self.max_prec,
     ), FixedPrec(
-      self.value % other.value,
+      mod,
       self.place,
       self.max_prec
     )
@@ -314,6 +316,72 @@ class FixedPrec:
       return self * other
     except TypeError:
       return NotImplemented
+  
+  def __rfloordiv__(self, other) -> Self:
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
+    self, other = self.convert_to_highest_precision(other)
+    
+    return FixedPrec(
+      other.value // self.value,
+      0,
+      self.max_prec,
+    )
+  
+  def __rmod__(self, other) -> Self:
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
+    self, other = self.convert_to_highest_precision(other)
+    
+    return FixedPrec(
+      other.value % self.value,
+      self.place,
+      self.max_prec,
+    )
+  
+  def __rdivmod__(self, other) -> Self:
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
+    self, other = self.convert_to_highest_precision(other)
+    
+    div, mod = divmod(other.value, self.value)
+    
+    return FixedPrec(
+      div,
+      0,
+      self.max_prec,
+    ), FixedPrec(
+      mod,
+      self.place,
+      self.max_prec
+    )
+  
+  def __rtruediv__(self, other) -> Self:
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
+    other_max_prec = other.increase_to_max_prec()
+    
+    if self.value == 0:
+      raise ZeroDivisionError('division by zero')
+    else:
+      additional_precision = max((self.place - other_max_prec.max_prec) - (other_max_prec.place - other_max_prec.max_prec), 0)
+      return FixedPrec(
+        other_max_prec.value * 10 ** additional_precision // self.value,
+        other_max_prec.place - self.place + additional_precision,
+        max(other_max_prec.max_prec, self.max_prec)
+      ).reduce_to_max_prec()
   
   def __eq__(self, other):
     if other is None:
