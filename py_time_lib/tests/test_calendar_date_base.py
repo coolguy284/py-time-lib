@@ -16,6 +16,11 @@ class TestCalendarDateBase(unittest.TestCase):
   def test_date_delta_basic_ops(self):
     self.assertEqual(str(-DateDelta(1)), '-1 days')
     self.assertEqual(str(-DateDelta(0)), '0 days')
+    self.assertEqual(str(+DateDelta(1)), '1 days')
+    self.assertEqual(str(+DateDelta(0)), '0 days')
+    self.assertEqual(str(abs(DateDelta(1))), '1 days')
+    self.assertEqual(str(abs(DateDelta(0))), '0 days')
+    self.assertEqual(str(abs(DateDelta(-1))), '1 days')
     self.assertEqual(str(DateDelta(3) + DateDelta(2)), '5 days')
     self.assertEqual(str(DateDelta(3) - DateDelta(2)), '1 days')
     self.assertEqual(str(DateDelta(3) * 4), '12 days')

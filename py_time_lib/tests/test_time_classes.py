@@ -33,6 +33,11 @@ class TestTimeClasses(unittest.TestCase):
   def test_time_delta_basic_ops(self):
     self.assertEqual(str(-TimeDelta(FixedPrec(1))), 'TD-1')
     self.assertEqual(str(-TimeDelta(FixedPrec(0))), 'TD+0')
+    self.assertEqual(str(+TimeDelta(FixedPrec(1))), 'TD+1')
+    self.assertEqual(str(+TimeDelta(FixedPrec(0))), 'TD+0')
+    self.assertEqual(str(abs(TimeDelta(FixedPrec(1)))), 'TD+1')
+    self.assertEqual(str(abs(TimeDelta(FixedPrec(0)))), 'TD+0')
+    self.assertEqual(str(abs(TimeDelta(FixedPrec(-1)))), 'TD+1')
     self.assertEqual(str(TimeDelta(FixedPrec(3)) + TimeDelta(FixedPrec(2))), 'TD+5')
     self.assertEqual(str(TimeDelta(FixedPrec(3)) - TimeDelta(FixedPrec(2))), 'TD+1')
     self.assertEqual(str(TimeDelta(FixedPrec(3)) * FixedPrec(4)), 'TD+12')

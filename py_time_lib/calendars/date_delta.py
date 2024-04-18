@@ -21,7 +21,22 @@ class DateDelta:
     return self._date_delta
   
   def __neg__(self) -> Self:
-    return self.__class__(-self._date_delta)
+    try:
+      return self.__class__(-self._date_delta)
+    except TypeError:
+      return NotImplemented
+  
+  def __pos__(self) -> Self:
+    return self
+  
+  def __abs__(self) -> Self:
+    try:
+      if self._date_delta < 0:
+        return -self
+      else:
+        return self
+    except TypeError:
+      return NotImplemented
   
   def __add__(self, other: Self) -> Self:
     if hasattr(other, 'date_delta'):

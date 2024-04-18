@@ -1,4 +1,3 @@
-add neg, pos, abs to timeinstant/fixedprec/etc
 add __r*__ versions for all fixedprec and date/time delta/instant ops
 implement abstract base classes for fixedprec
 split timeinstant class into many classes

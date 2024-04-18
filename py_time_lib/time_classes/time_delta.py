@@ -26,7 +26,22 @@ class TimeDelta:
     return self._time_delta
   
   def __neg__(self) -> Self:
-    return self.__class__(-self._time_delta)
+    try:
+      return self.__class__(-self._time_delta)
+    except TypeError:
+      return NotImplemented
+  
+  def __pos__(self) -> Self:
+    return self
+  
+  def __abs__(self) -> Self:
+    try:
+      if self._time_delta < 0:
+        return -self
+      else:
+        return self
+    except TypeError:
+      return NotImplemented
   
   def __add__(self, other: Self) -> Self:
     if hasattr(other, 'time_delta'):
