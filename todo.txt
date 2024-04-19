@@ -1,7 +1,11 @@
-implement abstract base classes for fixedprec
+improve fixedprec repr
+fixedprec constructor handle real, integral
+continue abstract base classes for fixedprec
 split timeinstant class into many classes
+split fixedprec into many classes
 to make fixedprec hashable (only do if decimal is hashable) can make a reduce func that reduces a fixedprec to simplest form such that all reduced fixedprec that compare equal have same internal vars
   then make timedelta and timeinstant hashable, and also date classes
+  hash function should return int hash first, then float hash, then fixedprec hash
 
 timeinstant:
   add fixed-offset timezone support

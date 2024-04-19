@@ -1,9 +1,11 @@
 import re
 from math import floor, log10
-from numbers import Integral
+from numbers import Complex, Integral
 from typing import Self
 
-class FixedPrec:
+from .lib_funcs import binary_search_float
+
+class FixedPrec(Complex):
   __slots__ = 'value', 'place', 'max_prec'
   value: Integral
   place: Integral
@@ -71,15 +73,15 @@ class FixedPrec:
       if self.place <= 0:
         return '0'
       else:
-        return f'0.{"0" * self.place}'
+        return f'0.{'0' * self.place}'
     else:
       if self.place <= 0:
-        return f'{self.value}{"0" * (-self.place)}'
+        return f'{self.value}{'0' * (-self.place)}'
       else:
         negative = self.value < 0
         pos_string = str(abs(self.value))
         pos_string = f'{pos_string:0>{self.place + 1}}'
-        return f'{"-" if negative else ""}{pos_string[:-self.place]}.{pos_string[-self.place:]}'
+        return f'{'-' if negative else ''}{pos_string[:-self.place]}.{pos_string[-self.place:]}'
   
   def __format__(self, format_spec: str) -> str:
     if format_spec == '':
@@ -129,6 +131,9 @@ class FixedPrec:
       return float(self.value) / 10.0 ** self.place
     else:
       return float(self.value)
+  
+  def __complex__(self):
+    return complex(float(self))
   
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
@@ -200,6 +205,22 @@ class FixedPrec:
         )
       
       return less_precise_converted, other
+  
+  def reduce_to_lowest_place(self) -> Self:
+    result = self
+    
+    if result.value != 0:
+      value = result.value
+      place = result.place
+      while value % 10 == 0:
+        value //= 10
+        place -= 1
+      result = self.__class__(value, place, self.max_prec)
+    else:
+      if result.place > 0:
+        result = self.__class__(result.value, 0, self.max_prec)
+    
+    return result
   
   def __add__(self, other) -> Self:
     try:
@@ -299,6 +320,58 @@ class FixedPrec:
         max(self_max_prec.max_prec, other.max_prec)
       ).reduce_to_max_prec()
   
+  def _nthroot(self, other: Integral) -> Self:
+    'Requires other be greater than 1.'
+    
+    if other <= 1:
+      raise Exception(f'Other must be greater than 1, got {other}')
+    
+    if self < 1:
+      return binary_search_float(lambda x: x ** other <= self, FixedPrec(0, self.place, self.max_prec), 1)
+    else:
+      return binary_search_float(lambda x: x ** other <= self, 1, self)
+  
+  def __pow__(self, other) -> Self:
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
+    if self == 1:
+      return self
+    elif self < 0:
+      raise Exception(f'{self.__class__.__name__} cannot handle complex output (negative base)')
+    
+    other = other.reduce_to_lowest_place()
+    
+    if other < 0:
+      return 1 / (self ** -other)
+    elif other.place <= 0:
+      # other is integral
+      if other.value == 0:
+        return FixedPrec(1, 0, max(self.max_prec, other.max_prec))
+      elif other.value == 1:
+        return self
+      else:
+        result = self
+        remaining_exp = int(other)
+        while remaining_exp > 0:
+          remaining_exp, current = divmod(remaining_exp, 2)
+          if current > 0:
+            result *= self
+          result *= result
+        return result
+    else:
+      integral, fractional = divmod(other, 1)
+      result = self ** integral
+      self_root = self
+      while fractional % 1 != 0:
+        fractional *= 10
+        self_root = self._nthroot(10)
+        frac_power = int(fractional // 1)
+        result *= self_root ** frac_power
+      return result
+  
   def __radd__(self, other) -> Self:
     try:
       return self + other
@@ -383,6 +456,9 @@ class FixedPrec:
         max(other_max_prec.max_prec, self.max_prec)
       ).reduce_to_max_prec()
   
+  def __rpow__(self, other):
+    ...
+  
   def __eq__(self, other):
     if other is None:
       return False
@@ -448,3 +524,14 @@ class FixedPrec:
     self, other = self.convert_to_highest_precision(other)
     
     return self.value <= other.value
+  
+  def conjugate(self) -> Self:
+    return self
+  
+  @property
+  def real(self) -> Self:
+    return self
+  
+  @property
+  def imag(self) -> Self:
+    return FixedPrec(0)

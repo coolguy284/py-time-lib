@@ -334,3 +334,56 @@ class TestFixedPrec(unittest.TestCase):
     
     with self.assertRaises(TypeError):
       '4' <= FixedPrec(3)
+  
+  def test_complex_abc(self):
+    self.assertEqual(complex(FixedPrec(3)), 3+0j)
+    self.assertEqual(complex(FixedPrec(0)), 0j)
+    self.assertEqual(complex(FixedPrec(-3)), -3+0j)
+    
+    self.assertEqual(FixedPrec(10, 1).reduce_to_lowest_place().to_hashable_tuple(), ('FixedPrec', 1, 0, 12))
+    self.assertEqual(FixedPrec(12, 1).reduce_to_lowest_place().to_hashable_tuple(), ('FixedPrec', 12, 1, 12))
+    self.assertEqual(FixedPrec(-10, 1).reduce_to_lowest_place().to_hashable_tuple(), ('FixedPrec', -1, 0, 12))
+    self.assertEqual(FixedPrec(-12, 1).reduce_to_lowest_place().to_hashable_tuple(), ('FixedPrec', -12, 1, 12))
+    self.assertEqual(FixedPrec(0, 1).reduce_to_lowest_place().to_hashable_tuple(), ('FixedPrec', 0, 0, 12))
+    self.assertEqual(FixedPrec(0, 0).reduce_to_lowest_place().to_hashable_tuple(), ('FixedPrec', 0, 0, 12))
+    
+    self.assertEqual(FixedPrec(1) ** FixedPrec(0), 1)
+    self.assertEqual(FixedPrec(1) ** FixedPrec(1), 1)
+    self.assertEqual(FixedPrec(1) ** FixedPrec(2), 1)
+    self.assertEqual(FixedPrec(1) ** FixedPrec(1024), 1)
+    
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(0), 1)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(1), 3)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(2), 9)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(3), 27)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(4), 81)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(5), 3 ** 5)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(6), 3 ** 6)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(7), 3 ** 7)
+    # self.assertEqual(FixedPrec(3) ** FixedPrec(8), 3 ** 8)
+    
+    # self.assertEqual(FixedPrec(4) ** FixedPrec(0), 1)
+    # self.assertEqual(FixedPrec(4) ** FixedPrec('0.5'), 2)
+    # self.assertEqual(FixedPrec(4) ** FixedPrec(1), 4)
+    # self.assertEqual(FixedPrec(4) ** FixedPrec('1.5'), 8)
+    # self.assertEqual(FixedPrec(4) ** FixedPrec(2), 16)
+    
+    # self.assertEqual(FixedPrec(4) ** FixedPrec('-0.5'), FixedPrec('0.5'))
+    # self.assertEqual(FixedPrec(4) ** FixedPrec(-1), FixedPrec('0.25'))
+    # self.assertEqual(FixedPrec(4) ** FixedPrec('-1.5'), FixedPrec('0.125'))
+    # self.assertEqual(FixedPrec(4) ** FixedPrec(-2), FixedPrec('0.0625'))
+    
+    # self.assertEqual(FixedPrec(4) ** 1.5, FixedPrec('0.125'))
+    # self.assertEqual(4 ** -FixedPrec('1.5'), FixedPrec('0.125'))
+    
+    self.assertEqual(FixedPrec(4).conjugate(), 4)
+    self.assertEqual(FixedPrec(0).conjugate(), 0)
+    self.assertEqual(FixedPrec(-4).conjugate(), -4)
+    
+    self.assertEqual(FixedPrec(4).real, 4)
+    self.assertEqual(FixedPrec(0).real, 0)
+    self.assertEqual(FixedPrec(-4).real, -4)
+    
+    self.assertEqual(FixedPrec(4).imag, 0)
+    self.assertEqual(FixedPrec(0).imag, 0)
+    self.assertEqual(FixedPrec(-4).imag, 0)
