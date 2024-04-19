@@ -22,10 +22,10 @@ def binary_search_float[T: Real](func: Callable[[T], bool], min_inclusive: T = 0
   
   low_enough = min_inclusive
   too_high = max_exclusive
-  past_low_enough = low_enough
-  past_too_high = too_high
+  past_low_enough = None
+  past_too_high = None
   
-  while too_high - low_enough > epsilon and (low_enough != past_low_enough or too_high != past_too_high):
+  while abs(too_high - low_enough) > epsilon and (low_enough != past_low_enough or too_high != past_too_high):
     past_low_enough = low_enough
     past_too_high = too_high
     

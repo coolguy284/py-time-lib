@@ -327,15 +327,22 @@ class FixedPrec(Complex):
       ).reduce_to_max_prec()
   
   def _nthroot(self, other: Integral) -> Self:
-    'Requires other be greater than 1.'
+    'Requires other be greater than or equal to 1, and self >= 0.'
     
-    if other <= 1:
-      raise Exception(f'Other must be greater than 1, got {other}')
+    if other < 1:
+      raise Exception(f'Other must be greater than or equal to 1, got {other}')
+    elif self < 0:
+      raise Exception(f'Cannot take root of negative number ({self.__class__.__name__} does not support complex numbers)')
     
-    if self < 1:
-      return binary_search_float(lambda x: x ** other <= self, FixedPrec(0, self.place, self.max_prec), 1)
+    if other == 1:
+      return self
+    elif self == 1:
+      return self
     else:
-      return binary_search_float(lambda x: x ** other <= self, 1, self)
+      if self < 1:
+        return binary_search_float(lambda x: x ** other <= self, FixedPrec(0, self.place, self.max_prec), 1)
+      else:
+        return binary_search_float(lambda x: x ** other <= self, 1, self)
   
   def __pow__(self, other) -> Self:
     try:

@@ -1,3 +1,4 @@
+fixedprec pow negative nums with int power should work
 fixedprec constructor handle real, integral
 continue abstract base classes for fixedprec
 split timeinstant class into many classes
