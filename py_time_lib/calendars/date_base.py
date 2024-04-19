@@ -96,6 +96,16 @@ class DateBase(ABC):
       except TypeError:
         return NotImplemented
   
+  def __radd__(self, other: DateDelta) -> Self:
+    if hasattr(other, 'date_delta'):
+      try:
+        new_days_since_epoch = other.date_delta + self._days_since_epoch
+      except TypeError:
+        return NotImplemented
+      return self.__class__(new_days_since_epoch)
+    else:
+      return NotImplemented
+  
   def __eq__(self, other: Self | None):
     if other is None:
       return False

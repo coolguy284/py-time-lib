@@ -71,6 +71,30 @@ class DateDelta:
       except TypeError:
         return NotImplemented
   
+  def __radd__(self, other: Self) -> Self:
+    if hasattr(other, 'date_delta'):
+      try:
+        return self.__class__(other.date_delta + self._date_delta)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
+  
+  def __rsub__(self, other: Self) -> Self:
+    try:
+      return (-self) + other
+    except TypeError:
+      return NotImplemented
+  
+  def __rmul__(self, other) -> Self:
+    if hasattr(other, 'date_delta'):
+      return NotImplemented
+    else:
+      try:
+        return self.__class__(other * self._date_delta)
+      except TypeError:
+        return NotImplemented
+  
   def __eq__(self, other: Self | None):
     if other is None:
       return False

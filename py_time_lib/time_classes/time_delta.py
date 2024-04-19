@@ -76,6 +76,30 @@ class TimeDelta:
       except TypeError:
         return NotImplemented
   
+  def __radd__(self, other: Self) -> Self:
+    if hasattr(other, 'time_delta'):
+      try:
+        return self.__class__(other.time_delta + self._time_delta)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
+  
+  def __rsub__(self, other: Self) -> Self:
+    try:
+      return (-self) + other
+    except TypeError:
+      return NotImplemented
+  
+  def __rmul__(self, other) -> Self:
+    if hasattr(other, 'time_delta'):
+      return NotImplemented
+    else:
+      try:
+        return self.__class__(other * self._time_delta)
+      except TypeError:
+        return NotImplemented
+  
   def __eq__(self, other: Self | None):
     if other is None:
       return False

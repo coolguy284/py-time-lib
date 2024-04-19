@@ -393,6 +393,16 @@ class TimeInstant:
       except TypeError:
         return NotImplemented
   
+  def __radd__(self, other: TimeDelta) -> Self:
+    if hasattr(other, 'time_delta'):
+      try:
+        new_time = other.time_delta + self._time
+      except TypeError:
+        return NotImplemented
+      return self.__class__(new_time)
+    else:
+      return NotImplemented
+  
   def __eq__(self, other: Self | None):
     if other is None:
       return False

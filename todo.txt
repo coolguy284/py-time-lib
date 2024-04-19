@@ -1,4 +1,3 @@
-add __r*__ versions for date/time delta/instant ops
 implement abstract base classes for fixedprec
 split timeinstant class into many classes
 to make fixedprec hashable (only do if decimal is hashable) can make a reduce func that reduces a fixedprec to simplest form such that all reduced fixedprec that compare equal have same internal vars

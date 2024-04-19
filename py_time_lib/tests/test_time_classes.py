@@ -42,12 +42,18 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(str(TimeDelta(FixedPrec(3)) - TimeDelta(FixedPrec(2))), 'TD+1')
     self.assertEqual(str(TimeDelta(FixedPrec(3)) * FixedPrec(4)), 'TD+12')
     self.assertEqual(TimeDelta(FixedPrec(3)) / FixedPrec(3), TimeDelta(FixedPrec(1)))
+    
+    self.assertEqual(str(FixedPrec(4) * TimeDelta(FixedPrec(3))), 'TD+12')
+    with self.assertRaises(TypeError):
+      self.assertEqual(FixedPrec(3) / TimeDelta(FixedPrec(3)), TimeDelta(FixedPrec(1)))
   
   def test_time_instant_basic_ops(self):
     self.assertEqual(str(TimeInstant(FixedPrec(1000)) + TimeDelta(FixedPrec(3))), 'T+1003')
     self.assertEqual(str(TimeInstant(FixedPrec(1000)) - TimeDelta(FixedPrec(3))), 'T+997')
     self.assertEqual(str(TimeInstant(FixedPrec(1000)) - TimeInstant(FixedPrec(993))), 'TD+7')
     self.assertEqual(str(TimeInstant(FixedPrec(1000)) + TimeDelta(FixedPrec('0.1'))), 'T+1000.1')
+    
+    self.assertEqual(str(TimeDelta(FixedPrec(3)) + TimeInstant(FixedPrec(1000))), 'T+1003')
   
   def test_time_delta_relational_ops(self):
     self.assertEqual(TimeDelta(FixedPrec(1)) > TimeDelta(FixedPrec(0)), True)
