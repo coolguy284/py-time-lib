@@ -314,16 +314,15 @@ class FixedPrec(Complex):
     except NotImplementedError:
       return NotImplemented
     
-    self_max_prec = self.increase_to_max_prec()
-    
     if other.value == 0:
       raise ZeroDivisionError('division by zero')
     else:
-      additional_precision = max((other.place - self_max_prec.max_prec) - (self_max_prec.place - self_max_prec.max_prec), 0)
+      max_prec = max(self.max_prec, other.max_prec)
+      additional_precision = max(len(str(other.place)) - len(str(self.place)) + max_prec, 0)
       return FixedPrec(
-        self_max_prec.value * 10 ** additional_precision // other.value,
-        self_max_prec.place - other.place + additional_precision,
-        max(self_max_prec.max_prec, other.max_prec)
+        self.value * 10 ** additional_precision // other.value,
+        self.place - other.place + additional_precision,
+        max_prec
       ).reduce_to_max_prec()
   
   def _nthroot(self, other: Integral) -> Self:
