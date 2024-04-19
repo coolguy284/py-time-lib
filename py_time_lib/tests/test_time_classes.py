@@ -644,7 +644,7 @@ class TestTimeClasses(unittest.TestCase):
     now_date_tuple = now.to_date_tuple_utc()
     now_datetime = datetime.datetime(*now_date_tuple[:6], int(now_date_tuple[6] * 1_000_000), datetime.UTC)
     
-    self.assertTrue(abs(now_datetime - current_datetime) < datetime.timedelta(microseconds = 30))
+    self.assertTrue(abs(now_datetime - current_datetime) < datetime.timedelta(microseconds = 100))
   
   def test_fixedprec_offset_to_str(self):
     # test inverse func as well

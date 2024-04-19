@@ -363,7 +363,7 @@ class FixedPrec(Complex):
       # other is integral
       if other.value == 0:
         return FixedPrec(1, 0, max(self.max_prec, other.max_prec))
-      elif other.value == 1:
+      elif other.value == 1 and other.place == 0:
         return self
       else:
         result = 1
