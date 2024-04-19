@@ -21,14 +21,14 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(str(TimeInstant(FixedPrec(0))), 'T+0')
   
   def test_time_delta_repr(self):
-    self.assertEqual(repr(TimeDelta(FixedPrec(1000))), 'TimeDelta(FixedPrec(value = 1000, place = 0, max_prec = 12))')
-    self.assertEqual(repr(TimeDelta(FixedPrec(-1000))), 'TimeDelta(FixedPrec(value = -1000, place = 0, max_prec = 12))')
-    self.assertEqual(repr(TimeDelta(FixedPrec(0))), 'TimeDelta(FixedPrec(value = 0, place = 0, max_prec = 12))')
+    self.assertEqual(repr(TimeDelta(FixedPrec(1000))), 'TimeDelta(FixedPrec(1000))')
+    self.assertEqual(repr(TimeDelta(FixedPrec(-1000))), 'TimeDelta(FixedPrec(-1000))')
+    self.assertEqual(repr(TimeDelta(FixedPrec(0))), 'TimeDelta(FixedPrec(0))')
   
   def test_time_instant_repr(self):
-    self.assertEqual(repr(TimeInstant(FixedPrec(1000))), 'TimeInstant(FixedPrec(value = 1000, place = 0, max_prec = 12))')
-    self.assertEqual(repr(TimeInstant(FixedPrec(-1000))), 'TimeInstant(FixedPrec(value = -1000, place = 0, max_prec = 12))')
-    self.assertEqual(repr(TimeInstant(FixedPrec(0))), 'TimeInstant(FixedPrec(value = 0, place = 0, max_prec = 12))')
+    self.assertEqual(repr(TimeInstant(FixedPrec(1000))), 'TimeInstant(FixedPrec(1000))')
+    self.assertEqual(repr(TimeInstant(FixedPrec(-1000))), 'TimeInstant(FixedPrec(-1000))')
+    self.assertEqual(repr(TimeInstant(FixedPrec(0))), 'TimeInstant(FixedPrec(0))')
   
   def test_time_delta_basic_ops(self):
     self.assertEqual(str(-TimeDelta(FixedPrec(1))), 'TD-1')

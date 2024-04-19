@@ -1,4 +1,3 @@
-improve fixedprec repr
 fixedprec constructor handle real, integral
 continue abstract base classes for fixedprec
 split timeinstant class into many classes

@@ -3,6 +3,21 @@ import unittest
 from .. import FixedPrec
 
 class TestFixedPrec(unittest.TestCase):
+  def test_repr(self):
+    self.assertEqual(repr(FixedPrec(0, -3)), 'FixedPrec(0)')
+    self.assertEqual(repr(FixedPrec(0, 0)), 'FixedPrec(0)')
+    self.assertEqual(repr(FixedPrec(0, 3)), "FixedPrec('0.000')")
+    self.assertEqual(repr(FixedPrec(1, -3)), 'FixedPrec(1000)')
+    self.assertEqual(repr(FixedPrec(1, 0)), 'FixedPrec(1)')
+    self.assertEqual(repr(FixedPrec(1, 3)), "FixedPrec('0.001')")
+    self.assertEqual(repr(FixedPrec(1003, 3)), "FixedPrec('1.003')")
+    self.assertEqual(repr(FixedPrec(1000, 3)), "FixedPrec('1.000')")
+    self.assertEqual(repr(FixedPrec(-1, -3)), 'FixedPrec(-1000)')
+    self.assertEqual(repr(FixedPrec(-1, 0)), 'FixedPrec(-1)')
+    self.assertEqual(repr(FixedPrec(-1, 3)), "FixedPrec('-0.001')")
+    self.assertEqual(repr(FixedPrec(-1003, 3)), "FixedPrec('-1.003')")
+    self.assertEqual(repr(FixedPrec(-1000, 3)), "FixedPrec('-1.000')")
+  
   def test_str(self):
     self.assertEqual(str(FixedPrec(0, -3)), '0')
     self.assertEqual(str(FixedPrec(0, 0)), '0')

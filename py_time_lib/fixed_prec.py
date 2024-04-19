@@ -66,7 +66,10 @@ class FixedPrec(Complex):
       raise Exception(f'FixedPrec constructor takes 1-3 arguments')
   
   def __repr__(self) -> str:
-    return f'{self.__class__.__name__}(value = {self.value}, place = {self.place}, max_prec = {self.max_prec})'
+    if self.place > 0:
+      return f'{self.__class__.__name__}({str(self)!r})'
+    else:
+      return f'{self.__class__.__name__}({self!s})'
   
   def __str__(self) -> str:
     if self.value == 0:
