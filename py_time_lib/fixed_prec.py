@@ -22,10 +22,13 @@ class FixedPrec(Complex):
       return cls(value, 0, max_prec = max_prec)
     elif isinstance(value, float):
       # approximate conversion but floats are approximate anyway so
-      prec = floor(log10(abs(value)))
-      value /= 10 ** prec
-      value *= 10 ** cls.FLOAT_ADDED_PREC
-      return cls(int(value), -prec + cls.FLOAT_ADDED_PREC)
+      if value == 0:
+        return cls(0, cls.FLOAT_ADDED_PREC)
+      else:
+        prec = floor(log10(abs(value)))
+        value /= 10 ** prec
+        value *= 10 ** cls.FLOAT_ADDED_PREC
+        return cls(int(value), -prec + cls.FLOAT_ADDED_PREC)
     elif isinstance(value, str) and not cast_only:
       if match := cls._int_regex.match(value):
         return cls(int(match[1]), 0, max_prec = max_prec)
@@ -356,13 +359,14 @@ class FixedPrec(Complex):
       elif other.value == 1:
         return self
       else:
-        result = self
+        result = 1
+        factor = self
         remaining_exp = int(other)
         while remaining_exp > 0:
           remaining_exp, current = divmod(remaining_exp, 2)
           if current > 0:
-            result *= self
-          result *= result
+            result *= factor
+          factor *= factor
         return result
     else:
       integral, fractional = divmod(other, 1)
