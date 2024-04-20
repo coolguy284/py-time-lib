@@ -303,7 +303,7 @@ class FixedPrec(Real):
     return self.__class__(
       self.value // other.value,
       0,
-      self.max_prec,
+      self.max_prec
     )
   
   def __mod__(self, other) -> Self:
@@ -333,7 +333,7 @@ class FixedPrec(Real):
     return self.__class__(
       div,
       0,
-      self.max_prec,
+      self.max_prec
     ), self.__class__(
       mod,
       self.place,
@@ -444,7 +444,7 @@ class FixedPrec(Real):
     return self.__class__(
       other.value // self.value,
       0,
-      self.max_prec,
+      self.max_prec
     )
   
   def __rmod__(self, other) -> Self:
@@ -458,7 +458,7 @@ class FixedPrec(Real):
     return self.__class__(
       other.value % self.value,
       self.place,
-      self.max_prec,
+      self.max_prec
     )
   
   def __rdivmod__(self, other) -> Self:
@@ -474,7 +474,7 @@ class FixedPrec(Real):
     return self.__class__(
       div,
       0,
-      self.max_prec,
+      self.max_prec
     ), self.__class__(
       mod,
       self.place,
