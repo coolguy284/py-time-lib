@@ -48,7 +48,7 @@ class FixedPrec(Real):
   
   def __init__(self, *args: tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
     if len(args) == 0:
-      raise Exception(f'FixedPrec constructor needs an argument')
+      raise Exception(f'{self.__class__.__name__} constructor needs an argument')
     elif len(args) == 1:
       value = args[0]
       converted = self.from_basic(value, max_prec = max_prec)
@@ -66,7 +66,7 @@ class FixedPrec(Real):
       self.place = place
       self.max_prec = max_prec
     else:
-      raise Exception(f'FixedPrec constructor takes 1-3 arguments')
+      raise Exception(f'{self.__class__.__name__} constructor takes 1-3 arguments')
   
   def __repr__(self) -> str:
     if self.place > 0:
@@ -104,7 +104,7 @@ class FixedPrec(Real):
     return (self.__class__.__name__, self.value, self.place, self.max_prec)
   
   def __neg__(self) -> Self:
-    return FixedPrec(
+    return self.__class__(
       -self.value,
       self.place,
       self.max_prec
@@ -145,22 +145,22 @@ class FixedPrec(Real):
     if self.place <= 0:
       return self
     else:
-      return FixedPrec(self.value // 10 ** self.place, max_prec = self.max_prec)
+      return self.__class__(self.value // 10 ** self.place, max_prec = self.max_prec)
   
   def __ceil__(self):
     if self.place <= 0:
       return self
     else:
-      return FixedPrec(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
+      return self.__class__(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
   
   def __trunc__(self):
     if self.place <= 0:
       return self
     else:
       if self.value < 0:
-        return FixedPrec(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
+        return self.__class__(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
       else:
-        return FixedPrec(self.value // 10 ** self.place, max_prec = self.max_prec)
+        return self.__class__(self.value // 10 ** self.place, max_prec = self.max_prec)
   
   def __round__(self, ndigits: Integral = 0):
     if self.place <= ndigits:
@@ -169,13 +169,13 @@ class FixedPrec(Real):
       round_digit = (self.value // 10 ** (self.place - ndigits - 1)) % 10
       
       if round_digit >= 5:
-        return FixedPrec(-(-self.value // 10 ** (self.place - ndigits)), ndigits, max_prec = self.max_prec)
+        return self.__class__(-(-self.value // 10 ** (self.place - ndigits)), ndigits, max_prec = self.max_prec)
       else:
-        return FixedPrec(self.value // 10 ** (self.place - ndigits), ndigits, max_prec = self.max_prec)
+        return self.__class__(self.value // 10 ** (self.place - ndigits), ndigits, max_prec = self.max_prec)
   
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
-      return FixedPrec(
+      return self.__class__(
         self.value // 10 ** (self.place - self.max_prec),
         self.max_prec,
         self.max_prec
@@ -185,7 +185,7 @@ class FixedPrec(Real):
   
   def increase_to_max_prec(self) -> Self:
     if self.place < self.max_prec:
-      return FixedPrec(
+      return self.__class__(
         self.value * 10 ** (self.max_prec - self.place),
         self.max_prec,
         self.max_prec
@@ -195,13 +195,13 @@ class FixedPrec(Real):
   
   def force_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
-      return FixedPrec(
+      return self.__class__(
         self.value // 10 ** (self.place - self.max_prec),
         self.max_prec,
         self.max_prec
       )
     elif self.place < self.max_prec:
-      return FixedPrec(
+      return self.__class__(
         self.value * 10 ** (self.max_prec - self.place),
         self.max_prec,
         self.max_prec
@@ -219,7 +219,7 @@ class FixedPrec(Real):
     
     place_diff = precise.place - less_precise.place
     
-    less_precise_converted = FixedPrec(
+    less_precise_converted = self.__class__(
       less_precise.value * (10 ** place_diff),
       precise.place,
       max(less_precise.max_prec, precise.max_prec)
@@ -227,7 +227,7 @@ class FixedPrec(Real):
     
     if self.place > other.place:
       if self.max_prec < less_precise_converted.max_prec:
-        self = FixedPrec(
+        self = self.__class__(
           self.value,
           self.place,
           less_precise_converted.max_prec
@@ -236,7 +236,7 @@ class FixedPrec(Real):
       return self, less_precise_converted
     else:
       if other.max_prec < less_precise_converted.max_prec:
-        other = FixedPrec(
+        other = self.__class__(
           other.value,
           other.place,
           less_precise_converted.max_prec
@@ -268,7 +268,7 @@ class FixedPrec(Real):
     
     self, other = self.convert_to_highest_precision(other)
     
-    return FixedPrec(
+    return self.__class__(
       self.value + other.value,
       self.place,
       self.max_prec
@@ -286,7 +286,7 @@ class FixedPrec(Real):
     except NotImplementedError:
       return NotImplemented
     
-    return FixedPrec(
+    return self.__class__(
       self.value * other.value,
       self.place + other.place,
       max(self.max_prec, other.max_prec)
@@ -300,7 +300,7 @@ class FixedPrec(Real):
     
     self, other = self.convert_to_highest_precision(other)
     
-    return FixedPrec(
+    return self.__class__(
       self.value // other.value,
       0,
       self.max_prec,
@@ -314,7 +314,7 @@ class FixedPrec(Real):
     
     self, other = self.convert_to_highest_precision(other)
     
-    return FixedPrec(
+    return self.__class__(
       self.value % other.value,
       self.place,
       self.max_prec
@@ -330,11 +330,11 @@ class FixedPrec(Real):
     
     div, mod = divmod(self.value, other.value)
     
-    return FixedPrec(
+    return self.__class__(
       div,
       0,
       self.max_prec,
-    ), FixedPrec(
+    ), self.__class__(
       mod,
       self.place,
       self.max_prec
@@ -351,7 +351,7 @@ class FixedPrec(Real):
     else:
       max_prec = max(self.max_prec, other.max_prec)
       additional_precision = max(len(str(other.value)) - len(str(self.value)) + max_prec, 0) + 1
-      return FixedPrec(
+      return self.__class__(
         self.value * 10 ** additional_precision // other.value,
         self.place - other.place + additional_precision,
         max_prec
@@ -371,7 +371,7 @@ class FixedPrec(Real):
       return self
     else:
       if self < 1:
-        return binary_search_float(lambda x: x ** other <= self, FixedPrec(0, self.place, self.max_prec), 1)
+        return binary_search_float(lambda x: x ** other <= self, self.__class__(0, self.place, self.max_prec), 1)
       else:
         return binary_search_float(lambda x: x ** other <= self, 1, self)
   
@@ -391,7 +391,7 @@ class FixedPrec(Real):
     elif other.place <= 0:
       # other is integral
       if other.value == 0:
-        return FixedPrec(1, 0, max(self.max_prec, other.max_prec))
+        return self.__class__(1, 0, max(self.max_prec, other.max_prec))
       elif other.value == 1 and other.place == 0:
         return self
       else:
@@ -441,7 +441,7 @@ class FixedPrec(Real):
     
     self, other = self.convert_to_highest_precision(other)
     
-    return FixedPrec(
+    return self.__class__(
       other.value // self.value,
       0,
       self.max_prec,
@@ -455,7 +455,7 @@ class FixedPrec(Real):
     
     self, other = self.convert_to_highest_precision(other)
     
-    return FixedPrec(
+    return self.__class__(
       other.value % self.value,
       self.place,
       self.max_prec,
@@ -471,11 +471,11 @@ class FixedPrec(Real):
     
     div, mod = divmod(other.value, self.value)
     
-    return FixedPrec(
+    return self.__class__(
       div,
       0,
       self.max_prec,
-    ), FixedPrec(
+    ), self.__class__(
       mod,
       self.place,
       self.max_prec
@@ -492,7 +492,7 @@ class FixedPrec(Real):
     else:
       max_prec = max(other.max_prec, self.max_prec)
       additional_precision = max(len(str(self.value)) - len(str(other.value)) + max_prec, 0) + 1
-      return FixedPrec(
+      return self.__class__(
         other.value * 10 ** additional_precision // self.value,
         other.place - self.place + additional_precision,
         max_prec
@@ -514,7 +514,7 @@ class FixedPrec(Real):
     elif self.place <= 0:
       # self is integral
       if self.value == 0:
-        return FixedPrec(1, 0, max(other.max_prec, self.max_prec))
+        return self.__class__(1, 0, max(other.max_prec, self.max_prec))
       elif self.value == 1 and self.place == 0:
         return other
       else:
@@ -613,4 +613,4 @@ class FixedPrec(Real):
   
   @property
   def imag(self) -> Self:
-    return FixedPrec(0)
+    return self.__class__(0)

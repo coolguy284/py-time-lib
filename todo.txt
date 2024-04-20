@@ -1,4 +1,3 @@
-replace fixedprec with self.__class__
 check all fixedprec calls preserve max prec
 split timeinstant class into many classes
 split fixedprec into many classes
