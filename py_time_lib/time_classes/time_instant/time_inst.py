@@ -187,6 +187,10 @@ class TimeInstant(TimeInstantLeapSec):
     raise NotImplementedError()
   
   @classmethod
+  def from_datetime(cls, datetime_obj: datetime) -> Self:
+    ...
+  
+  @classmethod
   def now(cls) -> Self:
     return cls.from_unix_timestamp(FixedPrec(time_ns(), 9))
   

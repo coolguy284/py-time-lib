@@ -714,3 +714,11 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(t6.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  900_000, datetime.UTC))
     self.assertEqual(t7.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  1,  0,       datetime.UTC))
     self.assertEqual(t8.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  1,  100_000, datetime.UTC))
+  
+  def test_from_timedelta(self):
+    self.assertEqual(TimeDelta.from_datetime_timedelta(datetime.timedelta(seconds = 1, microseconds = 13)), TimeDelta(FixedPrec('1.000013')))
+    self.assertEqual(TimeDelta.from_datetime_timedelta(datetime.timedelta(seconds = 0, microseconds = 0)), TimeDelta(FixedPrec(0)))
+    self.assertEqual(TimeDelta.from_datetime_timedelta(datetime.timedelta(seconds = -2, microseconds = -15)), TimeDelta(FixedPrec('-2.000015')))
+    self.assertEqual(TimeDelta(datetime.timedelta(seconds = 1, microseconds = 13)), TimeDelta(FixedPrec('1.000013')))
+    self.assertEqual(TimeDelta(datetime.timedelta(seconds = 0, microseconds = 0)), TimeDelta(FixedPrec(0)))
+    self.assertEqual(TimeDelta(datetime.timedelta(seconds = -2, microseconds = -15)), TimeDelta(FixedPrec('-2.000015')))

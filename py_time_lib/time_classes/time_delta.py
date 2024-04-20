@@ -10,17 +10,28 @@ class TimeDelta:
   # static stuff
   
   NOMINAL_MICROSECS_PER_SEC = 1_000_000
+  NOMINAL_MICROSECS_PER_DAY = 86_400_000_000
   
   # instance stuff
   
   __slots__ = '_time_delta'
   _time_delta: TimeStorageType
   
-  def __init__(self, time_delta: FixedPrec | int | float | str, coerce_to_fixed_prec: bool = True):
-    if coerce_to_fixed_prec and not isinstance(time_delta, FixedPrec):
+  def __init__(self, time_delta: FixedPrec | int | float | str | timedelta, coerce_to_fixed_prec: bool = True):
+    if isinstance(time_delta, timedelta):
+      time_delta = self.from_datetime_timedelta(time_delta)._time_delta
+    elif coerce_to_fixed_prec and not isinstance(time_delta, FixedPrec):
       time_delta = FixedPrec.from_basic(time_delta)
     
     self._time_delta = time_delta
+  
+  @classmethod
+  def from_datetime_timedelta(cls, timedelta_obj: timedelta) -> Self:
+    total_microseconds = timedelta_obj.days * cls.NOMINAL_MICROSECS_PER_DAY + \
+      timedelta_obj.seconds * cls.NOMINAL_MICROSECS_PER_SEC + \
+      timedelta_obj.microseconds
+    
+    return cls(FixedPrec(total_microseconds, 6))
   
   def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time_delta!r})'
