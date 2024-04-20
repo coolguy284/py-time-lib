@@ -469,7 +469,46 @@ class FixedPrec(Complex):
       ).reduce_to_max_prec()
   
   def __rpow__(self, other):
-    ...
+    try:
+      other = self.from_basic(other, cast_only = True)
+    except NotImplementedError:
+      return NotImplemented
+    
+    if other == 1:
+      return other
+    elif other < 0:
+      raise Exception(f'{other.__class__.__name__} cannot handle complex output (negative base)')
+    
+    self = self.reduce_to_lowest_place()
+    
+    if self < 0:
+      return 1 / (other ** -self)
+    elif self.place <= 0:
+      # self is integral
+      if self.value == 0:
+        return FixedPrec(1, 0, max(other.max_prec, self.max_prec))
+      elif self.value == 1 and self.place == 0:
+        return other
+      else:
+        result = 1
+        factor = other
+        remaining_exp = int(self)
+        while remaining_exp > 0:
+          remaining_exp, current = divmod(remaining_exp, 2)
+          if current > 0:
+            result *= factor
+          factor *= factor
+        return result
+    else:
+      integral, fractional = divmod(self, 1)
+      result = other ** integral
+      self_root = other
+      while fractional % 1 != 0:
+        fractional *= 10
+        self_root = self_root._nthroot(10)
+        frac_power = int(fractional // 1)
+        result *= self_root ** frac_power
+      return result
   
   def __eq__(self, other):
     if other is None:

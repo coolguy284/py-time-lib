@@ -407,13 +407,13 @@ class TestFixedPrec(unittest.TestCase):
     self.assertAlmostEqual(FixedPrec(4) ** FixedPrec('1.5'), 8, delta = 1e-10)
     self.assertEqual(FixedPrec(4) ** FixedPrec(2), 16)
     
-    # self.assertEqual(FixedPrec(4) ** FixedPrec('-0.5'), FixedPrec('0.5'))
-    # self.assertEqual(FixedPrec(4) ** FixedPrec(-1), FixedPrec('0.25'))
-    # self.assertEqual(FixedPrec(4) ** FixedPrec('-1.5'), FixedPrec('0.125'))
-    # self.assertEqual(FixedPrec(4) ** FixedPrec(-2), FixedPrec('0.0625'))
+    self.assertAlmostEqual(FixedPrec(4) ** FixedPrec('-0.5'), FixedPrec('0.5'), delta = 1e-12)
+    self.assertEqual(FixedPrec(4) ** FixedPrec(-1), FixedPrec('0.25'))
+    self.assertEqual(FixedPrec(4) ** FixedPrec('-1.5'), FixedPrec('0.125'))
+    self.assertEqual(FixedPrec(4) ** FixedPrec(-2), FixedPrec('0.0625'))
     
-    # self.assertEqual(FixedPrec(4) ** 1.5, FixedPrec('0.125'))
-    # self.assertEqual(4 ** -FixedPrec('1.5'), FixedPrec('0.125'))
+    self.assertEqual(FixedPrec(4) ** -1.5, FixedPrec('0.125'))
+    self.assertEqual(4 ** FixedPrec('-1.5'), FixedPrec('0.125'))
     
     self.assertEqual(FixedPrec(4).conjugate(), 4)
     self.assertEqual(FixedPrec(0).conjugate(), 0)
