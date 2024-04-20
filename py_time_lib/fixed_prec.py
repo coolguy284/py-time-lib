@@ -1,11 +1,11 @@
 import re
 from math import floor, log10
-from numbers import Complex, Integral
+from numbers import Integral, Real
 from typing import Self
 
 from .lib_funcs import binary_search_float
 
-class FixedPrec(Complex):
+class FixedPrec(Real):
   __slots__ = 'value', 'place', 'max_prec'
   value: Integral
   place: Integral
@@ -140,6 +140,31 @@ class FixedPrec(Complex):
   
   def __complex__(self):
     return complex(float(self))
+  
+  def __floor__(self):
+    if self.place < 0:
+      return FixedPrec(self.value * 10 ** -self.place)
+    elif self.place > 0:
+      return FixedPrec(self.value // 10 ** self.place)
+    else:
+      return FixedPrec(self.value)
+  
+  def __ceil__(self):
+    return -floor(-self)
+  
+  def __trunc__(self):
+    if self.place < 0:
+      return FixedPrec(self.value * 10 ** -self.place)
+    elif self.place > 0:
+      if self.value < 0:
+        return FixedPrec(-(-self.value // 10 ** self.place))
+      else:
+        return FixedPrec(self.value // 10 ** self.place)
+    else:
+      return FixedPrec(self.value)
+  
+  def __round__(self, ndigits = 0):
+    ...
   
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:

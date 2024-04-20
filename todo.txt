@@ -1,5 +1,4 @@
-fixedprec constructor handle real, integral
-continue abstract base classes for fixedprec
+replace fixedprec with self.__class__
 split timeinstant class into many classes
 split fixedprec into many classes
 to make fixedprec hashable (only do if decimal is hashable) can make a reduce func that reduces a fixedprec to simplest form such that all reduced fixedprec that compare equal have same internal vars
@@ -13,8 +12,6 @@ timeinstant:
 add leap smear support
 strptime support
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable)
-bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
-  default true option to do this
 
 low prio:
 add leap second support to now
@@ -29,11 +26,14 @@ support other timescales and julian dates in other timescales
     remove temp ntp timestamp code in auto leap seconds
   make all timescales except utc be derived from a list of offset, rate tuples; enables adding tcg, tcb, maybe time center galaxy and time comoving frame as well
   bonus is add ut1 timestamp funcs
+fixedprec constructor handle real, integral
 tests:
   timeinstant: tests for leap seconds during day
   timeinstant: test for passing in non-gregoriandate into to/from date tuple
 
 prob not doing:
 add calendar functionality for isoweekdate
+bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
+  default true option to do this
 tests:
   date: monthly/yearly calendar generation funcs
