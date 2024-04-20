@@ -81,3 +81,9 @@ class TestCalendarDateBase(unittest.TestCase):
     self.assertEqual(GregorianDate(1) != GregorianDate(2), True)
     self.assertEqual(GregorianDate(1) == None, False)
     self.assertEqual(GregorianDate(1) != None, True)
+  
+  def test_hash_datedelta(self):
+    self.assertEqual(hash(DateDelta(3)), hash(('DateDelta', 3)))
+  
+  def test_hash_datebase(self):
+    self.assertEqual(hash(GregorianDate(3)), hash(('DateBase', 3)))

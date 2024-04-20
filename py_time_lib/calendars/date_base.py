@@ -73,6 +73,12 @@ class DateBase(ABC):
   def days_since_epoch(self) -> Integral:
     return self._days_since_epoch
   
+  def to_hashable_tuple(self) -> tuple:
+    return ('DateBase', self._days_since_epoch)
+  
+  def __hash__(self) -> int:
+    return hash(self.to_hashable_tuple())
+  
   def __add__(self, other: DateDelta) -> Self:
     if hasattr(other, 'date_delta'):
       try:

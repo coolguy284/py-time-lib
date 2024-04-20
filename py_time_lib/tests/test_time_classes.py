@@ -670,3 +670,11 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_from_format_string_utc(self):
     ...
+  
+  def test_hash_timedelta(self):
+    self.assertEqual(hash(TimeDelta(3)), hash(('TimeDelta', FixedPrec(3))))
+    self.assertEqual(hash(TimeDelta(3)), hash(('TimeDelta', 3)))
+  
+  def test_hash_timeinstant(self):
+    self.assertEqual(hash(TimeInstant(3)), hash(('TimeInstant', FixedPrec(3))))
+    self.assertEqual(hash(TimeInstant(3)), hash(('TimeInstant', 3)))

@@ -370,6 +370,12 @@ class TimeInstant:
   def time(self) -> TimeStorageType:
     return self._time
   
+  def to_hashable_tuple(self) -> tuple[str, TimeStorageType]:
+    return ('TimeInstant', self._time)
+  
+  def __hash__(self):
+    return hash(self.to_hashable_tuple())
+  
   def __add__(self, other: TimeDelta) -> Self:
     if hasattr(other, 'time_delta'):
       try:

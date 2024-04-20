@@ -1,5 +1,3 @@
-make timedelta and timeinstant hashable, and also date classes
-
 timeinstant:
   add fixed-offset timezone support
   add seasonal-offset timezone support

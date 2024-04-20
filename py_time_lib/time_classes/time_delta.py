@@ -25,6 +25,12 @@ class TimeDelta:
   def time_delta(self) -> TimeStorageType:
     return self._time_delta
   
+  def to_hashable_tuple(self) -> tuple[str, TimeStorageType]:
+    return ('TimeDelta', self._time_delta)
+  
+  def __hash__(self):
+    return hash(self.to_hashable_tuple())
+  
   def __neg__(self) -> Self:
     try:
       return self.__class__(-self._time_delta)

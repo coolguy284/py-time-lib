@@ -20,6 +20,12 @@ class DateDelta:
   def date_delta(self) -> Integral:
     return self._date_delta
   
+  def to_hashable_tuple(self) -> tuple[str, Integral]:
+    return ('DateDelta', self._date_delta)
+  
+  def __hash__(self):
+    return hash(self.to_hashable_tuple())
+  
   def __neg__(self) -> Self:
     try:
       return self.__class__(-self._date_delta)
