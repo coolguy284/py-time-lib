@@ -1,5 +1,7 @@
 from numbers import Integral
 from typing import Self
+
+from ...fixed_prec import FixedPrec
 from ...calendars.date_base import DateBase
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
@@ -7,6 +9,27 @@ from ..lib import TimeStorageType
 from .time_inst_leap_sec import TimeInstantLeapSec
 
 class TimeInstantDateTuple(TimeInstantLeapSec):
+  # static stuff
+  
+  @classmethod
+  def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
+    days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
+    date = date_cls.from_days_since_epoch(int(days_since_epoch))
+    hour, remainder = divmod(time_since_day_start, cls.NOMINAL_SECS_PER_HOUR)
+    minute, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
+    second, frac_second = divmod(remainder, 1)
+    return *date.to_date_tuple(), int(hour), int(minute), int(second), frac_second
+  
+  @classmethod
+  def days_h_m_to_mins_since_epoch(cls, days_since_epoch: Integral, hour: Integral, minute: Integral) -> int:
+    return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + hour * cls.NOMINAL_MINS_PER_HOUR + minute
+  
+  @classmethod
+  def mins_since_epoch_to_days_h_m(cls, mins_since_epoch: Integral) -> tuple[int, int, int]:
+    hrs_since_epoch, minute = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_HOUR)
+    days_since_epoch, hour = divmod(hrs_since_epoch, cls.NOMINAL_HOURS_PER_DAY)
+    return days_since_epoch, hour, minute
+  
   # instance stuff
   
   __slots__ = ()

@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from numbers import Integral
 from typing import Generator, Self, SupportsIndex
 
 from ...lib_funcs import binary_search
@@ -23,6 +24,16 @@ class TimeInstantLeapSec(TimeInstantOperators):
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
   UTC_INITIAL_OFFSET_FROM_TAI = leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
   LEAP_SECONDS = leap_seconds.LEAP_SECONDS
+  
+  @classmethod
+  def days_and_secs_to_mins_since_epoch(cls, days_since_epoch: Integral, time_in_day: TimeStorageType) -> tuple[int, TimeStorageType]:
+    mins_in_day, remainder_secs = divmod(time_in_day, cls.NOMINAL_SECS_PER_MIN)
+    return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + int(mins_in_day), remainder_secs
+  
+  @classmethod
+  def mins_to_days_and_secs_since_epoch(cls, mins_since_epoch: Integral, remainder_secs: TimeStorageType = FixedPrec(0)) -> tuple[int, TimeStorageType]:
+    days_since_epoch, mins_in_day = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_DAY)
+    return days_since_epoch, mins_in_day * cls.NOMINAL_SECS_PER_MIN + remainder_secs
   
   @classmethod
   def _init_class_vars(cls) -> None:

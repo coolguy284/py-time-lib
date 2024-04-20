@@ -28,35 +28,6 @@ class TimeInstant(TimeInstantDateTuple):
   _str_offset_to_fixedprec_any = re_compile(r'([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?')
   
   @classmethod
-  def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
-    days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
-    date = date_cls.from_days_since_epoch(int(days_since_epoch))
-    hour, remainder = divmod(time_since_day_start, cls.NOMINAL_SECS_PER_HOUR)
-    minute, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
-    second, frac_second = divmod(remainder, 1)
-    return *date.to_date_tuple(), int(hour), int(minute), int(second), frac_second
-  
-  @classmethod
-  def days_and_secs_to_mins_since_epoch(cls, days_since_epoch: Integral, time_in_day: TimeStorageType) -> tuple[int, TimeStorageType]:
-    mins_in_day, remainder_secs = divmod(time_in_day, cls.NOMINAL_SECS_PER_MIN)
-    return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + int(mins_in_day), remainder_secs
-  
-  @classmethod
-  def mins_to_days_and_secs_since_epoch(cls, mins_since_epoch: Integral, remainder_secs: TimeStorageType = FixedPrec(0)) -> tuple[int, TimeStorageType]:
-    days_since_epoch, mins_in_day = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_DAY)
-    return days_since_epoch, mins_in_day * cls.NOMINAL_SECS_PER_MIN + remainder_secs
-  
-  @classmethod
-  def days_h_m_to_mins_since_epoch(cls, days_since_epoch: Integral, hour: Integral, minute: Integral) -> int:
-    return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + hour * cls.NOMINAL_MINS_PER_HOUR + minute
-  
-  @classmethod
-  def mins_since_epoch_to_days_h_m(cls, mins_since_epoch: Integral) -> tuple[int, int, int]:
-    hrs_since_epoch, minute = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_HOUR)
-    days_since_epoch, hour = divmod(hrs_since_epoch, cls.NOMINAL_HOURS_PER_DAY)
-    return days_since_epoch, hour, minute
-  
-  @classmethod
   def fixedprec_offset_to_str(cls, offset_secs: TimeStorageType) -> str:
     offset_sign = '+' if offset_secs >= 0 else '-'
     offset_hrs, remainder = divmod(abs(offset_secs), cls.NOMINAL_SECS_PER_HOUR)
