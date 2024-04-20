@@ -142,29 +142,33 @@ class FixedPrec(Real):
     return complex(float(self))
   
   def __floor__(self):
-    if self.place < 0:
-      return FixedPrec(self.value * 10 ** -self.place)
-    elif self.place > 0:
-      return FixedPrec(self.value // 10 ** self.place)
+    if self.place <= 0:
+      return self
     else:
-      return FixedPrec(self.value)
+      return FixedPrec(self.value // 10 ** self.place)
   
   def __ceil__(self):
     return -floor(-self)
   
   def __trunc__(self):
-    if self.place < 0:
-      return FixedPrec(self.value * 10 ** -self.place)
-    elif self.place > 0:
+    if self.place <= 0:
+      return self
+    else:
       if self.value < 0:
         return FixedPrec(-(-self.value // 10 ** self.place))
       else:
         return FixedPrec(self.value // 10 ** self.place)
-    else:
-      return FixedPrec(self.value)
   
-  def __round__(self, ndigits = 0):
-    ...
+  def __round__(self, ndigits: Integral = 0):
+    if self.place <= 0:
+      return self
+    else:
+      round_digit = (self.value // 10 ** (self.place - 1)) % 10
+      
+      if round_digit >= 5:
+        return FixedPrec(-(-self.value // 10 ** self.place))
+      else:
+        return FixedPrec(self.value // 10 ** self.place)
   
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
