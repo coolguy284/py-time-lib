@@ -1,8 +1,4 @@
-split timeinstant class into many classes
-split fixedprec into many classes
-to make fixedprec hashable (only do if decimal is hashable) can make a reduce func that reduces a fixedprec to simplest form such that all reduced fixedprec that compare equal have same internal vars
-  then make timedelta and timeinstant hashable, and also date classes
-  hash function should return int hash first, then float hash, then fixedprec hash
+make timedelta and timeinstant hashable, and also date classes
 
 timeinstant:
   add fixed-offset timezone support
@@ -26,6 +22,8 @@ support other timescales and julian dates in other timescales
   make all timescales except utc be derived from a list of offset, rate tuples; enables adding tcg, tcb, maybe time center galaxy and time comoving frame as well
   bonus is add ut1 timestamp funcs
 fixedprec constructor handle real, integral
+split timeinstant class into many classes
+split fixedprec into many classes
 tests:
   timeinstant: tests for leap seconds during day
   timeinstant: test for passing in non-gregoriandate into to/from date tuple

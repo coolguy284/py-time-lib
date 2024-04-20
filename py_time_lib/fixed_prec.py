@@ -103,6 +103,16 @@ class FixedPrec(Real):
   def to_hashable_tuple(self) -> tuple[str, Integral, Integral, Integral]:
     return (self.__class__.__name__, self.value, self.place, self.max_prec)
   
+  def __hash__(self) -> int:
+    if self.place <= 0:
+      return hash(int(self))
+    else:
+      float_ver = float(self)
+      if self == float_ver:
+        return hash(float_ver)
+      else:
+        return hash(self.reduce_to_lowest_place().to_hashable_tuple())
+  
   def __neg__(self) -> Self:
     return self.__class__(
       -self.value,
