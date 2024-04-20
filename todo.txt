@@ -1,4 +1,5 @@
 replace fixedprec with self.__class__
+check all fixedprec calls preserve max prec
 split timeinstant class into many classes
 split fixedprec into many classes
 to make fixedprec hashable (only do if decimal is hashable) can make a reduce func that reduces a fixedprec to simplest form such that all reduced fixedprec that compare equal have same internal vars

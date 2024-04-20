@@ -145,30 +145,33 @@ class FixedPrec(Real):
     if self.place <= 0:
       return self
     else:
-      return FixedPrec(self.value // 10 ** self.place)
+      return FixedPrec(self.value // 10 ** self.place, max_prec = self.max_prec)
   
   def __ceil__(self):
-    return -floor(-self)
+    if self.place <= 0:
+      return self
+    else:
+      return FixedPrec(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
   
   def __trunc__(self):
     if self.place <= 0:
       return self
     else:
       if self.value < 0:
-        return FixedPrec(-(-self.value // 10 ** self.place))
+        return FixedPrec(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
       else:
-        return FixedPrec(self.value // 10 ** self.place)
+        return FixedPrec(self.value // 10 ** self.place, max_prec = self.max_prec)
   
   def __round__(self, ndigits: Integral = 0):
-    if self.place <= 0:
+    if self.place <= ndigits:
       return self
     else:
-      round_digit = (self.value // 10 ** (self.place - 1)) % 10
+      round_digit = (self.value // 10 ** (self.place - ndigits - 1)) % 10
       
       if round_digit >= 5:
-        return FixedPrec(-(-self.value // 10 ** self.place))
+        return FixedPrec(-(-self.value // 10 ** (self.place - ndigits)), ndigits, max_prec = self.max_prec)
       else:
-        return FixedPrec(self.value // 10 ** self.place)
+        return FixedPrec(self.value // 10 ** (self.place - ndigits), ndigits, max_prec = self.max_prec)
   
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
