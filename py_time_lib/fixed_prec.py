@@ -318,7 +318,7 @@ class FixedPrec(Complex):
       raise ZeroDivisionError('division by zero')
     else:
       max_prec = max(self.max_prec, other.max_prec)
-      additional_precision = max(len(str(other.place)) - len(str(self.place)) + max_prec, 0)
+      additional_precision = max(len(str(other.value)) - len(str(self.value)) + max_prec, 0) + 1
       return FixedPrec(
         self.value * 10 ** additional_precision // other.value,
         self.place - other.place + additional_precision,
@@ -380,7 +380,7 @@ class FixedPrec(Complex):
       self_root = self
       while fractional % 1 != 0:
         fractional *= 10
-        self_root = self._nthroot(10)
+        self_root = self_root._nthroot(10)
         frac_power = int(fractional // 1)
         result *= self_root ** frac_power
       return result
@@ -457,16 +457,15 @@ class FixedPrec(Complex):
     except NotImplementedError:
       return NotImplemented
     
-    other_max_prec = other.increase_to_max_prec()
-    
     if self.value == 0:
       raise ZeroDivisionError('division by zero')
     else:
-      additional_precision = max((self.place - other_max_prec.max_prec) - (other_max_prec.place - other_max_prec.max_prec), 0)
+      max_prec = max(other.max_prec, self.max_prec)
+      additional_precision = max(len(str(self.value)) - len(str(other.value)) + max_prec, 0) + 1
       return FixedPrec(
-        other_max_prec.value * 10 ** additional_precision // self.value,
-        other_max_prec.place - self.place + additional_precision,
-        max(other_max_prec.max_prec, self.max_prec)
+        other.value * 10 ** additional_precision // self.value,
+        other.place - self.place + additional_precision,
+        max_prec
       ).reduce_to_max_prec()
   
   def __rpow__(self, other):

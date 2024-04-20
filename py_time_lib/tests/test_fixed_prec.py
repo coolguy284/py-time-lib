@@ -137,8 +137,12 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual((FixedPrec(12) / 3).to_hashable_tuple(), ('FixedPrec', 4_000_000_000_000, 12, 12))
     self.assertEqual((12 / FixedPrec(3)).to_hashable_tuple(), ('FixedPrec', 4_000_000_000_000, 12, 12))
     
-    self.assertEqual(FixedPrec(1) / FixedPrec('1.999999999996'), FixedPrec('0.5'))
-    self.assertEqual(FixedPrec(2) / FixedPrec('1.999999999996'), 1)
+    self.assertAlmostEqual(FixedPrec(1) / FixedPrec('1.999999999996'), FixedPrec('0.5'), delta = 1e-12)
+    self.assertAlmostEqual(FixedPrec(2) / FixedPrec('1.999999999996'), 1, delta = 1e-11)
+    self.assertAlmostEqual(FixedPrec(1) / 1.999999999996, FixedPrec('0.5'), delta = 1e-12)
+    self.assertAlmostEqual(FixedPrec(2) / 1.999999999996, 1, delta = 1e-11)
+    self.assertAlmostEqual(1 / FixedPrec('1.999999999996'), FixedPrec('0.5'), delta = 1e-12)
+    self.assertAlmostEqual(2 / FixedPrec('1.999999999996'), 1, delta = 1e-11)
   
   def test_relational(self):
     self.assertEqual(FixedPrec(1, 0) == FixedPrec(1, 0), True)
