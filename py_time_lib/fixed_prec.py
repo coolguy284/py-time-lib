@@ -100,8 +100,11 @@ class FixedPrec(Real):
     else:
       return NotImplemented
   
-  def to_hashable_tuple(self) -> tuple[str, Integral, Integral, Integral]:
+  def to_data_tuple(self) -> tuple[str, Integral, Integral, Integral]:
     return (self.__class__.__name__, self.value, self.place, self.max_prec)
+  
+  def to_hashable_tuple(self) -> tuple[str, Integral, Integral]:
+    return ('FixedPrec', self.value, self.place)
   
   def __hash__(self) -> int:
     if self.place <= 0:
