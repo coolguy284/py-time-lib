@@ -3,7 +3,6 @@ from re import compile as re_compile
 from time import time_ns
 from typing import Self
 
-from ...lib_funcs import binary_search
 from ...fixed_prec import FixedPrec
 from ...data import leap_seconds
 from ...calendars.date_base import DateBase
@@ -12,10 +11,9 @@ from ...calendars.julian import JulianDate
 from ...calendars.gregorian import GregorianDate
 from ...auto_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
 from ..lib import TimeStorageType
-from ..time_delta import TimeDelta
-from .time_inst_base import TimeInstantBase
+from .time_inst_leap_sec import TimeInstantLeapSec
 
-class TimeInstant(TimeInstantBase):
+class TimeInstant(TimeInstantLeapSec):
   'Class representing an instant of time. Modeled after TAI, with epoch at jan 1, 1 BCE (year 0). Stores seconds since epoch.'
   
   # static stuff
@@ -128,31 +126,6 @@ class TimeInstant(TimeInstantBase):
   __slots__ = ()
   
   @classmethod
-  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: TimeStorageType, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
-    if len(cls.UTC_TO_TAI_OFFSET_TABLE) == 0:
-      return cls(utc_seconds_since_epoch - cls.UTC_INITIAL_OFFSET_FROM_TAI)
-    else:
-      if utc_seconds_since_epoch < cls.UTC_TO_TAI_OFFSET_TABLE[0]['start_instant']:
-        return cls(utc_seconds_since_epoch - cls.UTC_INITIAL_OFFSET_FROM_TAI)
-      else:
-        utc_table_index = binary_search(lambda x: utc_seconds_since_epoch >= cls.UTC_TO_TAI_OFFSET_TABLE[x]['start_instant'], 0, len(cls.UTC_TO_TAI_OFFSET_TABLE))
-        utc_table_entry = cls.UTC_TO_TAI_OFFSET_TABLE[utc_table_index]
-        if len(utc_table_entry['utc_tai_delta']) == 0:
-          # time cannot map to tai, but can round up
-          if round_invalid_time_upwards:
-            utc_table_next_entry = cls.UTC_TO_TAI_OFFSET_TABLE[utc_table_index + 1]
-            return cls(utc_table_entry['start_instant'] - (utc_table_next_entry['utc_tai_delta'][0] - utc_table_entry['leap_utc_delta']))
-          else:
-            raise Exception('utc time does not map to tai')
-        elif len(utc_table_entry['utc_tai_delta']) == 1:
-          return cls(utc_seconds_since_epoch - utc_table_entry['utc_tai_delta'][0])
-        else:
-          if second_fold:
-            return cls(utc_seconds_since_epoch - utc_table_entry['utc_tai_delta'][1])
-          else:
-            return cls(utc_seconds_since_epoch - utc_table_entry['utc_tai_delta'][0])
-  
-  @classmethod
   def from_date_tuple_tai(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, date_cls: type[DateBase] = GregorianDate) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a tai TimeInstant.'
     date = date_cls(year, month, day)
@@ -215,159 +188,6 @@ class TimeInstant(TimeInstantBase):
   @classmethod
   def now(cls) -> Self:
     return cls.from_unix_timestamp(FixedPrec(time_ns(), 9))
-  
-  __hash__ = TimeInstantBase.__hash__
-  
-  def __add__(self, other: TimeDelta) -> Self:
-    if hasattr(other, 'time_delta'):
-      try:
-        new_time = self._time + other.time_delta
-      except TypeError:
-        return NotImplemented
-      return self.__class__(new_time)
-    else:
-      return NotImplemented
-  
-  def __sub__(self, other: Self | TimeDelta) -> Self | TimeDelta:
-    if hasattr(other, 'time'):
-      try:
-        delta_time = self._time - other.time
-      except TypeError:
-        return NotImplemented
-      return TimeDelta(delta_time)
-    else:
-      try:
-        return self + (-other)
-      except TypeError:
-        return NotImplemented
-  
-  def __radd__(self, other: TimeDelta) -> Self:
-    if hasattr(other, 'time_delta'):
-      try:
-        new_time = other.time_delta + self._time
-      except TypeError:
-        return NotImplemented
-      return self.__class__(new_time)
-    else:
-      return NotImplemented
-  
-  def __eq__(self, other: Self | None):
-    if other is None:
-      return False
-    
-    if hasattr(other, 'time'):
-      return self._time == other.time
-    else:
-      return NotImplemented
-  
-  def __ne__(self, other: Self | None):
-    if other is None:
-      return True
-    
-    if hasattr(other, 'time'):
-      return self._time != other.time
-    else:
-      return NotImplemented
-  
-  def __gt__(self, other: Self):
-    if hasattr(other, 'time'):
-      try:
-        return self._time > other.time
-      except TypeError:
-        return NotImplemented
-    else:
-      return NotImplemented
-  
-  def __lt__(self, other: Self):
-    if hasattr(other, 'time'):
-      try:
-        return self._time < other.time
-      except TypeError:
-        return NotImplemented
-    else:
-      return NotImplemented
-  
-  def __ge__(self, other: Self):
-    if hasattr(other, 'time'):
-      try:
-        return self._time >= other.time
-      except TypeError:
-        return NotImplemented
-    else:
-      return NotImplemented
-  
-  def __le__(self, other: Self):
-    if hasattr(other, 'time'):
-      try:
-        return self._time <= other.time
-      except TypeError:
-        return NotImplemented
-    else:
-      return NotImplemented
-  
-  def to_utc_info(self) -> dict[str, TimeStorageType | bool | None]:
-    'Returns a dict of the form (utc_seconds_since_epoch, positive_leap_second_occurring, last_leap_delta, last_leap_transition_time (when last leap second started or ended)).'
-    if len(self.TAI_TO_UTC_OFFSET_TABLE) == 0:
-      return {
-        'utc_seconds_since_epoch': self._time + self.UTC_INITIAL_OFFSET_FROM_TAI,
-        'positive_leap_second_occurring': False,
-        'last_leap_delta': None,
-        'last_leap_transition_time': None,
-        'current_utc_tai_offset': self.UTC_INITIAL_OFFSET_FROM_TAI,
-      }
-    else:
-      if self._time < self.TAI_TO_UTC_OFFSET_TABLE[0]['start_instant']:
-        return {
-          'utc_seconds_since_epoch': self._time + self.UTC_INITIAL_OFFSET_FROM_TAI,
-          'positive_leap_second_occurring': False,
-          'last_leap_delta': None,
-          'last_leap_transition_time': None,
-          'current_utc_tai_offset': self.UTC_INITIAL_OFFSET_FROM_TAI,
-        }
-      else:
-        tai_table_index = binary_search(lambda x: self._time >= self.TAI_TO_UTC_OFFSET_TABLE[x]['start_instant'], 0, len(self.TAI_TO_UTC_OFFSET_TABLE))
-        tai_table_entry = self.TAI_TO_UTC_OFFSET_TABLE[tai_table_index]
-        if tai_table_entry['positive_leap_second_occurring']:
-          return {
-            'utc_seconds_since_epoch': tai_table_entry['utc_epoch_secs'],
-            'positive_leap_second_occurring': True,
-            'last_leap_delta': tai_table_entry['leap_utc_delta'],
-            'last_leap_transition_time': tai_table_entry['start_instant'],
-            'current_utc_tai_offset': tai_table_entry['utc_epoch_secs'] - tai_table_entry['start_instant'],
-          }
-        else:
-          return {
-            'utc_seconds_since_epoch': self._time + tai_table_entry['utc_tai_delta'],
-            'positive_leap_second_occurring': False,
-            'last_leap_delta': tai_table_entry['leap_utc_delta'],
-            'last_leap_transition_time': tai_table_entry['start_instant'],
-            'current_utc_tai_offset': tai_table_entry['utc_tai_delta'],
-          }
-  
-  def to_utc_secs_since_epoch(self) -> tuple[TimeStorageType, bool]:
-    '''
-    Returns a tuple of the form (utc_seconds_since_epoch, second_fold).
-    After a positive leap second, the counter goes back one second,
-    and fold gets set to true for one second.
-    '''
-    utc_info = self.to_utc_info()
-    utc_seconds_since_epoch = utc_info['utc_seconds_since_epoch']
-    positive_leap_second_occurring = utc_info['positive_leap_second_occurring']
-    last_leap_delta = utc_info['last_leap_delta']
-    last_leap_transition_time = utc_info['last_leap_transition_time']
-    # TODO fix implementation, but can only be done if there is a way to know if you are one second after a positive leap second finished
-    if not positive_leap_second_occurring:
-      if last_leap_delta != None:
-        if last_leap_delta < 0 and self.time - last_leap_transition_time < -last_leap_delta:
-          # last leap second was a positive leap second and folds are necessary
-          return utc_seconds_since_epoch, True
-        else:
-          # last leap second was a negative leap second, no folds necessary
-          return utc_seconds_since_epoch, False
-      else:
-        return utc_seconds_since_epoch, False
-    else:
-      return utc_seconds_since_epoch + (self.time - last_leap_transition_time), False
   
   def to_date_tuple_tai(self, date_cls: type[DateBase] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
     'Returns a date tuple in the TAI timezone (as math is easiest for this).'
