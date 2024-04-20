@@ -8,6 +8,7 @@ from ...data import leap_seconds
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
 from ..time_delta import TimeDelta
+from ...auto_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
 from .time_inst_ops import TimeInstantOperators
 
 class TimeInstantLeapSec(TimeInstantOperators):
@@ -34,6 +35,15 @@ class TimeInstantLeapSec(TimeInstantOperators):
   def mins_to_days_and_secs_since_epoch(cls, mins_since_epoch: Integral, remainder_secs: TimeStorageType = FixedPrec(0)) -> tuple[int, TimeStorageType]:
     days_since_epoch, mins_in_day = divmod(mins_since_epoch, cls.NOMINAL_MINS_PER_DAY)
     return days_since_epoch, mins_in_day * cls.NOMINAL_SECS_PER_MIN + remainder_secs
+  
+  @classmethod
+  def update_leap_seconds(cls, file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FILE_URL):
+    leap_sec_data = get_leap_sec_data(file_path = file_path, url = url)
+    leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI = leap_sec_data['initial_utc_tai_offset']
+    leap_seconds.LEAP_SECONDS = leap_sec_data['leap_seconds']
+    cls.UTC_INITIAL_OFFSET_FROM_TAI = leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
+    cls.LEAP_SECONDS = leap_seconds.LEAP_SECONDS
+    cls._init_class_vars()
   
   @classmethod
   def _init_class_vars(cls) -> None:
@@ -258,3 +268,6 @@ class TimeInstantLeapSec(TimeInstantOperators):
         return utc_seconds_since_epoch, False
     else:
       return utc_seconds_since_epoch + (self.time - last_leap_transition_time), False
+  
+  def get_utc_tai_offset(self) -> FixedPrec:
+    return self.to_utc_info()['current_utc_tai_offset']

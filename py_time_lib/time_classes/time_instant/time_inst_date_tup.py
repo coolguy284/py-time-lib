@@ -86,3 +86,7 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
       second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
       second = int(second + second_addl)
     return *date, hour, minute, second, frac_second
+  
+  def get_date_object[T: DateBase](self, date_cls: type[T] = GregorianDate) -> T:
+    days_since_epoch, _ = divmod(self.time, self.NOMINAL_SECS_PER_DAY)
+    return date_cls.from_days_since_epoch(int(days_since_epoch))
