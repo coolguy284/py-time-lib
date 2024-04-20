@@ -5,7 +5,7 @@ from ...calendars.julian import JulianDate
 from ..lib import TimeStorageType
 from .time_inst_date_tup import TimeInstantDateTuple
 
-class TimeInstantJulianDate(TimeInstantDateTuple):
+class TimeInstantJulianDateAndUnixTimestamp(TimeInstantDateTuple):
   # static stuff
   
   # https://en.wikipedia.org/wiki/Julian_day

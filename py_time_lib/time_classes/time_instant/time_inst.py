@@ -3,10 +3,10 @@ from time import time_ns
 from typing import Self
 
 from ...fixed_prec import FixedPrec
-from .time_inst_jd import TimeInstantJulianDate
+from .time_inst_jd_ts import TimeInstantJulianDateAndUnixTimestamp
 from .time_inst_fmt_str import TimeInstantFormatString
 
-class TimeInstant(TimeInstantJulianDate, TimeInstantFormatString):
+class TimeInstant(TimeInstantJulianDateAndUnixTimestamp, TimeInstantFormatString):
   'Class representing an instant of time. Modeled after TAI, with epoch at jan 1, 1 BCE (year 0). Stores seconds since epoch.'
   
   # instance stuff
