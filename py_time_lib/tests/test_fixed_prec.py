@@ -374,6 +374,16 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(1) ** FixedPrec(1), 1)
     self.assertEqual(FixedPrec(1) ** FixedPrec(2), 1)
     self.assertEqual(FixedPrec(1) ** FixedPrec(1024), 1)
+    self.assertEqual(FixedPrec(0) ** FixedPrec(0), 1)
+    self.assertEqual(FixedPrec(0) ** FixedPrec(1), 0)
+    self.assertEqual(FixedPrec(0) ** FixedPrec(2), 0)
+    self.assertEqual(FixedPrec(0) ** FixedPrec(1024), 0)
+    with self.assertRaises(ZeroDivisionError):
+      FixedPrec(0) ** FixedPrec('-1')
+    with self.assertRaises(ZeroDivisionError):
+      FixedPrec(0) ** FixedPrec('-2')
+    with self.assertRaises(ZeroDivisionError):
+      FixedPrec(0) ** FixedPrec('-1024')
     
     self.assertEqual(FixedPrec(3) ** FixedPrec(0), 1)
     self.assertEqual(FixedPrec(3) ** FixedPrec(1), 3)
@@ -411,6 +421,18 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(4) ** FixedPrec(-1), FixedPrec('0.25'))
     self.assertEqual(FixedPrec(4) ** FixedPrec('-1.5'), FixedPrec('0.125'))
     self.assertEqual(FixedPrec(4) ** FixedPrec(-2), FixedPrec('0.0625'))
+    self.assertEqual(FixedPrec(-4) ** FixedPrec(2), 16)
+    self.assertEqual(FixedPrec(-4) ** FixedPrec(-2), FixedPrec('0.0625'))
+    self.assertEqual(FixedPrec(-4) ** FixedPrec(3), -64)
+    self.assertEqual(FixedPrec(-4) ** FixedPrec(-3), FixedPrec('-0.015625'))
+    with self.assertRaises(Exception):
+      FixedPrec(-4) ** FixedPrec('0.5')
+    with self.assertRaises(Exception):
+      FixedPrec(-4) ** FixedPrec('1.5')
+    with self.assertRaises(Exception):
+      FixedPrec(-4) ** FixedPrec('-0.5')
+    with self.assertRaises(Exception):
+      FixedPrec(-4) ** FixedPrec('-1.5')
     
     self.assertEqual(FixedPrec(4) ** -1.5, FixedPrec('0.125'))
     self.assertEqual(4 ** FixedPrec('-1.5'), FixedPrec('0.125'))

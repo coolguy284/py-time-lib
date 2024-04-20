@@ -351,8 +351,6 @@ class FixedPrec(Complex):
     
     if self == 1:
       return self
-    elif self < 0:
-      raise Exception(f'{self.__class__.__name__} cannot handle complex output (negative base)')
     
     other = other.reduce_to_lowest_place()
     
@@ -476,8 +474,6 @@ class FixedPrec(Complex):
     
     if other == 1:
       return other
-    elif other < 0:
-      raise Exception(f'{other.__class__.__name__} cannot handle complex output (negative base)')
     
     self = self.reduce_to_lowest_place()
     
