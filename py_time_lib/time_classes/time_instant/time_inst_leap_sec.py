@@ -6,6 +6,7 @@ from ...fixed_prec import FixedPrec
 from ...data import leap_seconds
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
+from ..time_delta import TimeDelta
 from .time_inst_ops import TimeInstantOperators
 
 class TimeInstantLeapSec(TimeInstantOperators):
@@ -14,9 +15,10 @@ class TimeInstantLeapSec(TimeInstantOperators):
   NOMINAL_SECS_PER_DAY = leap_seconds.NOMINAL_SECS_PER_DAY
   NOMINAL_SECS_PER_HOUR = 3_600
   NOMINAL_SECS_PER_MIN = 60
-  NOMINAL_MINS_PER_DAY = 1440
+  NOMINAL_MINS_PER_DAY = 1_440
   NOMINAL_MINS_PER_HOUR = 60
   NOMINAL_HOURS_PER_DAY = 24
+  NOMINAL_MICROSECS_PER_SEC = TimeDelta.NOMINAL_MICROSECS_PER_SEC
   
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
   UTC_INITIAL_OFFSET_FROM_TAI = leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI

@@ -678,3 +678,39 @@ class TestTimeClasses(unittest.TestCase):
   def test_hash_timeinstant(self):
     self.assertEqual(hash(TimeInstant(3)), hash(('TimeInstant', FixedPrec(3))))
     self.assertEqual(hash(TimeInstant(3)), hash(('TimeInstant', 3)))
+  
+  def test_to_timedelta(self):
+    self.assertEqual(TimeDelta(FixedPrec('3.5')).to_datetime_timedelta(), datetime.timedelta(seconds = 3, milliseconds = 500))
+  
+  def test_to_datetime_basic(self):
+    self.assertEqual(
+      TimeInstant.from_date_tuple_utc(2024, 4, 19, 13, 1, 1, 0).to_datetime(),
+      datetime.datetime(2024, 4, 19, 13, 1, 1, 0, datetime.UTC)
+    )
+    self.assertEqual(
+      TimeInstant.from_date_tuple_utc(2024, 4, 19, 13, 1, 1, FixedPrec('0.5')).to_datetime(),
+      datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, datetime.UTC)
+    )
+  
+  def test_to_datetime_leap_sec(self):
+    last_leap_index = 53
+    last_leap_start = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[last_leap_index - 1]['start_instant']
+    t1 = TimeInstant(last_leap_start)
+    t0 = t1 - TimeDelta('0.1')
+    t2 = t1 + TimeDelta('0.1')
+    t3 = t1 + TimeDelta('0.9')
+    t4 = t1 + TimeDelta('1.0')
+    t5 = t1 + TimeDelta('1.1')
+    t6 = t1 + TimeDelta('1.9')
+    t7 = t1 + TimeDelta('2.0')
+    t8 = t1 + TimeDelta('2.1')
+    
+    self.assertEqual(t0.to_datetime(), datetime.datetime(2016, 12, 31, 23, 59, 59, 900_000, datetime.UTC))
+    self.assertEqual(t1.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
+    self.assertEqual(t2.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
+    self.assertEqual(t3.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
+    self.assertEqual(t4.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
+    self.assertEqual(t5.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  100_000, datetime.UTC))
+    self.assertEqual(t6.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  900_000, datetime.UTC))
+    self.assertEqual(t7.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  1,  0,       datetime.UTC))
+    self.assertEqual(t8.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  1,  100_000, datetime.UTC))

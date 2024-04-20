@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Self
 
 from ..fixed_prec import FixedPrec
@@ -5,6 +6,12 @@ from .lib import TimeStorageType
 
 class TimeDelta:
   'Class representing the difference between two times, stored using the TAI length of second.'
+  
+  # static stuff
+  
+  NOMINAL_MICROSECS_PER_SEC = 1_000_000
+  
+  # instance stuff
   
   __slots__ = '_time_delta'
   _time_delta: TimeStorageType
@@ -159,3 +166,6 @@ class TimeDelta:
         return NotImplemented
     else:
       return NotImplemented
+  
+  def to_datetime_timedelta(self) -> timedelta:
+    return timedelta(microseconds = int(self._time_delta * self.NOMINAL_MICROSECS_PER_SEC))

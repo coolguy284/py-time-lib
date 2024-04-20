@@ -1,4 +1,4 @@
-timeinstant to/from datetime func
+timedelta/timeinstant from datetime/timedelta func
 
 timeinstant:
   add fixed-offset timezone support
@@ -22,6 +22,7 @@ support other timescales and julian dates in other timescales
   make all timescales except utc be derived from a list of offset, rate tuples; enables adding tcg, tcb, maybe time center galaxy and time comoving frame as well
   bonus is add ut1 timestamp funcs
 fixedprec constructor handle real, integral
+continue splitting timeinstant into many classes
 split fixedprec into many classes
 tests:
   timeinstant: tests for leap seconds during day

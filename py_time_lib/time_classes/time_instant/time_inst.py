@@ -1,3 +1,4 @@
+from datetime import datetime, UTC as datetime_UTC
 from numbers import Integral
 from re import compile as re_compile
 from time import time_ns
@@ -312,6 +313,17 @@ class TimeInstant(TimeInstantLeapSec):
   def to_format_string_utc(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     raise NotImplementedError()
   
-  strftime = to_format_string_utc
+  strftime = to_format_string_tai
+  
+  def to_datetime(self) -> datetime:
+    utc_info = self.to_utc_info()
+    if utc_info['positive_leap_second_occurring']:
+      self_adjusted = self.__class__.from_utc_secs_since_epoch(utc_info['utc_seconds_since_epoch'], True)
+    else:
+      self_adjusted = self
+    
+    year, month, day, hour, minute, second, frac_second = self_adjusted.to_date_tuple_utc()
+    
+    return datetime(year, month, day, hour, minute, second, int(frac_second * self.NOMINAL_MICROSECS_PER_SEC), datetime_UTC)
 
 TimeInstant._init_class_vars()
