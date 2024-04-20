@@ -662,3 +662,8 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(hash(FixedPrec(3)), hash(3))
     self.assertEqual(hash(FixedPrec('3.5')), hash(3.5))
     self.assertEqual(hash(FixedPrec('17846517823657823658916666263.5')), hash(('FixedPrec', 178465178236578236589166662635, 1)))
+  
+  def test_no_attributes(self):
+    with self.assertRaises(AttributeError):
+      d1 = FixedPrec(2024)
+      d1.prop = False

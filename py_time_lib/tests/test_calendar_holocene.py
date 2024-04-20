@@ -12,3 +12,8 @@ class TestCalendarHolocene(unittest.TestCase):
   
   def test_str(self):
     self.assertEqual(str(HoloceneDate(12024, 2, 3)), '12024-02-03')
+  
+  def test_no_attributes(self):
+    with self.assertRaises(AttributeError):
+      d1 = HoloceneDate(2024, 3, 26)
+      d1.prop = False

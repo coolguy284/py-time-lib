@@ -722,3 +722,11 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(TimeDelta(datetime.timedelta(seconds = 1, microseconds = 13)), TimeDelta(FixedPrec('1.000013')))
     self.assertEqual(TimeDelta(datetime.timedelta(seconds = 0, microseconds = 0)), TimeDelta(FixedPrec(0)))
     self.assertEqual(TimeDelta(datetime.timedelta(seconds = -2, microseconds = -15)), TimeDelta(FixedPrec('-2.000015')))
+  
+  def test_no_attributes(self):
+    with self.assertRaises(AttributeError):
+      d1 = TimeDelta(2024)
+      d1.prop = False
+    with self.assertRaises(AttributeError):
+      d1 = TimeInstant(2024)
+      d1.prop = False
