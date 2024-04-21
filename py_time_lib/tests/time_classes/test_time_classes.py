@@ -2,8 +2,8 @@ from time import time_ns
 import datetime
 import unittest
 
-from .. import FixedPrec, GregorianDate, TimeDelta, TimeInstant
-from ..data.leap_seconds import NOMINAL_SECS_PER_DAY
+from ... import FixedPrec, GregorianDate, TimeDelta, TimeInstant
+from ...data.leap_seconds import NOMINAL_SECS_PER_DAY
 
 class TestTimeClasses(unittest.TestCase):
   def __init__(self, *args):

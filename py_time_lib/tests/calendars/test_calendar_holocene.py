@@ -1,7 +1,6 @@
 import unittest
 
-from .. import HoloceneDate
-from .. import GregorianDate
+from ... import GregorianDate, HoloceneDate
 
 class TestCalendarHolocene(unittest.TestCase):
   def test_basic_creation(self):

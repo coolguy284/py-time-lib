@@ -1,6 +1,6 @@
 import unittest
 
-from .. import DateDelta, GregorianDate
+from ... import DateDelta, GregorianDate
 
 class TestCalendarDateBase(unittest.TestCase):
   def test_date_delta_str(self):

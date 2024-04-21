@@ -1,6 +1,6 @@
 import random, unittest
 
-from .. import JulianDate
+from ... import JulianDate
 
 cls = JulianDate
 

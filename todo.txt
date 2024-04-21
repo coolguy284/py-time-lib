@@ -1,3 +1,5 @@
+support negative numbers for week in month week day (and have option to show negative week in the to method)
+
 timeinstant:
   add fixed-offset timezone support
   add seasonal-offset timezone support
@@ -9,6 +11,7 @@ timedelta/timeinstant from datetime/timedelta when doing math operations
 timeinstant from datetime func
 datebase/datedelta from/to datetime.date
 datebase/datedelta from/to datetime.date when doing math operations
+use namedtuples for tuple output
 
 low prio:
 add leap second support to now
