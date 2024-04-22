@@ -19,7 +19,7 @@ class TimeZone:
   _initial_utc_offset: FixedPrec
   _later_offsets: tuple[dict[str], ...]
   
-  def __init__(self, initial_utc_offset: FixedPrec | int | float | str, later_offsets: Iterable[dict[str, OffsetDayMode | Integral | FixedPrec]], coerce_to_fixed_prec: bool = True):
+  def __init__(self, initial_utc_offset: FixedPrec | int | float | str, later_offsets: Iterable[dict[str, OffsetDayMode | Integral | FixedPrec]] = (), coerce_to_fixed_prec: bool = True):
     if coerce_to_fixed_prec and not isinstance(initial_utc_offset, FixedPrec):
       self._initial_utc_offset = FixedPrec.from_basic(initial_utc_offset)
     else:
