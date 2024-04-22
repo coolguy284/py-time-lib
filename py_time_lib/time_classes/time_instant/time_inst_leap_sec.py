@@ -2,25 +2,25 @@ from contextlib import contextmanager
 from numbers import Integral
 from typing import Generator, Self, SupportsIndex
 
+from ...constants import NOMINAL_SECS_PER_DAY as _NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_HOUR as _NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_MIN as _NOMINAL_SECS_PER_MIN, NOMINAL_MINS_PER_DAY as _NOMINAL_MINS_PER_DAY, NOMINAL_MINS_PER_HOUR as _NOMINAL_MINS_PER_HOUR, NOMINAL_HOURS_PER_DAY as _NOMINAL_HOURS_PER_DAY, NOMINAL_MICROSECS_PER_SEC as _NOMINAL_MICROSECS_PER_SEC
 from ...lib_funcs import binary_search
 from ...fixed_prec import FixedPrec
 from ...data import leap_seconds
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
-from ..time_delta import TimeDelta
 from ...auto_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
 from .time_inst_ops import TimeInstantOperators
 
 class TimeInstantLeapSec(TimeInstantOperators):
   # static stuff
   
-  NOMINAL_SECS_PER_DAY = leap_seconds.NOMINAL_SECS_PER_DAY
-  NOMINAL_SECS_PER_HOUR = 3_600
-  NOMINAL_SECS_PER_MIN = 60
-  NOMINAL_MINS_PER_DAY = 1_440
-  NOMINAL_MINS_PER_HOUR = 60
-  NOMINAL_HOURS_PER_DAY = 24
-  NOMINAL_MICROSECS_PER_SEC = TimeDelta.NOMINAL_MICROSECS_PER_SEC
+  NOMINAL_SECS_PER_DAY = _NOMINAL_SECS_PER_DAY
+  NOMINAL_SECS_PER_HOUR = _NOMINAL_SECS_PER_HOUR
+  NOMINAL_SECS_PER_MIN = _NOMINAL_SECS_PER_MIN
+  NOMINAL_MINS_PER_DAY = _NOMINAL_MINS_PER_DAY
+  NOMINAL_MINS_PER_HOUR = _NOMINAL_MINS_PER_HOUR
+  NOMINAL_HOURS_PER_DAY = _NOMINAL_HOURS_PER_DAY
+  NOMINAL_MICROSECS_PER_SEC = _NOMINAL_MICROSECS_PER_SEC
   
   # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
   UTC_INITIAL_OFFSET_FROM_TAI = leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
@@ -137,17 +137,17 @@ class TimeInstantLeapSec(TimeInstantOperators):
   @contextmanager
   def _auto_reset_class_vars(cls) -> Generator[None, None, None]:
     'Automatically resets UTC_INITIAL_OFFSET_FROM_TAI, LEAP_SECONDS, and NOMINAL_SECS_PER_DAY after exiting the context block.'
-    UTC_INITIAL_OFFSET_FROM_TAI = cls.UTC_INITIAL_OFFSET_FROM_TAI
-    NOMINAL_SECS_PER_DAY = cls.NOMINAL_SECS_PER_DAY
-    LEAP_SECONDS = cls.LEAP_SECONDS[:]
+    CLS_UTC_INITIAL_OFFSET_FROM_TAI = cls.UTC_INITIAL_OFFSET_FROM_TAI
+    CLS_NOMINAL_SECS_PER_DAY = cls.NOMINAL_SECS_PER_DAY
+    CLS_LEAP_SECONDS = cls.LEAP_SECONDS[:]
     
     try:
       yield
     finally:
-      cls.UTC_INITIAL_OFFSET_FROM_TAI = UTC_INITIAL_OFFSET_FROM_TAI
-      cls.NOMINAL_SECS_PER_DAY = NOMINAL_SECS_PER_DAY
+      cls.UTC_INITIAL_OFFSET_FROM_TAI = CLS_UTC_INITIAL_OFFSET_FROM_TAI
+      cls.NOMINAL_SECS_PER_DAY = CLS_NOMINAL_SECS_PER_DAY
       cls.LEAP_SECONDS.clear()
-      cls.LEAP_SECONDS.extend(LEAP_SECONDS)
+      cls.LEAP_SECONDS.extend(CLS_LEAP_SECONDS)
       cls._init_class_vars()
   
   @classmethod

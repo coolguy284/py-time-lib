@@ -8,7 +8,7 @@ class GregorianDate(JulGregBaseDate):
   # static stuff
   
   JAN_1_YEAR0_DAY_OFFSET = 0
-  REPEAT_PERIOD_DAYS = ((366 + 365 * 3) * 24 + (365 * 4)) * 3 + (366 + 365 * 3) * 25
+  REPEAT_PERIOD_DAYS = ((JulGregBaseDate.DAYS_LEAP_YEAR + JulGregBaseDate.DAYS_NON_LEAP_YEAR * 3) * 24 + (JulGregBaseDate.DAYS_NON_LEAP_YEAR * 4)) * 3 + (JulGregBaseDate.DAYS_LEAP_YEAR + JulGregBaseDate.DAYS_NON_LEAP_YEAR * 3) * 25
   REPEAT_PERIOD_YEARS = 400
   
   @staticmethod

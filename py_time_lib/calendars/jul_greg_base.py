@@ -15,6 +15,8 @@ class JulGregBaseDate(DateBase):
   MONTHS_IN_YEAR = 12
   MONTH_DAYS_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  DAYS_NON_LEAP_YEAR = sum(MONTH_DAYS_NON_LEAP)
+  DAYS_LEAP_YEAR = sum(MONTH_DAYS_LEAP)
   MONTH_NAMES_LONG = [
     'January', 'February', 'March', 'April',
     'May', 'June', 'July', 'August',
@@ -34,7 +36,7 @@ class JulGregBaseDate(DateBase):
   
   @classmethod
   def days_in_year(cls, year: Integral) -> int:
-    return 366 if cls.is_leap(year) else 365
+    return cls.DAYS_LEAP_YEAR if cls.is_leap(year) else cls.DAYS_NON_LEAP_YEAR
   
   @classmethod
   def days_in_month(cls, year: Integral, month: Integral) -> int:

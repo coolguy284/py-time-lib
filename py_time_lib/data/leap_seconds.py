@@ -1,6 +1,5 @@
+from ..constants import NOMINAL_SECS_PER_DAY
 from ..fixed_prec import FixedPrec
-
-NOMINAL_SECS_PER_DAY = 86_400
 
 # data from https://www.nist.gov/pml/time-and-frequency-division/time-realization/leap-seconds
 UTC_INITIAL_OFFSET_FROM_TAI: FixedPrec = FixedPrec(-10)

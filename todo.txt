@@ -1,8 +1,8 @@
-remove all magic numbers
-
 timeinstant:
   add seasonal-offset timezone support
   pull timezone info from tzdb
+
+finish strftime utc and tz
 
 add leap smear support
 strptime support

@@ -1,6 +1,9 @@
 from datetime import timedelta
 from typing import Self
 
+from ..constants import NOMINAL_MICROSECS_PER_SEC as _NOMINAL_MICROSECS_PER_SEC
+from ..constants import NOMINAL_MICROSECS_PER_DAY as _NOMINAL_MICROSECS_PER_DAY
+from ..constants import NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX as _NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX
 from ..fixed_prec import FixedPrec
 from .lib import TimeStorageType
 
@@ -9,8 +12,9 @@ class TimeDelta:
   
   # static stuff
   
-  NOMINAL_MICROSECS_PER_SEC = 1_000_000
-  NOMINAL_MICROSECS_PER_DAY = 86_400_000_000
+  NOMINAL_MICROSECS_PER_SEC = _NOMINAL_MICROSECS_PER_SEC
+  NOMINAL_MICROSECS_PER_DAY = _NOMINAL_MICROSECS_PER_DAY
+  NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX = _NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX
   
   # instance stuff
   
@@ -31,7 +35,7 @@ class TimeDelta:
       timedelta_obj.seconds * cls.NOMINAL_MICROSECS_PER_SEC + \
       timedelta_obj.microseconds
     
-    return cls(FixedPrec(total_microseconds, 6))
+    return cls(FixedPrec(total_microseconds, cls.NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX))
   
   def __repr__(self) -> str:
     return f'{self.__class__.__name__}({self._time_delta!r})'

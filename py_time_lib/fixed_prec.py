@@ -6,14 +6,20 @@ from typing import Self
 from .lib_funcs import binary_search_float
 
 class FixedPrec(Real):
+  # static stuff
+  
+  FLOAT_ADDED_PREC = 15
+  RADIX = 10
+  RADIX_FLOAT = float(RADIX)
+  ROUND_UP_THRESHOLD = RADIX // 2
+  _int_regex = re.compile(r'^(-?\d+)$')
+  _float_regex = re.compile(r'^(-?)(\d+)\.(\d+)$')
+  
+  # instance stuff
   __slots__ = 'value', 'place', 'max_prec'
   value: Integral
   place: Integral
   max_prec: Integral
-  
-  FLOAT_ADDED_PREC = 15
-  _int_regex = re.compile(r'^(-?\d+)$')
-  _float_regex = re.compile(r'^(-?)(\d+)\.(\d+)$')
   
   @classmethod
   def from_basic(cls, value: int | float | str | Self, max_prec: Integral = 12, cast_only: bool = False) -> Self:
@@ -26,14 +32,14 @@ class FixedPrec(Real):
         return cls(0, cls.FLOAT_ADDED_PREC)
       else:
         prec = floor(log10(abs(value)))
-        value /= 10 ** prec
-        value *= 10 ** cls.FLOAT_ADDED_PREC
+        value /= cls.RADIX ** prec
+        value *= cls.RADIX ** cls.FLOAT_ADDED_PREC
         return cls(int(value), -prec + cls.FLOAT_ADDED_PREC)
     elif isinstance(value, str) and not cast_only:
       if match := cls._int_regex.match(value):
         return cls(int(match[1]), 0, max_prec = max_prec)
       elif match := cls._float_regex.match(value):
-        result = cls(int(match[2]) * 10 ** len(match[3]) + int(match[3]), len(match[3]), max_prec = max_prec)
+        result = cls(int(match[2]) * cls.RADIX ** len(match[3]) + int(match[3]), len(match[3]), max_prec = max_prec)
         if match[1] == '-':
           result *= -1
         return result
@@ -134,20 +140,20 @@ class FixedPrec(Real):
   
   def __int__(self):
     if self.place < 0:
-      return int(self.value * 10 ** -self.place)
+      return int(self.value * self.RADIX ** -self.place)
     elif self.place > 0:
       if self.value < 0:
-        return int(-(-self.value // 10 ** self.place))
+        return int(-(-self.value // self.RADIX ** self.place))
       else:
-        return int(self.value // 10 ** self.place)
+        return int(self.value // self.RADIX ** self.place)
     else:
       return int(self.value)
   
   def __float__(self):
     if self.place < 0:
-      return float(self.value) * 10.0 ** -self.place
+      return float(self.value) * self.RADIX_FLOAT ** -self.place
     elif self.place > 0:
-      return float(self.value) / 10.0 ** self.place
+      return float(self.value) / self.RADIX_FLOAT ** self.place
     else:
       return float(self.value)
   
@@ -158,38 +164,38 @@ class FixedPrec(Real):
     if self.place <= 0:
       return self
     else:
-      return self.__class__(self.value // 10 ** self.place, max_prec = self.max_prec)
+      return self.__class__(self.value // self.RADIX ** self.place, max_prec = self.max_prec)
   
   def __ceil__(self):
     if self.place <= 0:
       return self
     else:
-      return self.__class__(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
+      return self.__class__(-(-self.value // self.RADIX ** self.place), max_prec = self.max_prec)
   
   def __trunc__(self):
     if self.place <= 0:
       return self
     else:
       if self.value < 0:
-        return self.__class__(-(-self.value // 10 ** self.place), max_prec = self.max_prec)
+        return self.__class__(-(-self.value // self.RADIX ** self.place), max_prec = self.max_prec)
       else:
-        return self.__class__(self.value // 10 ** self.place, max_prec = self.max_prec)
+        return self.__class__(self.value // self.RADIX ** self.place, max_prec = self.max_prec)
   
   def __round__(self, ndigits: Integral = 0):
     if self.place <= ndigits:
       return self
     else:
-      round_digit = (self.value // 10 ** (self.place - ndigits - 1)) % 10
+      round_digit = (self.value // self.RADIX ** (self.place - ndigits - 1)) % self.RADIX
       
-      if round_digit >= 5:
-        return self.__class__(-(-self.value // 10 ** (self.place - ndigits)), ndigits, max_prec = self.max_prec)
+      if round_digit >= self.ROUND_UP_THRESHOLD:
+        return self.__class__(-(-self.value // self.RADIX ** (self.place - ndigits)), ndigits, max_prec = self.max_prec)
       else:
-        return self.__class__(self.value // 10 ** (self.place - ndigits), ndigits, max_prec = self.max_prec)
+        return self.__class__(self.value // self.RADIX ** (self.place - ndigits), ndigits, max_prec = self.max_prec)
   
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
       return self.__class__(
-        self.value // 10 ** (self.place - self.max_prec),
+        self.value // self.RADIX ** (self.place - self.max_prec),
         self.max_prec,
         self.max_prec
       )
@@ -199,7 +205,7 @@ class FixedPrec(Real):
   def increase_to_max_prec(self) -> Self:
     if self.place < self.max_prec:
       return self.__class__(
-        self.value * 10 ** (self.max_prec - self.place),
+        self.value * self.RADIX ** (self.max_prec - self.place),
         self.max_prec,
         self.max_prec
       )
@@ -209,13 +215,13 @@ class FixedPrec(Real):
   def force_to_max_prec(self) -> Self:
     if self.place > self.max_prec:
       return self.__class__(
-        self.value // 10 ** (self.place - self.max_prec),
+        self.value // self.RADIX ** (self.place - self.max_prec),
         self.max_prec,
         self.max_prec
       )
     elif self.place < self.max_prec:
       return self.__class__(
-        self.value * 10 ** (self.max_prec - self.place),
+        self.value * self.RADIX ** (self.max_prec - self.place),
         self.max_prec,
         self.max_prec
       )
@@ -233,7 +239,7 @@ class FixedPrec(Real):
     place_diff = precise.place - less_precise.place
     
     less_precise_converted = self.__class__(
-      less_precise.value * (10 ** place_diff),
+      less_precise.value * (self.RADIX ** place_diff),
       precise.place,
       max(less_precise.max_prec, precise.max_prec)
     )
@@ -263,8 +269,8 @@ class FixedPrec(Real):
     if result.value != 0:
       value = result.value
       place = result.place
-      while value % 10 == 0:
-        value //= 10
+      while value % self.RADIX == 0:
+        value //= self.RADIX
         place -= 1
       result = self.__class__(value, place, self.max_prec)
     else:
@@ -365,7 +371,7 @@ class FixedPrec(Real):
       max_prec = max(self.max_prec, other.max_prec)
       additional_precision = max(len(str(other.value)) - len(str(self.value)) + max_prec, 0) + 1
       return self.__class__(
-        self.value * 10 ** additional_precision // other.value,
+        self.value * self.RADIX ** additional_precision // other.value,
         self.place - other.place + additional_precision,
         max_prec
       ).reduce_to_max_prec()
@@ -422,8 +428,8 @@ class FixedPrec(Real):
       result = self ** integral
       self_root = self
       while fractional % 1 != 0:
-        fractional *= 10
-        self_root = self_root._nthroot(10)
+        fractional *= self.RADIX
+        self_root = self_root._nthroot(self.RADIX)
         frac_power = int(fractional // 1)
         result *= self_root ** frac_power
       return result
@@ -506,7 +512,7 @@ class FixedPrec(Real):
       max_prec = max(other.max_prec, self.max_prec)
       additional_precision = max(len(str(self.value)) - len(str(other.value)) + max_prec, 0) + 1
       return self.__class__(
-        other.value * 10 ** additional_precision // self.value,
+        other.value * self.RADIX ** additional_precision // self.value,
         other.place - self.place + additional_precision,
         max_prec
       ).reduce_to_max_prec()
@@ -545,8 +551,8 @@ class FixedPrec(Real):
       result = other ** integral
       self_root = other
       while fractional % 1 != 0:
-        fractional *= 10
-        self_root = self_root._nthroot(10)
+        fractional *= self.RADIX
+        self_root = self_root._nthroot(self.RADIX)
         frac_power = int(fractional // 1)
         result *= self_root ** frac_power
       return result

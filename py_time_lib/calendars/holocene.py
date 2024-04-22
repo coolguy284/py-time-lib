@@ -7,4 +7,4 @@ class HoloceneDate(GregorianDate):
   is holocene year 12024.
   '''
   __slots__ = ()
-  JAN_1_YEAR0_DAY_OFFSET = GregorianDate.JAN_1_YEAR0_DAY_OFFSET - (int(10000 / GregorianDate.REPEAT_PERIOD_YEARS * GregorianDate.REPEAT_PERIOD_DAYS))
+  JAN_1_YEAR0_DAY_OFFSET = GregorianDate.JAN_1_YEAR0_DAY_OFFSET - (10000 // GregorianDate.REPEAT_PERIOD_YEARS * GregorianDate.REPEAT_PERIOD_DAYS)
