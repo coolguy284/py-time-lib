@@ -79,6 +79,14 @@ class JulGregBaseDate(DateBase):
     return int(match[1]), int(match[2]), int(match[3])
   
   @classmethod
+  def num_weeks_on_day(cls, year: Integral, month: Integral, day_of_week: Integral) -> Integral:
+    'Returns the number of copies of a certain day of the week that are contained within the month.'
+    first_week_of_month = cls.from_month_week_day(year, month, 1, day_of_week)
+    next_month = cls.from_unnormalized(year, month + 1, 1)
+    first_week_of_next_month = cls.from_month_week_day(next_month.year, next_month.month, 1, day_of_week)
+    return (first_week_of_next_month.days_since_epoch - first_week_of_month.days_since_epoch) // cls.DAYS_IN_WEEK
+  
+  @classmethod
   def _init_class_vars(cls) -> None:
     cls.months_start_day = [0]
     
@@ -143,12 +151,16 @@ class JulGregBaseDate(DateBase):
     return cls.from_unnormalized(year, 1, ordinal_date)
   
   @classmethod
-  def from_month_week_day(cls, year: Integral, month: Integral, week: Integral, day_of_week: Integral) -> Self:
-    first_day_of_week = cls(year, month, 1).day_of_week()
-    if day_of_week >= first_day_of_week:
-      return cls(year, month, (week - 1) * cls.DAYS_IN_WEEK + (day_of_week - first_day_of_week) + 1)
+  def from_month_week_day(cls, year: Integral, month: Integral, week: Integral, day_of_week: Integral, from_month_end: bool = False) -> Self:
+    if not from_month_end:
+      first_day_of_week = cls(year, month, 1).day_of_week()
+      if day_of_week >= first_day_of_week:
+        return cls(year, month, (week - 1) * cls.DAYS_IN_WEEK + (day_of_week - first_day_of_week) + 1)
+      else:
+        return cls(year, month, week * cls.DAYS_IN_WEEK + (day_of_week - first_day_of_week) + 1)
     else:
-      return cls(year, month, week * cls.DAYS_IN_WEEK + (day_of_week - first_day_of_week) + 1)
+      week_flipped = cls.num_weeks_on_day(year, month, day_of_week) - week + 1
+      return cls.from_month_week_day(year, month, week_flipped, day_of_week)
   
   @property
   def year(self) -> Integral:
@@ -177,16 +189,23 @@ class JulGregBaseDate(DateBase):
   def ordinal_date(self) -> int:
     return self.days_since_epoch - self.__class__(self.year, 1, 1).days_since_epoch + 1
   
-  def to_month_week_day(self) -> tuple[Integral, Integral, Integral, Integral]:
+  def to_month_week_day(self, from_month_end: bool = False) -> tuple[Integral, Integral, Integral, Integral]:
     '''
     Returns a tuple of the form (year, month, week, day_of_week); for example "the second monday in january 2024"
     would result in (2024, 1, 2, 1). Weeks are numbered 0-6.
     '''
     
-    # 1 = first 7 days of month, 2 = second 7 days of month, etc.
-    week_num = (self.day - 1) // self.DAYS_IN_WEEK + 1
-    
-    return (self.year, self.month, week_num, self.day_of_week())
+    if not from_month_end:
+      # 1 = first 7 days of month, 2 = second 7 days of month, etc.
+      week_num = (self.day - 1) // self.DAYS_IN_WEEK + 1
+
+      return (self.year, self.month, week_num, self.day_of_week())
+    else:
+      year, month, week_num, day_of_week = self.to_month_week_day()
+      
+      week_num = self.num_weeks_on_day(self.year, self.month, day_of_week) - week_num + 1
+      
+      return year, month, week_num, day_of_week
   
   def get_monthly_calendar(self) -> str:
     header = f'{self.MONTH_NAMES_SHORT[self.month - 1]} {self.year}'

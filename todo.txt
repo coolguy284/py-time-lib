@@ -1,7 +1,8 @@
-support negative numbers for week in month week day (and have option to show negative week in the to method)
+remove all magic numbers
 
 timeinstant:
   add seasonal-offset timezone support
+  pull timezone info from tzdb
 
 add leap smear support
 strptime support
