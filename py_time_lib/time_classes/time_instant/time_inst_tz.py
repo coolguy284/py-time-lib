@@ -83,4 +83,4 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       second += 1
       second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
       second = int(second + second_addl)
-    return *date, hour, minute, second, frac_second
+    return *date, hour, minute, second, frac_second, False

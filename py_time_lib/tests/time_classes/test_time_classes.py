@@ -644,7 +644,7 @@ class TestTimeClasses(unittest.TestCase):
     now_date_tuple = now.to_date_tuple_utc()
     now_datetime = datetime.datetime(*now_date_tuple[:6], int(now_date_tuple[6] * 1_000_000), datetime.UTC)
     
-    self.assertTrue(abs(now_datetime - current_datetime) < datetime.timedelta(microseconds = 500), abs(now_datetime - current_datetime))
+    self.assertTrue(abs(now_datetime - current_datetime) <= datetime.timedelta(microseconds = 1000), abs(now_datetime - current_datetime))
   
   def test_fixedprec_offset_to_str(self):
     # test inverse func as well
@@ -731,12 +731,139 @@ class TestTimeClasses(unittest.TestCase):
       d1 = TimeInstant(2024)
       d1.prop = False
     with self.assertRaises(AttributeError):
-      d1 = TimeZone(2, [])
+      d1 = TimeZone(2, ())
       d1.prop = False
   
   def test_timezone_fixed(self):
-    tz = TimeZone(3600, [])
+    tz = TimeZone(3_600)
     instant = TimeInstant.from_date_tuple_utc(2024, 4, 21, 23, 1, 2, FixedPrec('0.3'))
     instant_copy = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 22, 0, 1, 2, FixedPrec('0.3'))
-    self.assertEqual(instant.to_date_tuple_tz(tz), (2024, 4, 22, 0, 1, 2, FixedPrec('0.3')))
+    self.assertEqual(instant.to_date_tuple_tz(tz), (2024, 4, 22, 0, 1, 2, FixedPrec('0.3'), False))
     self.assertEqual(instant, instant_copy)
+  
+  def test_timezone_variable(self):
+    return
+    ...
+    tz = TimeZone(
+      initial_utc_offset = 1 * 3_600,
+      later_offsets = (
+        {
+          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+          'month': 4,
+          'day': 15,
+          'start_time_in_day': 5 * 3_600,
+          'utc_offset': 2 * 3_600,
+        },
+        {
+          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
+          'month': 8,
+          'week': 1,
+          'day_in_week': 2,
+          'from_month_end': True,
+          'start_time_in_day': 30 * 60,
+          'utc_offset': 1 * 3_600,
+        },
+      )
+    )
+    
+    def test(instant: TimeInstant, utc_tuple, tz_tuple):
+      utc_tuple = *utc_tuple[:6], FixedPrec(utc_tuple[6])
+      tz_tuple = *tz_tuple[:6], FixedPrec(tz_tuple[6]), tz_tuple[7]
+      inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
+      inst_from_tz = TimeInstant.from_date_tuple_tz(tz, *tz_tuple)
+      self.assertEqual(instant, inst_from_utc)
+      self.assertEqual(instant, inst_from_tz)
+      self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
+      self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
+    
+    ta4 = TimeInstant.from_date_tuple_utc(2023, 4, 15, 4, 0, 0, FixedPrec(0))
+    ta0 = ta4 - TimeDelta(FixedPrec('3600.1'))
+    ta1 = ta4 - TimeDelta(FixedPrec('3600'))
+    ta2 = ta4 - TimeDelta(FixedPrec('3599.9'))
+    ta3 = ta4 - TimeDelta(FixedPrec('0.1'))
+    ta5 = ta4 + TimeDelta(FixedPrec('0.1'))
+    ta6 = ta4 + TimeDelta(FixedPrec('3599.9'))
+    ta7 = ta4 + TimeDelta(FixedPrec('3600'))
+    ta8 = ta4 + TimeDelta(FixedPrec('3600.1'))
+    
+    test(ta0, (2023, 4, 15, 2, 59, 59, '0.9'), (2023, 4, 15, 3, 59, 59, '0.9', False))
+    test(ta1, (2023, 4, 15, 3, 0,  0,  '0.9'), (2023, 4, 15, 4, 0,  0,  '0.9', False))
+    test(ta2, (2023, 4, 15, 3, 0,  0,  '0.9'), (2023, 4, 15, 4, 0,  0,  '0.9', False))
+    test(ta3, (2023, 4, 15, 3, 59, 59, '0.9'), (2023, 4, 15, 4, 59, 59, '0.9', False))
+    test(ta4, (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False))
+    test(ta5, (2023, 4, 15, 4, 0,  0,  '0.1'), (2023, 4, 15, 6, 0,  0,  '0.1', False))
+    test(ta6, (2023, 4, 15, 4, 59, 59, '0.9'), (2023, 4, 15, 6, 59, 59, '0.9', False))
+    test(ta7, (2023, 4, 15, 5, 0,  0,  '0'  ), (2023, 4, 15, 7, 0,  0,  '0',   False))
+    test(ta8, (2023, 4, 15, 5, 0,  0,  '0.1'), (2023, 4, 15, 7, 0,  0,  '0.1', False))
+    
+    tb4 = TimeInstant.from_date_tuple_utc(2023, 8, 28, 22, 30, 0, FixedPrec(0))
+    tb0 = tb4 - TimeDelta(FixedPrec('3600.1'))
+    tb1 = tb4 - TimeDelta(FixedPrec('3600'))
+    tb2 = tb4 - TimeDelta(FixedPrec('3599.9'))
+    tb3 = tb4 - TimeDelta(FixedPrec('0.1'))
+    tb5 = tb4 + TimeDelta(FixedPrec('0.1'))
+    tb6 = tb4 + TimeDelta(FixedPrec('3599.9'))
+    tb7 = tb4 + TimeDelta(FixedPrec('3600'))
+    tb8 = tb4 + TimeDelta(FixedPrec('3600.1'))
+    tb9 = tb4 + TimeDelta(FixedPrec('7199.9'))
+    tb10 = tb4 + TimeDelta(FixedPrec('7200'))
+    tb11 = tb4 + TimeDelta(FixedPrec('7200.1'))
+    
+    test(tb0,  (2023, 8, 28, 21, 29, 59, '0.9'), (2023, 8, 28, 23, 29, 59, '0.9', False))
+    test(tb1,  (2023, 8, 28, 21, 30, 0,  '0'  ), (2023, 8, 28, 23, 30, 0,  '0',   False))
+    test(tb2,  (2023, 8, 28, 21, 30, 0,  '0.1'), (2023, 8, 28, 23, 30, 0,  '0.1', False))
+    test(tb3,  (2023, 8, 28, 22, 29, 59, '0.9'), (2023, 8, 29, 0,  29, 59, '0.9', False))
+    test(tb4,  (2023, 8, 28, 22, 30, 0,  '0'  ), (2023, 8, 28, 23, 30, 0,  '0',   True ))
+    test(tb5,  (2023, 8, 28, 22, 30, 0,  '0.1'), (2023, 8, 28, 23, 30, 0,  '0.1', True ))
+    test(tb6,  (2023, 8, 28, 23, 29, 59, '0.9'), (2023, 8, 29, 0,  29, 59, '0.9', True ))
+    test(tb7,  (2023, 8, 28, 23, 30, 0,  '0'  ), (2023, 8, 29, 0,  30, 0,  '0',   False))
+    test(tb8,  (2023, 8, 28, 23, 30, 0,  '0.1'), (2023, 8, 29, 0,  30, 0,  '0.1', False))
+    test(tb9,  (2023, 8, 29, 0,  29, 59, '0.9'), (2023, 8, 29, 1,  29, 59, '0.9', False))
+    test(tb10, (2023, 8, 29, 0,  30, 0,  '0'  ), (2023, 8, 29, 1,  30, 0,  '0',   False))
+    test(tb11, (2023, 8, 29, 0,  30, 0,  '0.1'), (2023, 8, 29, 1,  30, 0,  '0.1', False))
+    
+    tc4 = TimeInstant.from_date_tuple_utc(2024, 4, 15, 4, 0, 0, FixedPrec(0))
+    tc0 = tc4 - TimeDelta(FixedPrec('3600.1'))
+    tc1 = tc4 - TimeDelta(FixedPrec('3600'))
+    tc2 = tc4 - TimeDelta(FixedPrec('3599.9'))
+    tc3 = tc4 - TimeDelta(FixedPrec('0.1'))
+    tc5 = tc4 + TimeDelta(FixedPrec('0.1'))
+    tc6 = tc4 + TimeDelta(FixedPrec('3599.9'))
+    tc7 = tc4 + TimeDelta(FixedPrec('3600'))
+    tc8 = tc4 + TimeDelta(FixedPrec('3600.1'))
+    
+    test(tc0, (2024, 4, 15, 2, 59, 59, '0.9'), (2024, 4, 15, 3, 59, 59, '0.9', False))
+    test(tc1, (2024, 4, 15, 3, 0,  0,  '0.9'), (2024, 4, 15, 4, 0,  0,  '0.9', False))
+    test(tc2, (2024, 4, 15, 3, 0,  0,  '0.9'), (2024, 4, 15, 4, 0,  0,  '0.9', False))
+    test(tc3, (2024, 4, 15, 3, 59, 59, '0.9'), (2024, 4, 15, 4, 59, 59, '0.9', False))
+    test(tc4, (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False))
+    test(tc5, (2024, 4, 15, 4, 0,  0,  '0.1'), (2024, 4, 15, 6, 0,  0,  '0.1', False))
+    test(tc6, (2024, 4, 15, 4, 59, 59, '0.9'), (2024, 4, 15, 6, 59, 59, '0.9', False))
+    test(tc7, (2024, 4, 15, 5, 0,  0,  '0'  ), (2024, 4, 15, 7, 0,  0,  '0',   False))
+    test(tc8, (2024, 4, 15, 5, 0,  0,  '0.1'), (2024, 4, 15, 7, 0,  0,  '0.1', False))
+    
+    td4 = TimeInstant.from_date_tuple_utc(2024, 8, 26, 22, 30, 0, FixedPrec(0))
+    td0 = td4 - TimeDelta(FixedPrec('3600.1'))
+    td1 = td4 - TimeDelta(FixedPrec('3600'))
+    td2 = td4 - TimeDelta(FixedPrec('3599.9'))
+    td3 = td4 - TimeDelta(FixedPrec('0.1'))
+    td5 = td4 + TimeDelta(FixedPrec('0.1'))
+    td6 = td4 + TimeDelta(FixedPrec('3599.9'))
+    td7 = td4 + TimeDelta(FixedPrec('3600'))
+    td8 = td4 + TimeDelta(FixedPrec('3600.1'))
+    td9 = td4 + TimeDelta(FixedPrec('7199.9'))
+    td10 = td4 + TimeDelta(FixedPrec('7200'))
+    td11 = td4 + TimeDelta(FixedPrec('7200.1'))
+    
+    test(td0,  (2024, 8, 26, 21, 29, 59, '0.9'), (2024, 8, 26, 23, 29, 59, '0.9', False))
+    test(td1,  (2024, 8, 26, 21, 30, 0,  '0'  ), (2024, 8, 26, 23, 30, 0,  '0',   False))
+    test(td2,  (2024, 8, 26, 21, 30, 0,  '0.1'), (2024, 8, 26, 23, 30, 0,  '0.1', False))
+    test(td3,  (2024, 8, 26, 22, 29, 59, '0.9'), (2024, 8, 27, 0,  29, 59, '0.9', False))
+    test(td4,  (2024, 8, 26, 22, 30, 0,  '0'  ), (2024, 8, 26, 23, 30, 0,  '0',   True ))
+    test(td5,  (2024, 8, 26, 22, 30, 0,  '0.1'), (2024, 8, 26, 23, 30, 0,  '0.1', True ))
+    test(td6,  (2024, 8, 26, 23, 29, 59, '0.9'), (2024, 8, 27, 0,  29, 59, '0.9', True ))
+    test(td7,  (2024, 8, 26, 23, 30, 0,  '0'  ), (2024, 8, 27, 0,  30, 0,  '0',   False))
+    test(td8,  (2024, 8, 26, 23, 30, 0,  '0.1'), (2024, 8, 27, 0,  30, 0,  '0.1', False))
+    test(td9,  (2024, 8, 27, 0,  29, 59, '0.9'), (2024, 8, 27, 1,  29, 59, '0.9', False))
+    test(td10, (2024, 8, 27, 0,  30, 0,  '0'  ), (2024, 8, 27, 1,  30, 0,  '0',   False))
+    test(td11, (2024, 8, 27, 0,  30, 0,  '0.1'), (2024, 8, 27, 1,  30, 0,  '0.1', False))

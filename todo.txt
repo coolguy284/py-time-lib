@@ -14,8 +14,8 @@ datebase/datedelta from/to datetime.date when doing math operations
 use namedtuples for tuple output
 
 low prio:
+strftime & strptime add param for enabling custom flags like %f.6
 add leap second support to now
-add default high detail tostring for tai and utc
 add aliases from datetime library, maybe full compatibility class
 simpledatetime/simpletimedelta wrapper around the date classes
   maybe holds a timezone value to use for setyear and stuff
@@ -37,6 +37,7 @@ tests:
 prob not doing:
 add calendar functionality for isoweekdate
 bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
-  default true option to do this
+  default false option to do this
+add default high detail tostring for tai and utc
 tests:
   date: monthly/yearly calendar generation funcs
