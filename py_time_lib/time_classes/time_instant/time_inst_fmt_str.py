@@ -5,9 +5,9 @@ from ...fixed_prec import FixedPrec
 from ...calendars.gregorian import GregorianDate
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ..lib import TimeStorageType
-from .time_inst_date_tup import TimeInstantDateTuple
+from .time_inst_tz import TimeInstantTimeZones
 
-class TimeInstantFormatString(TimeInstantDateTuple):
+class TimeInstantFormatString(TimeInstantTimeZones):
   # static stuff
   
   _str_offset_to_fixedprec_minute = re_compile(r'([+-])(\d{2})(\d{2})')
@@ -79,7 +79,7 @@ class TimeInstantFormatString(TimeInstantDateTuple):
     
     result = ''
     
-    date = self.get_date_object(date_cls = date_cls)
+    date = self.get_date_object_tai(date_cls = date_cls)
     year, month, day, hour, minute, second, frac_second = self.to_date_tuple_tai(date_cls = date_cls)
     day_of_week = date.day_of_week()
     ordinal_day = date.ordinal_date()

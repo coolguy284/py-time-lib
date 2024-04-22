@@ -4,15 +4,6 @@ class TimeInstant:
   
   # time scale support
   
-  # https://en.wikipedia.org/wiki/Terrestrial_Time
-  TT_OFFSET_FROM_TAI: FixedPrec = FixedPrec('32.184')
-  
-  TIME_SCALES = Enum('TIME_SCALES', [
-    'TT',
-    'TAI',
-    'UTC',
-  ])
-  
   TIME_SCALE_INFO: dict[str, tuple[TimeStorageType, TimeStorageType]] = {
     # format:
     # <time_scale>: (time_rate, zero_time)

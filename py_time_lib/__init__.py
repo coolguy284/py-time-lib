@@ -9,3 +9,4 @@ from .calendars.iso_weekdate import IsoWeekDate
 from .calendars.holocene import HoloceneDate
 from .time_classes.time_delta import TimeDelta
 from .time_classes.time_instant.time_inst import TimeInstant
+from .time_classes.time_zone import TimeZone

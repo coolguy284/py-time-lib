@@ -3,9 +3,9 @@ from typing import Self
 from ...fixed_prec import FixedPrec
 from ...calendars.julian import JulianDate
 from ..lib import TimeStorageType
-from .time_inst_date_tup import TimeInstantDateTuple
+from .time_inst_tz import TimeInstantTimeZones
 
-class TimeInstantJulianDateAndUnixTimestamp(TimeInstantDateTuple):
+class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):
   # static stuff
   
   # https://en.wikipedia.org/wiki/Julian_day

@@ -2,7 +2,7 @@ from time import time_ns
 import datetime
 import unittest
 
-from ... import FixedPrec, GregorianDate, TimeDelta, TimeInstant
+from ... import FixedPrec, GregorianDate, TimeDelta, TimeZone, TimeInstant
 from ...data.leap_seconds import NOMINAL_SECS_PER_DAY
 
 class TestTimeClasses(unittest.TestCase):
@@ -730,3 +730,13 @@ class TestTimeClasses(unittest.TestCase):
     with self.assertRaises(AttributeError):
       d1 = TimeInstant(2024)
       d1.prop = False
+    with self.assertRaises(AttributeError):
+      d1 = TimeZone(2, [])
+      d1.prop = False
+  
+  def test_timezone_fixed(self):
+    tz = TimeZone(3600, [])
+    instant = TimeInstant.from_date_tuple_utc(2024, 4, 21, 23, 1, 2, FixedPrec('0.3'))
+    instant_copy = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 22, 0, 1, 2, FixedPrec('0.3'))
+    self.assertEqual(instant.to_date_tuple_tz(tz), (2024, 4, 22, 0, 1, 2, FixedPrec('0.3')))
+    self.assertEqual(instant, instant_copy)
