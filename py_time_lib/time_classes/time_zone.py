@@ -104,7 +104,7 @@ class TimeZone:
     offset_times = []
     
     current_offset = self.initial_utc_offset
-    year_start_time = time_inst.TimeInstant.date_tuple_to_epoch_instant(year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate) - current_offset
+    year_start_time = time_inst.TimeInstant.date_tuple_to_epoch_instant(year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate)
     for later_offset_entry in self.later_offsets:
       if later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_AND_DAY:
         later_instant = time_inst.TimeInstant.date_tuple_to_epoch_instant(
@@ -121,7 +121,7 @@ class TimeZone:
           0, 0, 0, 0,
           date_cls = GregorianDate
         )
-      later_time = later_instant - current_offset
+      later_time = later_instant + later_offset_entry['start_time_in_day'] - (current_offset - self.initial_utc_offset)
       init_offset_time_in_year = later_time - year_start_time
       current_offset_time_in_year = init_offset_time_in_year + (current_offset - self.initial_utc_offset)
       offset_times.append({

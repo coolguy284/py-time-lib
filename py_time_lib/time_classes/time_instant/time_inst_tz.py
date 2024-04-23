@@ -73,7 +73,8 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       dst_second_fold = False
     else:
       prelim_year = self.epoch_instant_to_date_tuple(initial_tz_secs_since_epoch, date_cls = date_cls)[0]
-      init_offset_time_in_year = self.date_tuple_to_epoch_instant(prelim_year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate) - time_zone.initial_utc_offset
+      init_offset_prelim_year_start_time = self.date_tuple_to_epoch_instant(prelim_year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate)
+      init_offset_time_in_year = initial_tz_secs_since_epoch - init_offset_prelim_year_start_time
       offset_times = time_zone.get_offset_utc_times_for_year(prelim_year, date_cls = date_cls)
       if offset_times[0]['init_offset_time_in_year'] > init_offset_time_in_year:
         tz_secs_since_epoch = initial_tz_secs_since_epoch
