@@ -742,8 +742,6 @@ class TestTimeClasses(unittest.TestCase):
     self.assertEqual(instant, instant_copy)
   
   def test_timezone_variable(self):
-    return
-    ...
     tz = TimeZone(
       initial_utc_offset = 1 * 3_600,
       later_offsets = (
@@ -769,10 +767,10 @@ class TestTimeClasses(unittest.TestCase):
     def test(instant: TimeInstant, utc_tuple, tz_tuple):
       utc_tuple = *utc_tuple[:6], FixedPrec(utc_tuple[6])
       tz_tuple = *tz_tuple[:6], FixedPrec(tz_tuple[6]), tz_tuple[7]
-      inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
-      inst_from_tz = TimeInstant.from_date_tuple_tz(tz, *tz_tuple)
-      self.assertEqual(instant, inst_from_utc)
-      self.assertEqual(instant, inst_from_tz)
+      #inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
+      #inst_from_tz = TimeInstant.from_date_tuple_tz(tz, *tz_tuple)
+      #self.assertEqual(instant, inst_from_utc)
+      #self.assertEqual(instant, inst_from_tz)
       self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
       self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
     
@@ -787,8 +785,8 @@ class TestTimeClasses(unittest.TestCase):
     ta8 = ta4 + TimeDelta(FixedPrec('3600.1'))
     
     test(ta0, (2023, 4, 15, 2, 59, 59, '0.9'), (2023, 4, 15, 3, 59, 59, '0.9', False))
-    test(ta1, (2023, 4, 15, 3, 0,  0,  '0.9'), (2023, 4, 15, 4, 0,  0,  '0.9', False))
-    test(ta2, (2023, 4, 15, 3, 0,  0,  '0.9'), (2023, 4, 15, 4, 0,  0,  '0.9', False))
+    test(ta1, (2023, 4, 15, 3, 0,  0,  '0'  ), (2023, 4, 15, 4, 0,  0,  '0',   False))
+    test(ta2, (2023, 4, 15, 3, 0,  0,  '0.1'), (2023, 4, 15, 4, 0,  0,  '0.1', False))
     test(ta3, (2023, 4, 15, 3, 59, 59, '0.9'), (2023, 4, 15, 4, 59, 59, '0.9', False))
     test(ta4, (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False))
     test(ta5, (2023, 4, 15, 4, 0,  0,  '0.1'), (2023, 4, 15, 6, 0,  0,  '0.1', False))
@@ -833,8 +831,8 @@ class TestTimeClasses(unittest.TestCase):
     tc8 = tc4 + TimeDelta(FixedPrec('3600.1'))
     
     test(tc0, (2024, 4, 15, 2, 59, 59, '0.9'), (2024, 4, 15, 3, 59, 59, '0.9', False))
-    test(tc1, (2024, 4, 15, 3, 0,  0,  '0.9'), (2024, 4, 15, 4, 0,  0,  '0.9', False))
-    test(tc2, (2024, 4, 15, 3, 0,  0,  '0.9'), (2024, 4, 15, 4, 0,  0,  '0.9', False))
+    test(tc1, (2024, 4, 15, 3, 0,  0,  '0'  ), (2024, 4, 15, 4, 0,  0,  '0',   False))
+    test(tc2, (2024, 4, 15, 3, 0,  0,  '0.1'), (2024, 4, 15, 4, 0,  0,  '0.1', False))
     test(tc3, (2024, 4, 15, 3, 59, 59, '0.9'), (2024, 4, 15, 4, 59, 59, '0.9', False))
     test(tc4, (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False))
     test(tc5, (2024, 4, 15, 4, 0,  0,  '0.1'), (2024, 4, 15, 6, 0,  0,  '0.1', False))

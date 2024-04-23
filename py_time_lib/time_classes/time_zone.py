@@ -3,6 +3,8 @@ from numbers import Integral
 from typing import Iterable
 
 from ..fixed_prec import FixedPrec
+from ..calendars.jul_greg_base import JulGregBaseDate
+from ..calendars.gregorian import GregorianDate
 from .time_instant import time_inst
 
 class TimeZone:
@@ -56,6 +58,7 @@ class TimeZone:
         offset_entry_processed['month'] = offset_entry['month']
         offset_entry_processed['week'] = offset_entry['week']
         offset_entry_processed['day_in_week'] = offset_entry['day_in_week']
+        offset_entry_processed['from_month_end'] = offset_entry['from_month_end']
       else:
         raise Exception(f'Offset mode {offset_entry_processed['offset_day_mode']} unrecognized')
       
@@ -77,7 +80,7 @@ class TimeZone:
     return f'{self.__class__.__name__}({self.initial_utc_offset!r}, {self.later_offsets!r})'
   
   def __str__(self):
-    return f'TZ: UTC+{time_inst.TimeInstant.fixedprec_offset_to_str(self.initial_utc_offset)} (initial)'
+    return f'TZ: UTC+{time_inst.TimeInstant.fixedprec_offset_to_str(self.initial_utc_offset)} (initial){'; + others' if len(self.later_offsets) > 0 else ''}'
   
   @property
   def initial_utc_offset(self) -> FixedPrec:
@@ -86,3 +89,47 @@ class TimeZone:
   @property
   def later_offsets(self) -> tuple[dict[str], ...]:
     return self._later_offsets
+  
+  def get_offset_utc_times_for_year(self, year, date_cls: type[JulGregBaseDate] = GregorianDate):
+    # format:
+    # [
+    #   {
+    #     'init_offset_time_in_year': FixedPrec seconds,
+    #     'current_offset_time_in_year': FixedPrec seconds,
+    #     'utc_offset': FixedPrec seconds,
+    #     'dst_transition_offset': FixedPrec seconds offset2 - offset1,
+    #   }
+    # ]
+    
+    offset_times = []
+    
+    current_offset = self.initial_utc_offset
+    year_start_time = time_inst.TimeInstant.date_tuple_to_epoch_instant(year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate) - current_offset
+    for later_offset_entry in self.later_offsets:
+      if later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_AND_DAY:
+        later_instant = time_inst.TimeInstant.date_tuple_to_epoch_instant(
+          year, later_offset_entry['month'], later_offset_entry['day'],
+          0, 0, 0, 0,
+          date_cls = GregorianDate
+        )
+      elif later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEK_DAY:
+        later_instant = time_inst.TimeInstant.date_tuple_to_epoch_instant(
+          *date_cls.from_month_week_day(
+            year, later_offset_entry['month'], later_offset_entry['week'], later_offset_entry['day_in_week'],
+            from_month_end = later_offset_entry['from_month_end']
+          ).to_date_tuple(),
+          0, 0, 0, 0,
+          date_cls = GregorianDate
+        )
+      later_time = later_instant - current_offset
+      init_offset_time_in_year = later_time - year_start_time
+      current_offset_time_in_year = init_offset_time_in_year + (current_offset - self.initial_utc_offset)
+      offset_times.append({
+        'init_offset_time_in_year': init_offset_time_in_year,
+        'current_offset_time_in_year': current_offset_time_in_year,
+        'utc_offset': later_offset_entry['utc_offset'],
+        'dst_transition_offset': later_offset_entry['utc_offset'] - current_offset,
+      })
+      current_offset = later_offset_entry['utc_offset']
+    
+    return offset_times

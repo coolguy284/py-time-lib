@@ -21,6 +21,16 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
     return *date.to_date_tuple(), int(hour), int(minute), int(second), frac_second
   
   @classmethod
+  def date_tuple_to_epoch_instant(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, date_cls: type[JulGregBaseDate] = GregorianDate) -> TimeStorageType:
+    date = date_cls(year, month, day)
+    time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
+    time += hour * cls.NOMINAL_SECS_PER_HOUR
+    time += minute * cls.NOMINAL_SECS_PER_MIN
+    time += second
+    time += frac_second
+    return time
+  
+  @classmethod
   def days_h_m_to_mins_since_epoch(cls, days_since_epoch: Integral, hour: Integral, minute: Integral) -> int:
     return days_since_epoch * cls.NOMINAL_MINS_PER_DAY + hour * cls.NOMINAL_MINS_PER_HOUR + minute
   
@@ -37,13 +47,7 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
   @classmethod
   def from_date_tuple_tai(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a tai TimeInstant.'
-    date = date_cls(year, month, day)
-    time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
-    time += hour * cls.NOMINAL_SECS_PER_HOUR
-    time += minute * cls.NOMINAL_SECS_PER_MIN
-    time += second
-    time += frac_second
-    return cls(time)
+    return cls(cls.date_tuple_to_epoch_instant(year, month, day, hour, minute, second, frac_second, date_cls = date_cls))
   
   @classmethod
   def from_date_tuple_utc(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, round_invalid_time_upwards: bool = True, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:

@@ -1,21 +1,22 @@
-timeinstant:
-  add seasonal-offset timezone support
-  pull timezone info from tzdb
+timeinstant: finish from seasonal-offset timezone support
 
 finish strftime utc and tz
+
+timeinstant: pull timezone info from tzdb
+timeinstant from datetime func
+datebase/datedelta from/to datetime.date
 
 add leap smear support
 strptime support
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable)
 timedelta/timeinstant from datetime/timedelta when doing math operations
-timeinstant from datetime func
-datebase/datedelta from/to datetime.date
 datebase/datedelta from/to datetime.date when doing math operations
 use namedtuples for tuple output
 
 low prio:
-strftime & strptime add param for enabling custom flags like %f.6
+support dst shifts that go across a year boundary
 add leap second support to now
+strftime & strptime add param for enabling custom flags like %f.6
 add aliases from datetime library, maybe full compatibility class
 simpledatetime/simpletimedelta wrapper around the date classes
   maybe holds a timezone value to use for setyear and stuff
