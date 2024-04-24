@@ -35,22 +35,25 @@ class FixedPrec(Real):
         value /= cls.RADIX ** prec
         value *= cls.RADIX ** cls.FLOAT_ADDED_PREC
         return cls(int(value), -prec + cls.FLOAT_ADDED_PREC)
-    elif isinstance(value, str) and not cast_only:
-      if match := cls._int_regex.match(value):
-        return cls(int(match[1]), 0, max_prec = max_prec)
-      elif match := cls._float_regex.match(value):
-        result = cls(int(match[2]) * cls.RADIX ** len(match[3]) + int(match[3]), len(match[3]), max_prec = max_prec)
-        if match[1] == '-':
-          result *= -1
-        return result
+    elif isinstance(value, str):
+      if not cast_only:
+        if match := cls._int_regex.match(value):
+          return cls(int(match[1]), 0, max_prec = max_prec)
+        elif match := cls._float_regex.match(value):
+          result = cls(int(match[2]) * cls.RADIX ** len(match[3]) + int(match[3]), len(match[3]), max_prec = max_prec)
+          if match[1] == '-':
+            result *= -1
+          return result
+        else:
+          raise TypeError(f'Could not convert string {value!r} to {cls.__name__}.')
       else:
-        raise TypeError(f'Could not convert string {value!r} to {cls.__name__}.')
+        raise TypeError(f'Cannot auto-cast string to {cls.__name__}')
     else:
       if hasattr(value, 'value') and hasattr(value, 'place') and hasattr(value, 'max_prec'):
         # duck typing
         return value
       else:
-        raise NotImplementedError()
+        raise TypeError(f'Could not convert object to {cls.__name__}')
   
   def __init__(self, *args: tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
     if len(args) == 1:
@@ -280,7 +283,7 @@ class FixedPrec(Real):
   def __add__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -300,7 +303,7 @@ class FixedPrec(Real):
   def __mul__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     return self.__class__(
@@ -312,7 +315,7 @@ class FixedPrec(Real):
   def __floordiv__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -326,7 +329,7 @@ class FixedPrec(Real):
   def __mod__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -340,7 +343,7 @@ class FixedPrec(Real):
   def __divmod__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -360,7 +363,7 @@ class FixedPrec(Real):
   def __truediv__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     if other.value == 0:
@@ -395,7 +398,7 @@ class FixedPrec(Real):
   def __pow__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     if self == 1:
@@ -453,7 +456,7 @@ class FixedPrec(Real):
   def __rfloordiv__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -467,7 +470,7 @@ class FixedPrec(Real):
   def __rmod__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -481,7 +484,7 @@ class FixedPrec(Real):
   def __rdivmod__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -501,7 +504,7 @@ class FixedPrec(Real):
   def __rtruediv__(self, other) -> Self:
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     if self.value == 0:
@@ -518,7 +521,7 @@ class FixedPrec(Real):
   def __rpow__(self, other):
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     if other == 1:
@@ -561,7 +564,7 @@ class FixedPrec(Real):
     
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -574,7 +577,7 @@ class FixedPrec(Real):
     
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -584,7 +587,7 @@ class FixedPrec(Real):
   def __gt__(self, other):
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -594,7 +597,7 @@ class FixedPrec(Real):
   def __lt__(self, other):
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -604,7 +607,7 @@ class FixedPrec(Real):
   def __ge__(self, other):
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)
@@ -614,7 +617,7 @@ class FixedPrec(Real):
   def __le__(self, other):
     try:
       other = self.from_basic(other, cast_only = True)
-    except NotImplementedError:
+    except TypeError:
       return NotImplemented
     
     self, other = self.convert_to_highest_precision(other)

@@ -314,7 +314,7 @@ class TestFixedPrec(unittest.TestCase):
   def test_op_errors(self):
     self.assertEqual(FixedPrec.from_basic(FixedPrec(3), cast_only = True), FixedPrec(3))
     
-    with self.assertRaises(NotImplementedError):
+    with self.assertRaises(TypeError):
       FixedPrec.from_basic('3', cast_only = True)
     
     with self.assertRaises(TypeError):
