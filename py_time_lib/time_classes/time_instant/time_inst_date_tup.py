@@ -58,13 +58,15 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
     time += minute * cls.NOMINAL_SECS_PER_MIN
     time += second
     time += frac_second
+    
     date_mins = cls.days_h_m_to_mins_since_epoch(date.days_since_epoch, hour, minute)
+    
     if date_mins in cls.LEAP_SECONDS_DICT:
       leap_entries = cls.LEAP_SECONDS_DICT[date_mins]
       leap_delta = leap_entries[-1]['utc_delta']
       if leap_delta < 0:
         # positive leap second
-        if hour * cls.NOMINAL_SECS_PER_HOUR + minute * cls.NOMINAL_SECS_PER_MIN + second + frac_second < -leap_delta:
+        if second + frac_second < -leap_delta:
           leap_fold = True
         else:
           leap_fold = False
@@ -72,6 +74,7 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
         leap_fold = False
     else:
       leap_fold = False
+    
     return cls.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
   def to_date_tuple_tai(self, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
