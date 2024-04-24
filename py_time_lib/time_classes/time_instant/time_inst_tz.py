@@ -76,15 +76,15 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       init_offset_prelim_year_start_time = self.date_tuple_to_epoch_instant(prelim_year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate)
       init_offset_time_in_year = initial_tz_secs_since_epoch - init_offset_prelim_year_start_time
       offset_times = time_zone.get_offset_utc_times_for_year(prelim_year, date_cls = date_cls)
-      if offset_times[0]['init_offset_time_in_year'] > init_offset_time_in_year:
+      if offset_times[0]['init_offset_start_time_in_year'] > init_offset_time_in_year:
         tz_secs_since_epoch = initial_tz_secs_since_epoch
         dst_second_fold = False
       else:
-        dst_table_index = binary_search(lambda x: init_offset_time_in_year >= offset_times[x]['init_offset_time_in_year'], 0, len(offset_times))
+        dst_table_index = binary_search(lambda x: init_offset_time_in_year >= offset_times[x]['init_offset_start_time_in_year'], 0, len(offset_times))
         dst_entry = offset_times[dst_table_index]
         tz_secs_since_epoch = initial_tz_secs_since_epoch + (dst_entry['utc_offset'] - time_zone.initial_utc_offset)
         if dst_entry['dst_transition_offset'] < 0:
-          if init_offset_time_in_year - dst_entry['init_offset_time_in_year'] < -dst_entry['dst_transition_offset']:
+          if init_offset_time_in_year - dst_entry['init_offset_start_time_in_year'] < -dst_entry['dst_transition_offset']:
             dst_second_fold = True
           else:
             dst_second_fold = False

@@ -94,8 +94,9 @@ class TimeZone:
     # format:
     # [
     #   {
-    #     'init_offset_time_in_year': FixedPrec seconds,
-    #     'current_offset_time_in_year': FixedPrec seconds,
+    #     'init_offset_start_time_in_year': FixedPrec seconds,
+    #     'current_offset_start_time_in_year': FixedPrec seconds,
+    #     'current_offset_end_time_in_year': FixedPrec seconds,
     #     'utc_offset': FixedPrec seconds,
     #     'dst_transition_offset': FixedPrec seconds offset2 - offset1,
     #   }
@@ -122,13 +123,19 @@ class TimeZone:
           date_cls = GregorianDate
         )
       later_time = later_instant + later_offset_entry['start_time_in_day'] - (current_offset - self.initial_utc_offset)
-      init_offset_time_in_year = later_time - year_start_time
-      current_offset_time_in_year = init_offset_time_in_year + (current_offset - self.initial_utc_offset)
+      init_offset_start_time_in_year = later_time - year_start_time
+      current_offset_start_time_in_year = init_offset_start_time_in_year + (current_offset - self.initial_utc_offset)
+      utc_offset = later_offset_entry['utc_offset']
+      dst_transition_offset = utc_offset - current_offset
+      current_offset_end_time_in_year = current_offset_start_time_in_year + dst_transition_offset
+      current_offset_min_time_in_year = min(current_offset_start_time_in_year, current_offset_end_time_in_year)
       offset_times.append({
-        'init_offset_time_in_year': init_offset_time_in_year,
-        'current_offset_time_in_year': current_offset_time_in_year,
-        'utc_offset': later_offset_entry['utc_offset'],
-        'dst_transition_offset': later_offset_entry['utc_offset'] - current_offset,
+        'init_offset_start_time_in_year': init_offset_start_time_in_year,
+        'current_offset_start_time_in_year': current_offset_start_time_in_year,
+        'current_offset_end_time_in_year': current_offset_end_time_in_year,
+        'current_offset_min_time_in_year': current_offset_min_time_in_year,
+        'utc_offset': utc_offset,
+        'dst_transition_offset': dst_transition_offset,
       })
       current_offset = later_offset_entry['utc_offset']
     
