@@ -767,10 +767,10 @@ class TestTimeClasses(unittest.TestCase):
     def test(instant: TimeInstant, utc_tuple, tz_tuple):
       utc_tuple = *utc_tuple[:6], FixedPrec(utc_tuple[6])
       tz_tuple = *tz_tuple[:6], FixedPrec(tz_tuple[6]), tz_tuple[7]
-      #inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
-      #inst_from_tz = TimeInstant.from_date_tuple_tz(tz, *tz_tuple)
-      #self.assertEqual(instant, inst_from_utc)
-      #self.assertEqual(instant, inst_from_tz)
+      inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
+      inst_from_tz = TimeInstant.from_date_tuple_tz(tz, *tz_tuple)
+      self.assertEqual(instant, inst_from_utc)
+      self.assertEqual(instant, inst_from_tz)
       self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
       self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
     
@@ -865,3 +865,7 @@ class TestTimeClasses(unittest.TestCase):
     test(td9,  (2024, 8, 27, 0,  29, 59, '0.9'), (2024, 8, 27, 1,  29, 59, '0.9', False))
     test(td10, (2024, 8, 27, 0,  30, 0,  '0'  ), (2024, 8, 27, 1,  30, 0,  '0',   False))
     test(td11, (2024, 8, 27, 0,  30, 0,  '0.1'), (2024, 8, 27, 1,  30, 0,  '0.1', False))
+  
+  def test_timezone_leap(self):
+    # fixed and variable
+    ...

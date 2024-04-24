@@ -1,7 +1,6 @@
 consolidate date_mins into time
-make leapsec variable test
-
-timeinstant: finish from seasonal-offset timezone support
+make leapsec fixed/variable test
+support dst shifts that go across a year boundary
 
 convert all exceptions to proper exception classes
 finish strftime utc and tz
@@ -18,7 +17,6 @@ datebase/datedelta from/to datetime.date when doing math operations
 use namedtuples for tuple output
 
 low prio:
-support dst shifts that go across a year boundary
 add leap second support to now
 strftime & strptime add param for enabling custom flags like %f.6
 add aliases from datetime library, maybe full compatibility class
