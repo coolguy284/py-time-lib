@@ -1,4 +1,3 @@
-consolidate date_mins into time
 make leapsec fixed/variable test
 support dst shifts that go across a year boundary
 

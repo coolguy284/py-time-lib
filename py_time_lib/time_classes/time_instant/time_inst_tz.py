@@ -71,14 +71,23 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       date_cls: type[JulGregBaseDate] = GregorianDate
     ):
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a TimeInstant. Does not handle leap seconds that occur not on a minute boundary, or timezones not on a minute offset.'
+    
     date = date_cls(year, month, day)
-    time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
-    time += hour * cls.NOMINAL_SECS_PER_HOUR
-    time += minute * cls.NOMINAL_SECS_PER_MIN
+    date_mins = cls.days_h_m_to_mins_since_epoch(date.days_since_epoch, hour, minute)
+    
+    time = date_mins * cls.NOMINAL_SECS_PER_MIN
     time += second
     time += frac_second
     
-    utc_year, utc_month, utc_day, utc_hour, utc_minute, utc_second, utc_frac_second = cls.from_tz_secs_since_epoch(time_zone, time, dst_second_fold = dst_second_fold, leap_second_fold = False, round_invalid_dst_time_upwards = round_invalid_dst_time_upwards, round_invalid_leap_time_upwards = round_invalid_leap_time_upwards, date_cls = date_cls).to_date_tuple_utc(date_cls = date_cls)
+    utc_year, utc_month, utc_day, utc_hour, utc_minute, utc_second, utc_frac_second = cls.from_tz_secs_since_epoch(
+      time_zone,
+      time,
+      dst_second_fold = dst_second_fold,
+      leap_second_fold = False,
+      round_invalid_dst_time_upwards = round_invalid_dst_time_upwards,
+      round_invalid_leap_time_upwards = round_invalid_leap_time_upwards,
+      date_cls = date_cls
+    ).to_date_tuple_utc(date_cls = date_cls)
     utc_date = date_cls(utc_year, utc_month, utc_day)
     utc_date_mins = cls.days_h_m_to_mins_since_epoch(utc_date.days_since_epoch, utc_hour, utc_minute)
     
