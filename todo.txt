@@ -1,5 +1,9 @@
+consolidate date_mins into time
+make leapsec variable test
+
 timeinstant: finish from seasonal-offset timezone support
 
+convert all exceptions to proper exception classes
 finish strftime utc and tz
 
 timeinstant: pull timezone info from tzdb
