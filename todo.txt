@@ -1,5 +1,6 @@
 make leapsec fixed/variable test
 support dst shifts that go across a year boundary
+test dst time unmappable error
 
 timeinstant from datetime func
 datebase/datedelta from/to datetime.date

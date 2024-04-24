@@ -2,7 +2,7 @@ from time import time_ns
 import datetime
 import unittest
 
-from ... import FixedPrec, GregorianDate, TimeDelta, TimeZone, TimeInstant
+from ... import FixedPrec, GregorianDate, TimeDelta, TimeZone, TimeInstant, TimeUnmappableError
 from ...data.leap_seconds import NOMINAL_SECS_PER_DAY
 
 class TestTimeClasses(unittest.TestCase):
@@ -385,13 +385,13 @@ class TestTimeClasses(unittest.TestCase):
         instant_before_neg_leap
       )
       
-      with self.assertRaises(Exception):
+      with self.assertRaises(TimeUnmappableError):
         TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.1'), round_invalid_time_upwards = False)
       
-      with self.assertRaises(Exception):
+      with self.assertRaises(TimeUnmappableError):
         TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.2'), round_invalid_time_upwards = False)
       
-      with self.assertRaises(Exception):
+      with self.assertRaises(TimeUnmappableError):
         TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.0'), round_invalid_time_upwards = False)
       
       self.assertEqual(

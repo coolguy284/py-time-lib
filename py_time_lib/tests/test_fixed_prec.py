@@ -453,13 +453,13 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(-4) ** FixedPrec(-2), FixedPrec('0.0625'))
     self.assertEqual(FixedPrec(-4) ** FixedPrec(3), -64)
     self.assertEqual(FixedPrec(-4) ** FixedPrec(-3), FixedPrec('-0.015625'))
-    with self.assertRaises(Exception):
+    with self.assertRaises(ValueError):
       FixedPrec(-4) ** FixedPrec('0.5')
-    with self.assertRaises(Exception):
+    with self.assertRaises(ValueError):
       FixedPrec(-4) ** FixedPrec('1.5')
-    with self.assertRaises(Exception):
+    with self.assertRaises(ValueError):
       FixedPrec(-4) ** FixedPrec('-0.5')
-    with self.assertRaises(Exception):
+    with self.assertRaises(ValueError):
       FixedPrec(-4) ** FixedPrec('-1.5')
     
     # pow type coercion & rpow

@@ -45,7 +45,7 @@ class TestCalendarJulian(unittest.TestCase):
     _ = cls(2024, 2, 29)
   
   def test_feb_29_2023(self):
-    with self.assertRaises(Exception):
+    with self.assertRaises(ValueError):
       _ = cls(2023, 2, 29)
   
   def test_date_to_days_since_epoch(self):
