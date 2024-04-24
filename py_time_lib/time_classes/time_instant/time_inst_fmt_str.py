@@ -58,7 +58,7 @@ class TimeInstantFormatString(TimeInstantTimeZones):
           int(match[3]) * cls.NOMINAL_SECS_PER_MIN
         ) * (1 if match[1] == '+' else -1)
     else:
-      raise Exception('Offset string cannot be converted, form invalid')
+      raise ValueError('Offset string cannot be converted, form invalid')
   
   # static stuff
   

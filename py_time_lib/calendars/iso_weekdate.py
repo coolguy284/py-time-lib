@@ -69,9 +69,7 @@ class IsoWeekDate(DateBase):
   _day: Integral
   
   def __init__(self, *args: tuple['str | Integral | DateBase'] | tuple[Integral, Integral, Integral]):
-    if len(args) == 0:
-      raise Exception(f'{self.__class__.__name__} constructor needs an argument')
-    elif len(args) == 1:
+    if len(args) == 1:
       if isinstance(args[0], str):
         iso_string = args[0]
         year, week, day = self.parse_iso_string(iso_string)
@@ -89,24 +87,24 @@ class IsoWeekDate(DateBase):
         self._days_since_epoch = date.days_since_epoch
         self._year, self._week, self._day = self.days_since_epoch_to_date(self._days_since_epoch)
       else:
-        raise Exception(f'Unrecognized single argument {args[0]!r}')
+        raise TypeError(f'Unrecognized single argument {args[0]!r}')
     elif len(args) == 3:
       year, week, day = args
       
       weeks_in_year = self.weeks_in_year(year)
       
       if not (1 <= week <= weeks_in_year):
-        raise Exception(f'week {year}-W{week} out of range, must be between 1 and {weeks_in_year}')
+        raise ValueError(f'week {year}-W{week} out of range, must be between 1 and {weeks_in_year}')
       
       if not (1 <= day <= self.DAYS_IN_WEEK):
-        raise Exception(f'day {day} out of range, must be between 1 and {self.DAYS_IN_WEEK}')
+        raise ValueError(f'day {day} out of range, must be between 1 and {self.DAYS_IN_WEEK}')
       
       self._days_since_epoch = self.date_to_days_since_epoch(year, week, day)
       self._year = year
       self._week = week
       self._day = day
     else:
-      raise Exception(f'{self.__class__.__name__} constructor takes 1 or 3 arguments')
+      raise TypeError(f'{self.__class__.__name__} constructor takes 1 or 3 arguments ({len(args)} given)')
   
   @classmethod
   def from_iso_string(cls, string: str) -> Self:

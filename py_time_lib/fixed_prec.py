@@ -44,7 +44,7 @@ class FixedPrec(Real):
           result *= -1
         return result
       else:
-        raise Exception(f'Could not convert string {value!r} to {cls.__name__}.')
+        raise TypeError(f'Could not convert string {value!r} to {cls.__name__}.')
     else:
       if hasattr(value, 'value') and hasattr(value, 'place') and hasattr(value, 'max_prec'):
         # duck typing
@@ -53,9 +53,7 @@ class FixedPrec(Real):
         raise NotImplementedError()
   
   def __init__(self, *args: tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
-    if len(args) == 0:
-      raise Exception(f'{self.__class__.__name__} constructor needs an argument')
-    elif len(args) == 1:
+    if len(args) == 1:
       value = args[0]
       converted = self.from_basic(value, max_prec = max_prec)
       self.value = converted.value
@@ -72,7 +70,7 @@ class FixedPrec(Real):
       self.place = place
       self.max_prec = max_prec
     else:
-      raise Exception(f'{self.__class__.__name__} constructor takes 1-3 arguments')
+      raise TypeError(f'{self.__class__.__name__} constructor takes 1-3 arguments ({len(args)} given)')
   
   def __repr__(self) -> str:
     if self.place > 0:
@@ -380,9 +378,9 @@ class FixedPrec(Real):
     'Requires other be greater than or equal to 1, and self >= 0.'
     
     if other < 1:
-      raise Exception(f'Other must be greater than or equal to 1, got {other}')
+      raise ValueError(f'Other must be greater than or equal to 1, got {other}')
     elif self < 0:
-      raise Exception(f'Cannot take root of negative number ({self.__class__.__name__} does not support complex numbers)')
+      raise ValueError(f'Cannot take root of negative number ({self.__class__.__name__} does not support complex numbers)')
     
     if other == 1:
       return self

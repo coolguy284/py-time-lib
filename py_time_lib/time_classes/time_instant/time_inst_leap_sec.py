@@ -4,6 +4,7 @@ from typing import Generator, Self, SupportsIndex
 
 from ...constants import NOMINAL_SECS_PER_DAY as _NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_HOUR as _NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_MIN as _NOMINAL_SECS_PER_MIN, NOMINAL_MINS_PER_DAY as _NOMINAL_MINS_PER_DAY, NOMINAL_MINS_PER_HOUR as _NOMINAL_MINS_PER_HOUR, NOMINAL_HOURS_PER_DAY as _NOMINAL_HOURS_PER_DAY, NOMINAL_MICROSECS_PER_SEC as _NOMINAL_MICROSECS_PER_SEC
 from ...lib_funcs import binary_search
+from ...exceptions import TimeUnmappableError
 from ...fixed_prec import FixedPrec
 from ...data import leap_seconds
 from ...calendars.gregorian import GregorianDate
@@ -196,7 +197,7 @@ class TimeInstantLeapSec(TimeInstantOperators):
             utc_table_next_entry = cls.UTC_TO_TAI_OFFSET_TABLE[utc_table_index + 1]
             return cls(utc_table_entry['start_instant'] - (utc_table_next_entry['utc_tai_delta'][0] - utc_table_entry['leap_utc_delta']))
           else:
-            raise Exception('utc time does not map to tai')
+            raise TimeUnmappableError('utc time does not map to tai')
         elif len(utc_table_entry['utc_tai_delta']) == 1:
           return cls(utc_seconds_since_epoch - utc_table_entry['utc_tai_delta'][0])
         else:

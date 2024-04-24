@@ -43,7 +43,7 @@ def get_leap_sec_online_file(url: str = DEFAULT_LEAP_FILE_URL) -> str:
   response = urllib.request.urlopen(url)
   
   if response.status != 200:
-    raise Exception('leap second request failed')
+    raise RuntimeError('Leap second request failed')
   
   return response.read().decode()
 

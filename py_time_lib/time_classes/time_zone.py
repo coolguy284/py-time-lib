@@ -60,7 +60,7 @@ class TimeZone:
         offset_entry_processed['day_in_week'] = offset_entry['day_in_week']
         offset_entry_processed['from_month_end'] = offset_entry['from_month_end']
       else:
-        raise Exception(f'Offset mode {offset_entry_processed['offset_day_mode']} unrecognized')
+        raise ValueError(f'Offset mode {offset_entry_processed['offset_day_mode']} unrecognized')
       
       if coerce_to_fixed_prec and not isinstance(offset_entry['start_time_in_day'], FixedPrec):
         offset_entry_processed['start_time_in_day'] = FixedPrec.from_basic(offset_entry['start_time_in_day'])

@@ -2,6 +2,7 @@ from numbers import Integral
 from typing import Self
 
 from ...lib_funcs import binary_search
+from ...exceptions import TimeUnmappableError
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
@@ -45,7 +46,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
             if round_invalid_dst_time_upwards:
               current_offset_time_in_year = dst_entry['current_offset_end_time_in_year']
             else:
-              raise Exception('tz time does not map to utc')
+              raise TimeUnmappableError('tz time does not map to utc')
           
           # past the end of spring forward or adjusted to the end
           initial_tz_secs_since_epoch = tz_secs_since_epoch - (dst_entry['utc_offset'] - time_zone.initial_utc_offset)

@@ -50,7 +50,7 @@ class DateBase(ABC):
       date = arg
       self._days_since_epoch = date.days_since_epoch
     else:
-      raise Exception(f'Unrecognized single argument {arg!r}')
+      raise TypeError(f'Unrecognized single argument {arg!r}')
   
   @classmethod
   def from_unnormalized(cls, year: Integral, month: Integral, day: Integral) -> Self:

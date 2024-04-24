@@ -1,0 +1,2 @@
+class TimeUnmappableError(ValueError):
+  pass

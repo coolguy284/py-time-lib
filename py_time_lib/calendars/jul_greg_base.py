@@ -41,7 +41,7 @@ class JulGregBaseDate(DateBase):
   @classmethod
   def days_in_month(cls, year: Integral, month: Integral) -> int:
     if not (1 <= month <= cls.MONTHS_IN_YEAR):
-      raise Exception(f'month {month} out of range, must be between 1 and {cls.MONTHS_IN_YEAR}')
+      raise ValueError(f'month {month} out of range, must be between 1 and {cls.MONTHS_IN_YEAR}')
     
     if cls.is_leap(year):
       return cls.MONTH_DAYS_LEAP[month - 1]
@@ -106,9 +106,7 @@ class JulGregBaseDate(DateBase):
   
   # https://stackoverflow.com/questions/72644693/new-union-shorthand-giving-unsupported-operand-types-for-str-and-type/72644857#72644857
   def __init__(self, *args: tuple['str | Integral | DateBase'] | tuple[Integral, Integral, Integral]):
-    if len(args) == 0:
-      raise Exception(f'{self.__class__.__name__} constructor needs an argument')
-    elif len(args) == 1:
+    if len(args) == 1:
       if isinstance(args[0], str):
         iso_string = args[0]
         year, month, day = self.parse_iso_string(iso_string)
@@ -126,22 +124,22 @@ class JulGregBaseDate(DateBase):
         self._days_since_epoch = date.days_since_epoch
         self._year, self._month, self._day = self.days_since_epoch_to_date(self._days_since_epoch)
       else:
-        raise Exception(f'Unrecognized single argument {args[0]!r}')
+        raise TypeError(f'Unrecognized single argument {args[0]!r}')
     elif len(args) == 3:
       year, month, day = args
       
       if not (1 <= month <= self.MONTHS_IN_YEAR):
-        raise Exception(f'month {month} out of range, must be between 1 and {self.MONTHS_IN_YEAR}')
+        raise ValueError(f'month {month} out of range, must be between 1 and {self.MONTHS_IN_YEAR}')
       
       if not (1 <= day <= self.days_in_month(year, month)):
-        raise Exception(f'day {year}-{month}-{day} out of range, must be between 1 and {self.days_in_month(year, month)}')
+        raise ValueError(f'day {year}-{month}-{day} out of range, must be between 1 and {self.days_in_month(year, month)}')
       
       self._days_since_epoch = self.date_to_days_since_epoch(year, month, day)
       self._year = year
       self._month = month
       self._day = day
     else:
-      raise Exception(f'{self.__class__.__name__} constructor takes 1 or 3 arguments')
+      raise TypeError(f'{self.__class__.__name__} constructor takes 1 or 3 arguments ({len(args)} given)')
   
   @classmethod
   def from_iso_string(cls, string: str) -> Self:
