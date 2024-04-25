@@ -1,8 +1,13 @@
 from abc import abstractmethod, ABC
+from datetime import date
 from numbers import Integral
 from typing import Self
 
 from .date_delta import DateDelta
+
+def init_module_vars():
+  global iso_weekdate, gregorian
+  from . import iso_weekdate, gregorian
 
 class DateBase(ABC):
   '''
@@ -42,15 +47,21 @@ class DateBase(ABC):
   _days_since_epoch: Integral
   
   # https://stackoverflow.com/questions/72644693/new-union-shorthand-giving-unsupported-operand-types-for-str-and-type/72644857#72644857
-  def __init__(self, arg: tuple['str | Integral | DateBase']):
-    if isinstance(arg, Integral):
-      days_since_epoch = arg
-      self._days_since_epoch = days_since_epoch
-    elif isinstance(arg, DateBase):
-      date = arg
-      self._days_since_epoch = date.days_since_epoch
+  def __init__(self, *args: tuple['Integral | DateBase | date']):
+    if len(args) == 1:
+      if isinstance(args[0], Integral):
+        days_since_epoch = args[0]
+        self._days_since_epoch = days_since_epoch
+      elif isinstance(args[0], DateBase):
+        date = args[0]
+        self._days_since_epoch = date.days_since_epoch
+      elif isinstance(args[0], date):
+        datetime_date = args[0]
+        self._days_since_epoch = self.__class__.from_datetime_date(datetime_date)
+      else:
+        raise TypeError(f'Unrecognized single argument {args[0]!r}')
     else:
-      raise TypeError(f'Unrecognized single argument {arg!r}')
+      raise TypeError(f'{self.__class__.__name__} takes 1 argument ({len(args)} given)')
   
   @classmethod
   def from_unnormalized(cls, year: Integral, month: Integral, day: Integral) -> Self:
@@ -60,6 +71,14 @@ class DateBase(ABC):
   @classmethod
   def from_days_since_epoch(cls, days: Integral) -> Self:
     return cls(days)
+  
+  @classmethod
+  def from_iso_week_tuple(cls, year: Integral, week: Integral, day: Integral):
+    return cls(iso_weekdate.IsoWeekDate(year, week, day))
+  
+  @classmethod
+  def from_datetime_date(cls, date_obj: date):
+    return cls(gregorian.GregorianDate(date_obj.year, date_obj.month, date_obj.day))
   
   @abstractmethod
   def __repr__(self) -> str:
@@ -183,3 +202,10 @@ class DateBase(ABC):
   def iso_day_of_week(self) -> int:
     'Returns the ISO day of week. 1 = monday, 7 = sunday.'
     return (self.day_of_week() - 1) % self.DAYS_IN_WEEK + 1
+  
+  def to_iso_week_tuple(self) -> tuple[int, int, int]:
+    'Converts the current date to a tuple of (year, week, day)'
+    return iso_weekdate.IsoWeekDate(self).to_date_tuple()
+  
+  def to_datetime_date(self) -> date:
+    return date(*gregorian.GregorianDate(self).to_date_tuple())

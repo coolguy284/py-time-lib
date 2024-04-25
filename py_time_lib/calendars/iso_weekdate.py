@@ -1,4 +1,5 @@
 import re
+from datetime import date as datetime_date_cls
 from numbers import Integral
 from typing import Self
 
@@ -68,7 +69,7 @@ class IsoWeekDate(DateBase):
   _week: Integral
   _day: Integral
   
-  def __init__(self, *args: tuple['str | Integral | DateBase'] | tuple[Integral, Integral, Integral]):
+  def __init__(self, *args: tuple['str | Integral | DateBase | datetime_date_cls'] | tuple[Integral, Integral, Integral]):
     if len(args) == 1:
       if isinstance(args[0], str):
         iso_string = args[0]
@@ -85,6 +86,10 @@ class IsoWeekDate(DateBase):
       elif isinstance(args[0], DateBase):
         date = args[0]
         self._days_since_epoch = date.days_since_epoch
+        self._year, self._week, self._day = self.days_since_epoch_to_date(self._days_since_epoch)
+      elif isinstance(args[0], datetime_date_cls):
+        datetime_date = args[0]
+        self._days_since_epoch = self.__class__.from_datetime_date(datetime_date)._days_since_epoch
         self._year, self._week, self._day = self.days_since_epoch_to_date(self._days_since_epoch)
       else:
         raise TypeError(f'Unrecognized single argument {args[0]!r}')

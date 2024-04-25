@@ -1,6 +1,7 @@
+import datetime
 import unittest
 
-from ... import DateDelta, GregorianDate
+from ... import DateDelta, GregorianDate, IsoWeekDate
 
 class TestCalendarDateBase(unittest.TestCase):
   def test_date_delta_str(self):
@@ -87,3 +88,18 @@ class TestCalendarDateBase(unittest.TestCase):
   
   def test_hash_datebase(self):
     self.assertEqual(hash(GregorianDate(3)), hash(('DateBase', 3)))
+  
+  def test_from_to_date(self):
+    def test(date_tup):
+      datetime_date = datetime.date(*date_tup)
+      greg_date = GregorianDate(*date_tup)
+      iso_date = IsoWeekDate(greg_date)
+      self.assertEqual(greg_date.to_datetime_date(), datetime_date)
+      self.assertEqual(GregorianDate.from_datetime_date(datetime_date), greg_date)
+      self.assertEqual(GregorianDate(datetime_date), greg_date)
+      self.assertEqual(iso_date.to_datetime_date(), datetime_date)
+      self.assertEqual(IsoWeekDate.from_datetime_date(datetime_date), iso_date)
+      self.assertEqual(IsoWeekDate(datetime_date), iso_date)
+    
+    test((2024, 4, 24))
+    test((2100, 2, 28))
