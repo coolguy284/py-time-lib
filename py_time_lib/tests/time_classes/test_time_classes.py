@@ -688,8 +688,27 @@ class TestTimeClasses(unittest.TestCase):
       datetime.datetime(2024, 4, 19, 13, 1, 1, 0, datetime.UTC)
     )
     self.assertEqual(
+      TimeInstant.from_datetime(datetime.datetime(2024, 4, 19, 13, 1, 1, 0, datetime.UTC)).to_date_tuple_utc(),
+      (2024, 4, 19, 13, 1, 1, 0)
+    )
+    self.assertEqual(
       TimeInstant.from_date_tuple_utc(2024, 4, 19, 13, 1, 1, FixedPrec('0.5')).to_datetime(),
       datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, datetime.UTC)
+    )
+    self.assertEqual(
+      TimeInstant.from_datetime(datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, datetime.UTC)).to_date_tuple_utc(),
+      (2024, 4, 19, 13, 1, 1, FixedPrec('0.5'))
+    )
+    self.assertEqual(
+      TimeInstant(datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, datetime.UTC)).to_date_tuple_utc(),
+      (2024, 4, 19, 13, 1, 1, FixedPrec('0.5'))
+    )
+
+    utc_plus_1 = datetime.timezone(datetime.timedelta(hours = 1))
+    
+    self.assertEqual(
+      TimeInstant.from_datetime(datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, utc_plus_1)).to_date_tuple_utc(),
+      (2024, 4, 19, 12, 1, 1, FixedPrec('0.5'))
     )
   
   def test_to_datetime_leap_sec(self):

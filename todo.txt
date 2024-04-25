@@ -1,4 +1,3 @@
-timeinstant from datetime func
 datebase/datedelta from/to datetime.date
 timeinstant from/to time lib time tuple
 finish strftime utc and tz
