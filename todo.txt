@@ -1,13 +1,13 @@
-finish strftime utc and tz
 timeinstant: pull timezone info from tzdb
 
 add leap smear support
 strptime support
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
 complete all ... and notimplementederrors
-use proper timezone names so that timeinstant to struct time doesnt have name of NULL
+use proper timezone names so that timeinstant to struct time doesnt have name of NULL (2 instances of this in code)
 
 low prio:
+make some static methods underscore to show they are internal
 error for out of bounds values in timeinstant from date tuple
 datedelta from/to timedelta
 support dst shifts that go across a year boundary

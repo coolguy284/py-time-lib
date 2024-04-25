@@ -4,6 +4,7 @@ from typing import Self
 from ...lib_funcs import binary_search
 from ...exceptions import TimeUnmappableError
 from ...fixed_prec import FixedPrec
+from ...calendars.date_base import DateBase
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
@@ -172,3 +173,6 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
         offset += (dst_entry['utc_offset'] - time_zone.initial_utc_offset)
     
     return offset
+  
+  def get_date_object_tz[T: JulGregBaseDate](self, time_zone: time_zone.TimeZone, date_cls: type[T] = GregorianDate) -> T:
+    return date_cls(*self.to_date_tuple_tz(time_zone, date_cls = date_cls)[:3])
