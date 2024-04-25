@@ -1,7 +1,6 @@
-from pathlib import PurePath
-import re
-import urllib.request
+from re import compile as re_compile
 
+from .lib_funcs import get_file_at_path, set_file_at_path, get_file_from_online
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
 from .constants import NOMINAL_SECS_PER_DAY
@@ -9,10 +8,6 @@ from .time_classes.time_instant import time_inst
 
 DEFAULT_LEAP_FILE_PATH = 'data/leap-seconds.list'
 DEFAULT_LEAP_FILE_URL = 'https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list'
-
-def file_relative_path_to_abs(file_path: str) -> str:
-  # https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory/3430395#3430395
-  return PurePath(__file__).parent / file_path
 
 def ntp_timestamp_to_days_and_secs(ntp: int) -> tuple[int, int]:
   days, seconds = divmod(ntp, NOMINAL_SECS_PER_DAY)
@@ -29,28 +24,23 @@ def get_current_ntp_timestamp() -> int:
   return int(time_inst.TimeInstant.now().to_utc_secs_since_epoch()[0] - _ntp_epoch_instant)
 
 def get_leap_sec_stored_file(file_path: str = DEFAULT_LEAP_FILE_PATH) -> str | None:
-  try:
-    with open(file_relative_path_to_abs(file_path)) as f:
-      return f.read()
-  except FileNotFoundError:
+  result = get_file_at_path(file_path)
+  
+  if result != None:
+    return result.decode()
+  else:
     return None
 
-def set_leap_sec_stored_file(contents, file_path: str = DEFAULT_LEAP_FILE_PATH):
-  with open(file_relative_path_to_abs(file_path), 'w') as f:
-    f.write(contents)
+def set_leap_sec_stored_file(contents: str, file_path: str = DEFAULT_LEAP_FILE_PATH) -> None:
+  set_file_at_path(file_path, contents.encode())
 
 def get_leap_sec_online_file(url: str = DEFAULT_LEAP_FILE_URL) -> str:
-  response = urllib.request.urlopen(url)
-  
-  if response.status != 200:
-    raise RuntimeError('Leap second request failed')
-  
-  return response.read().decode()
+  return get_file_from_online(url).decode()
 
 _leap_sec_file_metadata_lines = {'#$', '#@'}
-_leap_sec_file_last_update_regex = re.compile(r'^#\$\s+(\d+)$')
-_leap_sec_file_expiry_regex = re.compile(r'^#@\s+(\d+)$')
-_leap_sec_file_leap_sec_regex = re.compile(r'^(\d+)\s+(\d+)')
+_leap_sec_file_last_update_regex = re_compile(r'^#\$\s+(\d+)$')
+_leap_sec_file_expiry_regex = re_compile(r'^#@\s+(\d+)$')
+_leap_sec_file_leap_sec_regex = re_compile(r'^(\d+)\s+(\d+)')
 
 def parse_leap_sec_file(file_content: str) -> dict[str, int | FixedPrec | list[tuple[str, FixedPrec, FixedPrec]]]:
   file_lines = file_content.split('\n')

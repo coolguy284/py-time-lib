@@ -1,8 +1,9 @@
 import code, datetime, time
 from enum import Enum
 
-from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, HoloceneDate
-from py_time_lib.auto_leap_seconds import get_leap_sec_data
+from py_time_lib import *
+from py_time_lib.update_leap_seconds import *
+from py_time_lib.update_timezone_db import *
 
 TimeInstant.update_leap_seconds()
 
