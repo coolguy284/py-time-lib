@@ -3,7 +3,7 @@ from typing import Self
 from ...fixed_prec import FixedPrec
 from ...calendars.julian import JulianDate
 from ..lib import TimeStorageType
-from .time_inst_named_tup import UnixTimestampUTC
+from ...named_tuples import UnixTimestampUTC
 from .time_inst_tz import TimeInstantTimeZones
 
 class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):

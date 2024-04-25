@@ -6,7 +6,7 @@ from ...calendars.date_base import DateBase
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
-from .time_inst_named_tup import DateTupleBasic
+from ...named_tuples import DateTupleBasic
 from .time_inst_leap_sec import TimeInstantLeapSec
 
 class TimeInstantDateTuple(TimeInstantLeapSec):

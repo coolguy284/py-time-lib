@@ -10,7 +10,7 @@ from ...data import leap_seconds
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
 from ...auto_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
-from .time_inst_named_tup import SecsSinceEpochUTC
+from ...named_tuples import SecsSinceEpochUTC
 from .time_inst_ops import TimeInstantOperators
 
 class TimeInstantLeapSec(TimeInstantOperators):

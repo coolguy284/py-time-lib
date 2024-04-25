@@ -8,7 +8,7 @@ from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
 from .. import time_zone
-from .time_inst_named_tup import SecsSinceEpochTZ, DateTupleTZ
+from ...named_tuples import SecsSinceEpochTZ, DateTupleTZ
 from .time_inst_date_tup import TimeInstantDateTuple
 
 class TimeInstantTimeZones(TimeInstantDateTuple):

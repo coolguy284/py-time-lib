@@ -6,6 +6,7 @@ from numbers import Integral
 from typing import Self
 
 from ..lib_funcs import binary_search
+from ..named_tuples import MonthWeekDate
 from .date_base import DateBase
 
 class JulGregBaseDate(DateBase):
@@ -194,7 +195,7 @@ class JulGregBaseDate(DateBase):
   def ordinal_date(self) -> int:
     return self.days_since_epoch - self.__class__(self.year, 1, 1).days_since_epoch + 1
   
-  def to_month_week_day(self, from_month_end: bool = False) -> tuple[Integral, Integral, Integral, Integral]:
+  def to_month_week_day(self, from_month_end: bool = False) -> MonthWeekDate:
     '''
     Returns a tuple of the form (year, month, week, day_of_week); for example "the second monday in january 2024"
     would result in (2024, 1, 2, 1). Weeks are numbered 0-6.
@@ -204,13 +205,13 @@ class JulGregBaseDate(DateBase):
       # 1 = first 7 days of month, 2 = second 7 days of month, etc.
       week_num = (self.day - 1) // self.DAYS_IN_WEEK + 1
 
-      return (self.year, self.month, week_num, self.day_of_week())
+      return MonthWeekDate(self.year, self.month, week_num, self.day_of_week())
     else:
       year, month, week_num, day_of_week = self.to_month_week_day()
       
       week_num = self.num_weeks_on_day(self.year, self.month, day_of_week) - week_num + 1
       
-      return year, month, week_num, day_of_week
+      return MonthWeekDate(year, month, week_num, day_of_week)
   
   def get_monthly_calendar(self) -> str:
     header = f'{self.MONTH_NAMES_SHORT[self.month - 1]} {self.year}'
