@@ -1,5 +1,3 @@
-make leapsec fixed/variable test
-support dst shifts that go across a year boundary
 test dst time unmappable error
 
 timeinstant from datetime func
@@ -16,6 +14,7 @@ use namedtuples for tuple output
 complete all ... and notimplementederrors
 
 low prio:
+support dst shifts that go across a year boundary
 add leap second support to now
 strftime & strptime add param for enabling custom flags like %f.6
 add aliases from datetime library, maybe full compatibility class
@@ -35,6 +34,7 @@ tests:
   timeinstant: tests for leap seconds during day
   timeinstant: test for passing in non-gregoriandate into to/from date tuple
   timeinstant: proper tests for timezone leapsecond, dst support
+  timeinstant: test for fixed offset timezone support of pos/neg leap seconds
 
 prob not doing:
 add calendar functionality for isoweekdate

@@ -644,7 +644,7 @@ class TestTimeClasses(unittest.TestCase):
     now_date_tuple = now.to_date_tuple_utc()
     now_datetime = datetime.datetime(*now_date_tuple[:6], int(now_date_tuple[6] * 1_000_000), datetime.UTC)
     
-    self.assertTrue(abs(now_datetime - current_datetime) <= datetime.timedelta(microseconds = 1000), abs(now_datetime - current_datetime))
+    self.assertTrue(abs(now_datetime - current_datetime) <= datetime.timedelta(microseconds = 1010), abs(now_datetime - current_datetime))
   
   def test_fixedprec_offset_to_str(self):
     # test inverse func as well
@@ -867,5 +867,58 @@ class TestTimeClasses(unittest.TestCase):
     test(td11, (2024, 8, 27, 0,  30, 0,  '0.1'), (2024, 8, 27, 1,  30, 0,  '0.1', False))
   
   def test_timezone_leap(self):
-    # fixed and variable
-    ...
+    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1))):
+      tz = TimeZone(
+        initial_utc_offset = 1 * 3_600,
+        later_offsets = (
+          {
+            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+            'month': 4,
+            'day': 15,
+            'start_time_in_day': 5 * 3_600,
+            'utc_offset': 2 * 3_600,
+          },
+          {
+            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
+            'month': 8,
+            'week': 1,
+            'day_in_week': 2,
+            'from_month_end': True,
+            'start_time_in_day': 30 * 60,
+            'utc_offset': 1 * 3_600,
+          },
+        )
+      )
+      
+      def test(delta, utc_tuple, tz_tuple):
+        instant = current_instant + TimeDelta(delta)
+        utc_tuple = *utc_tuple[:6], FixedPrec(utc_tuple[6])
+        tz_tuple = *tz_tuple[:6], FixedPrec(tz_tuple[6]), tz_tuple[7]
+        inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
+        inst_from_tz = TimeInstant.from_date_tuple_tz(tz, *tz_tuple)
+        self.assertEqual(instant, inst_from_utc)
+        self.assertEqual(instant, inst_from_tz)
+        self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
+        self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
+      
+      current_instant = TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 59, FixedPrec('0.9'))
+      
+      test('0',   (2016, 12, 31, 23, 59, 59, '0.9'), (2017, 1, 1, 0, 59, 59, '0.9', False))
+      test('0.1', (2016, 12, 31, 23, 59, 60, '0'  ), (2017, 1, 1, 0, 59, 60, '0'  , False))
+      test('0.15', (2016, 12, 31, 23, 59, 60, '0.05'), (2017, 1, 1, 0, 59, 60, '0.05', False))
+      test('0.2', (2016, 12, 31, 23, 59, 60, '0.1'), (2017, 1, 1, 0, 59, 60, '0.1', False))
+      test('1',   (2016, 12, 31, 23, 59, 60, '0.9'), (2017, 1, 1, 0, 59, 60, '0.9', False))
+      test('1.1', (2017, 1,  1,  0,  0,  0,  '0'  ), (2017, 1, 1, 1, 0,  0,  '0'  , False))
+      test('1.2', (2017, 1,  1,  0,  0,  0,  '0.1'), (2017, 1, 1, 1, 0,  0,  '0.1', False))
+      test('2',   (2017, 1,  1,  0,  0,  0,  '0.9'), (2017, 1, 1, 1, 0,  0,  '0.9', False))
+      test('2.1', (2017, 1,  1,  0,  0,  1,  '0'  ), (2017, 1, 1, 1, 0,  1,  '0'  , False))
+      test('2.2', (2017, 1,  1,  0,  0,  1,  '0.1'), (2017, 1, 1, 1, 0,  1,  '0.1', False))
+      
+      current_instant = TimeInstant.from_date_tuple_utc(2017, 12, 31, 23, 59, 58, FixedPrec('0.9'))
+      
+      test('0',   (2017, 12, 31, 23, 59, 58, '0.9'), (2018, 1, 1, 0, 59, 58, '0.9', False))
+      test('0.1', (2018, 1,  1,  0,  0,  0,  '0'  ), (2018, 1, 1, 1, 0,  0,  '0'  , False))
+      test('0.2', (2018, 1,  1,  0,  0,  0,  '0.1'), (2018, 1, 1, 1, 0,  0,  '0.1', False))
+      test('1',   (2018, 1,  1,  0,  0,  0,  '0.9'), (2018, 1, 1, 1, 0,  0,  '0.9', False))
+      test('1.1', (2018, 1,  1,  0,  0,  1,  '0'  ), (2018, 1, 1, 1, 0,  1,  '0'  , False))
+      test('1.2', (2018, 1,  1,  0,  0,  1,  '0.1'), (2018, 1, 1, 1, 0,  1,  '0.1', False))

@@ -3,6 +3,7 @@ from typing import Self
 
 from ...lib_funcs import binary_search
 from ...exceptions import TimeUnmappableError
+from ...fixed_prec import FixedPrec
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
@@ -80,7 +81,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     time += second
     time += frac_second
     
-    utc_year, utc_month, utc_day, utc_hour, utc_minute, utc_second, utc_frac_second = cls.from_tz_secs_since_epoch(
+    offset = cls.from_tz_secs_since_epoch(
       time_zone,
       time,
       dst_second_fold = dst_second_fold,
@@ -88,16 +89,16 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       round_invalid_dst_time_upwards = round_invalid_dst_time_upwards,
       round_invalid_leap_time_upwards = round_invalid_leap_time_upwards,
       date_cls = date_cls
-    ).to_date_tuple_utc(date_cls = date_cls)
-    utc_date = date_cls(utc_year, utc_month, utc_day)
-    utc_date_mins = cls.days_h_m_to_mins_since_epoch(utc_date.days_since_epoch, utc_hour, utc_minute)
+    ).current_tz_offset(time_zone, date_cls = date_cls)
+    
+    utc_date_mins = date_mins - (offset // cls.NOMINAL_SECS_PER_MIN)
     
     if utc_date_mins in cls.LEAP_SECONDS_DICT:
       leap_entries = cls.LEAP_SECONDS_DICT[utc_date_mins]
       leap_delta = leap_entries[-1]['utc_delta']
       if leap_delta < 0:
         # positive leap second
-        if utc_second + utc_frac_second < -leap_delta:
+        if second + frac_second < -leap_delta:
           leap_fold = True
         else:
           leap_fold = False
@@ -141,10 +142,28 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     utc_info = self.to_utc_info()
     tz_secs_since_epoch, dst_second_fold, _ = self.to_tz_secs_since_epoch(time_zone, date_cls = date_cls)
     if utc_info['positive_leap_second_occurring']:
-      tz_secs_since_epoch -= 1
+      time_in_leap = self._time - utc_info['last_leap_transition_time']
+      tz_secs_since_epoch -= 1 + time_in_leap
     *date, hour, minute, second, frac_second = self.epoch_instant_to_date_tuple(tz_secs_since_epoch, date_cls = date_cls)
     if utc_info['positive_leap_second_occurring']:
       second += 1
-      second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
+      second_addl, frac_second = divmod(frac_second + time_in_leap, 1)
       second = int(second + second_addl)
     return *date, hour, minute, second, frac_second, dst_second_fold
+  
+  def current_tz_offset(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> FixedPrec:
+    secs_since_epoch, _ = self.to_utc_secs_since_epoch()
+    initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_utc_offset
+    offset = time_zone.initial_utc_offset
+    
+    if len(time_zone.later_offsets) != 0:
+      prelim_year = self.epoch_instant_to_date_tuple(initial_tz_secs_since_epoch, date_cls = date_cls)[0]
+      prelim_year_start_time = self.date_tuple_to_epoch_instant(prelim_year, 1, 1, 0, 0, 0, 0, date_cls = date_cls)
+      init_offset_time_in_year = initial_tz_secs_since_epoch - prelim_year_start_time
+      offset_times = time_zone.get_offset_utc_times_for_year(prelim_year, date_cls = date_cls)
+      if offset_times[0]['init_offset_start_time_in_year'] <= init_offset_time_in_year:
+        dst_table_index = binary_search(lambda x: init_offset_time_in_year >= offset_times[x]['init_offset_start_time_in_year'], 0, len(offset_times))
+        dst_entry = offset_times[dst_table_index]
+        offset += (dst_entry['utc_offset'] - time_zone.initial_utc_offset)
+    
+    return offset
