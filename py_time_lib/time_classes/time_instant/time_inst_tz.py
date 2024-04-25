@@ -72,7 +72,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       round_invalid_dst_time_upwards: bool = True,
       round_invalid_leap_time_upwards: bool = True,
       date_cls: type[JulGregBaseDate] = GregorianDate
-    ):
+    ) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a TimeInstant. Does not handle leap seconds that occur not on a minute boundary, or timezones not on a minute offset.'
     
     date = date_cls(year, month, day)

@@ -1,4 +1,3 @@
-timeinstant from/to time lib time tuple
 finish strftime utc and tz
 
 timeinstant: pull timezone info from tzdb
@@ -8,8 +7,10 @@ strptime support
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable)
 use namedtuples for tuple output
 complete all ... and notimplementederrors
+use proper timezone names so that timeinstant to struct time doesnt have name of NULL
 
 low prio:
+error for out of bounds values in timeinstant from date tuple
 datedelta from/to timedelta
 support dst shifts that go across a year boundary
 add leap second support to now

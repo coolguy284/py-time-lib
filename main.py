@@ -1,4 +1,4 @@
-import code, datetime
+import code, datetime, time
 from enum import Enum
 
 from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, HoloceneDate

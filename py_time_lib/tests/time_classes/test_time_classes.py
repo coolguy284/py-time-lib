@@ -1,4 +1,4 @@
-from time import time_ns
+from time import time_ns, struct_time
 import datetime
 import unittest
 
@@ -964,3 +964,101 @@ class TestTimeClasses(unittest.TestCase):
       test('1',   (2018, 1,  1,  0,  0,  0,  '0.9'), (2018, 1, 1, 1, 0,  0,  '0.9', False), '3600')
       test('1.1', (2018, 1,  1,  0,  0,  1,  '0'  ), (2018, 1, 1, 1, 0,  1,  '0'  , False), '3600')
       test('1.2', (2018, 1,  1,  0,  0,  1,  '0.1'), (2018, 1, 1, 1, 0,  1,  '0.1', False), '3600')
+  
+  def test_struct_time(self):
+    def struct_time_equals(struct1, struct2):
+      self.assertEqual(struct1, struct2)
+      self.assertEqual(struct1.tm_zone, struct2.tm_zone)
+      self.assertEqual(struct1.tm_gmtoff, struct2.tm_gmtoff)
+    
+    def test_utc(utc_tuple, week_day, ordinal_date):
+      is_dst = 0
+      tm_zone = 'UTC'
+      tm_gmtoff = 0
+      instant = TimeInstant.from_date_tuple_utc(*utc_tuple, 0)
+      struct_time_obj = struct_time((*utc_tuple, week_day, ordinal_date, is_dst), {'tm_zone': tm_zone, 'tm_gmtoff': tm_gmtoff})
+      struct_time_equals(
+        instant.to_struct_time(),
+        struct_time_obj
+      )
+      self.assertEqual(
+        instant,
+        TimeInstant.from_struct_time(struct_time_obj)
+      )
+      self.assertEqual(
+        instant,
+        TimeInstant(struct_time_obj)
+      )
+    
+    test_utc((2016, 12, 30, 23, 59, 58), 4, 365)
+    test_utc((2016, 12, 30, 23, 59, 59), 4, 365)
+    test_utc((2016, 12, 31, 0,  0,  0 ), 5, 366)
+    test_utc((2016, 12, 31, 22, 59, 58), 5, 366)
+    test_utc((2016, 12, 31, 22, 59, 59), 5, 366)
+    test_utc((2016, 12, 31, 23, 0,  0 ), 5, 366)
+    test_utc((2016, 12, 31, 23, 59, 58), 5, 366)
+    test_utc((2016, 12, 31, 23, 59, 59), 5, 366)
+    test_utc((2016, 12, 31, 23, 59, 60), 5, 366)
+    test_utc((2017, 1,  1,  0,  0,  0 ), 6, 1  )
+    test_utc((2017, 1,  1,  0,  0,  1 ), 6, 1  )
+    
+    tz = TimeZone(
+      initial_utc_offset = 1 * 3_600,
+      later_offsets = (
+        {
+          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+          'month': 4,
+          'day': 15,
+          'start_time_in_day': 5 * 3_600,
+          'utc_offset': 2 * 3_600,
+        },
+        {
+          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
+          'month': 8,
+          'week': 1,
+          'day_in_week': 2,
+          'from_month_end': True,
+          'start_time_in_day': 30 * 60,
+          'utc_offset': 1 * 3_600,
+        },
+      )
+    )
+    
+    def test_tz(tz_tuple, week_day, ordinal_date, is_dst, tm_gmtoff):
+      tm_zone = 'NULL'
+      instant = TimeInstant.from_date_tuple_tz(tz, *tz_tuple[:6], 0, tz_tuple[6])
+      struct_time_obj = struct_time((*tz_tuple[:6], week_day, ordinal_date, is_dst), {'tm_zone': tm_zone, 'tm_gmtoff': tm_gmtoff})
+      struct_time_equals(
+        instant.to_struct_time(tz),
+        struct_time_obj
+      )
+      self.assertEqual(
+        instant,
+        TimeInstant.from_struct_time(struct_time_obj)
+      )
+      self.assertEqual(
+        instant,
+        TimeInstant(struct_time_obj)
+      )
+    
+    test_tz((2016, 12, 31, 0,  59, 58, False), 5, 366, 0, 3600)
+    test_tz((2016, 12, 31, 0,  59, 59, False), 5, 366, 0, 3600)
+    test_tz((2016, 12, 31, 1,  0,  0,  False), 5, 366, 0, 3600)
+    test_tz((2016, 12, 31, 23, 59, 58, False), 5, 366, 0, 3600)
+    test_tz((2016, 12, 31, 23, 59, 59, False), 5, 366, 0, 3600)
+    test_tz((2017, 1,  1,  0,  0,  0,  False), 6, 1,   0, 3600)
+    test_tz((2017, 1,  1,  0,  59, 58, False), 6, 1,   0, 3600)
+    test_tz((2017, 1,  1,  0,  59, 59, False), 6, 1,   0, 3600)
+    test_tz((2017, 1,  1,  0,  59, 60, False), 6, 1,   0, 3600)
+    test_tz((2017, 1,  1,  1,  0,  0,  False), 6, 1,   0, 3600)
+    test_tz((2017, 1,  1,  1,  0,  1,  False), 6, 1,   0, 3600)
+    
+    test_tz((2024, 4,  15, 4,  59, 59, False), 0, 106, 0, 3600)
+    test_tz((2024, 4,  15, 6,  0,  0,  False), 0, 106, 1, 7200)
+    
+    test_tz((2024, 8,  26, 23, 29, 59, False), 0, 239, 1, 7200)
+    test_tz((2024, 8,  26, 23, 30, 0,  False), 0, 239, 1, 7200)
+    test_tz((2024, 8,  27, 0,  29, 59, False), 1, 240, 1, 7200)
+    test_tz((2024, 8,  26, 23, 30, 0,  True ), 0, 239, 0, 3600)
+    test_tz((2024, 8,  27, 0,  29, 59, True ), 1, 240, 0, 3600)
+    test_tz((2024, 8,  27, 0,  30, 0,  False), 1, 240, 0, 3600)
