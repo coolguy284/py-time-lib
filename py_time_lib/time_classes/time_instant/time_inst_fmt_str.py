@@ -5,6 +5,7 @@ from ...fixed_prec import FixedPrec
 from ...calendars.gregorian import GregorianDate
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ..lib import TimeStorageType
+from ..time_zone import TimeZone
 from .time_inst_tz import TimeInstantTimeZones
 
 class TimeInstantFormatString(TimeInstantTimeZones):
@@ -70,6 +71,10 @@ class TimeInstantFormatString(TimeInstantTimeZones):
   
   @classmethod
   def from_format_string_utc(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+    raise NotImplementedError()
+  
+  @classmethod
+  def from_format_string_tz(cls, time_zone: TimeZone, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     raise NotImplementedError()
   
   def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
@@ -150,6 +155,9 @@ class TimeInstantFormatString(TimeInstantTimeZones):
     return result
   
   def to_format_string_utc(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    raise NotImplementedError()
+  
+  def to_format_string_tz(self, time_zone: TimeZone, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     raise NotImplementedError()
   
   strftime = to_format_string_tai

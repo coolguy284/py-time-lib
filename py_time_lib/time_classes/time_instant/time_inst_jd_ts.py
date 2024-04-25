@@ -3,6 +3,7 @@ from typing import Self
 from ...fixed_prec import FixedPrec
 from ...calendars.julian import JulianDate
 from ..lib import TimeStorageType
+from .time_inst_named_tup import UnixTimestampUTC
 from .time_inst_tz import TimeInstantTimeZones
 
 class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):
@@ -43,7 +44,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):
   def from_modified_julian_date_tai(cls, modified_julian_date: TimeStorageType) -> Self:
     return cls.from_julian_date_tai(modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD)
   
-  def to_unix_timestamp(self) -> tuple[TimeStorageType, bool]:
+  def to_unix_timestamp(self) -> UnixTimestampUTC:
     '''
     Returns a unix timestamp tuple in the form of (unix_secs_since_epoch, second_fold).
     After a positive leap second, the counter gets set back one second and second_fold
@@ -51,7 +52,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):
     '''
     utc_secs_since_epoch, second_fold = self.to_utc_secs_since_epoch()
     unix_secs_since_epoch = utc_secs_since_epoch - self.UNIX_TIMESTAMP_ORIGIN_OFFSET
-    return unix_secs_since_epoch, second_fold
+    return UnixTimestampUTC(unix_secs_since_epoch, second_fold)
   
   def to_julian_date_tai(self) -> TimeStorageType:
     return (self.time - self.JULIAN_DATE_OFFSET) / self.NOMINAL_SECS_PER_DAY

@@ -11,5 +11,6 @@ from .calendars.holocene import HoloceneDate
 from .time_classes.time_delta import TimeDelta
 from .time_classes.time_instant.time_inst import TimeInstant
 from .time_classes.time_zone import TimeZone
+from .time_classes.time_instant.time_inst_named_tup import SecsSinceEpochUTC, SecsSinceEpochTZ, DateTupleBasic, DateTupleTZ, UnixTimestampUTC
 
 _DateBase_init_module_vars()

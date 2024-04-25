@@ -10,6 +10,7 @@ from ...data import leap_seconds
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
 from ...auto_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
+from .time_inst_named_tup import SecsSinceEpochUTC
 from .time_inst_ops import TimeInstantOperators
 
 class TimeInstantLeapSec(TimeInstantOperators):
@@ -245,7 +246,7 @@ class TimeInstantLeapSec(TimeInstantOperators):
             'current_utc_tai_offset': tai_table_entry['utc_tai_delta'],
           }
   
-  def to_utc_secs_since_epoch(self) -> tuple[TimeStorageType, bool]:
+  def to_utc_secs_since_epoch(self) -> SecsSinceEpochUTC:
     '''
     Returns a tuple of the form (utc_seconds_since_epoch, second_fold).
     After a positive leap second, the counter goes back one second,
@@ -256,19 +257,22 @@ class TimeInstantLeapSec(TimeInstantOperators):
     positive_leap_second_occurring = utc_info['positive_leap_second_occurring']
     last_leap_delta = utc_info['last_leap_delta']
     last_leap_transition_time = utc_info['last_leap_transition_time']
-    # TODO fix implementation, but can only be done if there is a way to know if you are one second after a positive leap second finished
+    
     if not positive_leap_second_occurring:
       if last_leap_delta != None:
         if last_leap_delta < 0 and self.time - last_leap_transition_time < -last_leap_delta:
           # last leap second was a positive leap second and folds are necessary
-          return utc_seconds_since_epoch, True
+          leap_second_fold = True
         else:
           # last leap second was a negative leap second, no folds necessary
-          return utc_seconds_since_epoch, False
+          leap_second_fold = False
       else:
-        return utc_seconds_since_epoch, False
+        leap_second_fold = False
     else:
-      return utc_seconds_since_epoch + (self.time - last_leap_transition_time), False
+      utc_seconds_since_epoch += (self.time - last_leap_transition_time)
+      leap_second_fold = False
+    
+    return SecsSinceEpochUTC(utc_seconds_since_epoch, leap_second_fold)
   
   def get_utc_tai_offset(self) -> FixedPrec:
     return self.to_utc_info()['current_utc_tai_offset']

@@ -6,19 +6,20 @@ from ...calendars.date_base import DateBase
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
+from .time_inst_named_tup import DateTupleBasic
 from .time_inst_leap_sec import TimeInstantLeapSec
 
 class TimeInstantDateTuple(TimeInstantLeapSec):
   # static stuff
   
   @classmethod
-  def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
+  def epoch_instant_to_date_tuple(cls, secs_since_epoch: FixedPrec, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     days_since_epoch, time_since_day_start = divmod(secs_since_epoch, cls.NOMINAL_SECS_PER_DAY)
     date = date_cls.from_days_since_epoch(int(days_since_epoch))
     hour, remainder = divmod(time_since_day_start, cls.NOMINAL_SECS_PER_HOUR)
     minute, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
     second, frac_second = divmod(remainder, 1)
-    return *date.to_date_tuple(), int(hour), int(minute), int(second), frac_second
+    return DateTupleBasic(*date.to_date_tuple(), int(hour), int(minute), int(second), frac_second)
   
   @classmethod
   def date_tuple_to_epoch_instant(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, date_cls: type[JulGregBaseDate] = GregorianDate) -> TimeStorageType:
@@ -76,11 +77,11 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
     
     return cls.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
-  def to_date_tuple_tai(self, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
+  def to_date_tuple_tai(self, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     'Returns a date tuple in the TAI timezone (as math is easiest for this).'
     return self.epoch_instant_to_date_tuple(self._time, date_cls = date_cls)
   
-  def to_date_tuple_utc(self, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[Integral, Integral, Integral, int, int, int, TimeStorageType]:
+  def to_date_tuple_utc(self, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     'Returns a date tuple in the UTC timezone. Does not handle leap seconds that occur not on a minute boundary.'
     utc_info = self.to_utc_info()
     utc_secs_since_epoch = utc_info['utc_seconds_since_epoch']
@@ -91,7 +92,7 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
       second += 1
       second_addl, frac_second = divmod(frac_second + (self._time - utc_info['last_leap_transition_time']), 1)
       second = int(second + second_addl)
-    return *date, hour, minute, second, frac_second
+    return DateTupleBasic(*date, hour, minute, second, frac_second)
   
   def get_date_object_tai[T: DateBase](self, date_cls: type[T] = GregorianDate) -> T:
     days_since_epoch, _ = divmod(self.time, self.NOMINAL_SECS_PER_DAY)
