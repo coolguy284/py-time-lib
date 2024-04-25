@@ -46,6 +46,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
             # in middle of spring forward, this time does not map to a physical time
             if round_invalid_dst_time_upwards:
               current_offset_time_in_year = dst_entry['current_offset_end_time_in_year']
+              tz_secs_since_epoch = current_offset_time_in_year + prelim_year_start_time
             else:
               raise TimeUnmappableError('tz time does not map to utc')
           

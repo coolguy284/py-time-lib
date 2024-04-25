@@ -1,5 +1,3 @@
-test dst time unmappable error
-
 timeinstant from datetime func
 datebase/datedelta from/to datetime.date
 timeinstant from/to time lib time tuple

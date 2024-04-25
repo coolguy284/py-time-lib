@@ -775,6 +775,19 @@ class TestTimeClasses(unittest.TestCase):
       self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
       self.assertEqual(instant.current_tz_offset(tz), FixedPrec(offset))
     
+    def test2(instant: TimeInstant, tz_tuple, rounded_utc_tuple, rounded_tz_tuple):
+      rounded_utc_tuple = *rounded_utc_tuple[:6], FixedPrec(rounded_utc_tuple[6])
+      tz_tuple = *tz_tuple[:6], FixedPrec(tz_tuple[6]), tz_tuple[7]
+      rounded_tz_tuple = *rounded_tz_tuple[:6], FixedPrec(rounded_tz_tuple[6]), rounded_tz_tuple[7]
+      inst_from_utc = TimeInstant.from_date_tuple_utc(*rounded_utc_tuple)
+      inst_from_tz = TimeInstant.from_date_tuple_tz(tz, *tz_tuple)
+      with self.assertRaises(TimeUnmappableError):
+        TimeInstant.from_date_tuple_tz(tz, *tz_tuple, round_invalid_dst_time_upwards = False)
+      self.assertEqual(instant, inst_from_utc)
+      self.assertEqual(instant, inst_from_tz)
+      self.assertEqual(instant.to_date_tuple_utc(), rounded_utc_tuple)
+      self.assertEqual(instant.to_date_tuple_tz(tz), rounded_tz_tuple)
+    
     ta4 = TimeInstant.from_date_tuple_utc(2023, 4, 15, 4, 0, 0, FixedPrec(0))
     ta0 = ta4 - TimeDelta(FixedPrec('3600.1'))
     ta1 = ta4 - TimeDelta(FixedPrec('3600'))
@@ -794,6 +807,10 @@ class TestTimeClasses(unittest.TestCase):
     test(ta6, (2023, 4, 15, 4, 59, 59, '0.9'), (2023, 4, 15, 6, 59, 59, '0.9', False), '7200')
     test(ta7, (2023, 4, 15, 5, 0,  0,  '0'  ), (2023, 4, 15, 7, 0,  0,  '0',   False), '7200')
     test(ta8, (2023, 4, 15, 5, 0,  0,  '0.1'), (2023, 4, 15, 7, 0,  0,  '0.1', False), '7200')
+    
+    test2(ta4, (2023, 4, 15, 5, 0,  0,  '0',   False), (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False))
+    test2(ta4, (2023, 4, 15, 5, 0,  0,  '0.1', False), (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False))
+    test2(ta4, (2023, 4, 15, 5, 59, 59, '0.9', False), (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False))
     
     tb4 = TimeInstant.from_date_tuple_utc(2023, 8, 28, 22, 30, 0, FixedPrec(0))
     tb0 = tb4 - TimeDelta(FixedPrec('3600.1'))
@@ -840,6 +857,10 @@ class TestTimeClasses(unittest.TestCase):
     test(tc6, (2024, 4, 15, 4, 59, 59, '0.9'), (2024, 4, 15, 6, 59, 59, '0.9', False), '7200')
     test(tc7, (2024, 4, 15, 5, 0,  0,  '0'  ), (2024, 4, 15, 7, 0,  0,  '0',   False), '7200')
     test(tc8, (2024, 4, 15, 5, 0,  0,  '0.1'), (2024, 4, 15, 7, 0,  0,  '0.1', False), '7200')
+    
+    test2(tc4, (2024, 4, 15, 5, 0,  0,  '0',   False), (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False))
+    test2(tc4, (2024, 4, 15, 5, 0,  0,  '0.1', False), (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False))
+    test2(tc4, (2024, 4, 15, 5, 59, 59, '0.9', False), (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False))
     
     td4 = TimeInstant.from_date_tuple_utc(2024, 8, 26, 22, 30, 0, FixedPrec(0))
     td0 = td4 - TimeDelta(FixedPrec('3600.1'))
