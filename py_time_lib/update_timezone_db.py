@@ -59,8 +59,6 @@ _parse_tzdb_rule_date_last_regex = re_compile(r'^last(' + _parse_tzdb_week_names
 _parse_tzdb_rule_date_ge_regex = re_compile(r'^(' + _parse_tzdb_week_names_regex_part + r')>=(\d+)$')
 _parse_tzdb_rule_date_le_regex = re_compile(r'^(' + _parse_tzdb_week_names_regex_part + r')<=(\d+)$')
 
-_parse_tzdb_rule_time_regex = re_compile(r'^(\d{1,2}):(\d{2})(|[sguzw])$')
-
 _parse_tzdb_time_regex = re_compile(r'^(\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(|[sguzw])$')
 _parse_tzdb_time_types = Enum('_parse_tzdb_rule_time_types', (
   'WALL',
