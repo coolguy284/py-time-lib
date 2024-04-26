@@ -7,14 +7,14 @@ from py_time_lib.update_timezone_db import *
 
 TimeInstant.update_leap_seconds()
 
-RunModes = Enum('RunModes', [
+RunModes = Enum('RunModes', (
   'BASIC_DATE_TESTING',
   'ISO_WEEK_TESTING',
   'AUTO_LEAP_SECONDS_TESTS',
   'TEST_CALENDARS',
   'TEST_TZDB',
   'REPL',
-])
+))
 
 mode = RunModes.TEST_TZDB
 
@@ -78,7 +78,7 @@ elif mode == RunModes.TEST_CALENDARS:
   print(HoloceneDate(12024, 4, 13).get_yearly_calendar())
   print()
 elif mode == RunModes.TEST_TZDB:
-  print(get_tzdb_data())
+  get_tzdb_data()
 elif mode == RunModes.REPL:
   # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
   code.interact(local = globals())

@@ -10,10 +10,12 @@ from .time_instant import time_inst
 class TimeZone:
   # static stuff
   
-  OffsetDayMode = Enum('OffsetDayMode', [
+  OffsetDayMode = Enum('OffsetDayMode', (
     'MONTH_AND_DAY',
     'MONTH_WEEK_DAY',
-  ])
+    'MONTH_WEEKDAY_DAY_GE',
+    'MONTH_WEEKDAY_DAY_LE',
+  ))
   
   # instance stuff
   
@@ -51,14 +53,19 @@ class TimeZone:
       
       offset_entry_processed['offset_day_mode'] = offset_entry['offset_day_mode']
       
+      offset_entry_processed['month'] = offset_entry['month']
       if offset_entry_processed['offset_day_mode'] == self.OffsetDayMode.MONTH_AND_DAY:
-        offset_entry_processed['month'] = offset_entry['month']
         offset_entry_processed['day'] = offset_entry['day']
       elif offset_entry_processed['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEK_DAY:
-        offset_entry_processed['month'] = offset_entry['month']
         offset_entry_processed['week'] = offset_entry['week']
         offset_entry_processed['day_in_week'] = offset_entry['day_in_week']
         offset_entry_processed['from_month_end'] = offset_entry['from_month_end']
+      elif offset_entry_processed['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEKDAY_DAY_GE:
+        offset_entry_processed['day_in_week'] = offset_entry['day_in_week']
+        offset_entry_processed['day'] = offset_entry['day']
+      elif offset_entry_processed['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEKDAY_DAY_LE:
+        offset_entry_processed['day_in_week'] = offset_entry['day_in_week']
+        offset_entry_processed['day'] = offset_entry['day']
       else:
         raise ValueError(f'Offset mode {offset_entry_processed['offset_day_mode']} unrecognized')
       
@@ -122,6 +129,10 @@ class TimeZone:
           0, 0, 0, 0,
           date_cls = GregorianDate
         )
+      elif later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEKDAY_DAY_GE:
+        continue
+      elif later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEKDAY_DAY_LE:
+        continue
       later_time = later_instant + later_offset_entry['start_time_in_day'] - (current_offset - self.initial_utc_offset)
       init_offset_start_time_in_year = later_time - year_start_time
       current_offset_start_time_in_year = init_offset_start_time_in_year + (current_offset - self.initial_utc_offset)

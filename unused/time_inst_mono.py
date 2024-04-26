@@ -3,7 +3,7 @@ from enum import Enum
 class TimeInstMonotonic():
   # static stuff
   
-  TIME_SCALES = Enum('TIME_SCALES', [
+  TIME_SCALES = Enum('TIME_SCALES', (
     'TT',
     'TAI',
     #'TCG',
@@ -11,7 +11,7 @@ class TimeInstMonotonic():
     #'UT1',
     #'TIME_CENTER_GALAXY',
     #'TIME_COMOVING_FRAME',
-  ])
+  ))
   
   # https://en.wikipedia.org/wiki/Terrestrial_Time
   #TT_OFFSET_FROM_TAI: FixedPrec = FixedPrec('32.184')
