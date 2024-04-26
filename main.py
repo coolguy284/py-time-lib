@@ -12,10 +12,11 @@ RunModes = Enum('RunModes', [
   'ISO_WEEK_TESTING',
   'AUTO_LEAP_SECONDS_TESTS',
   'TEST_CALENDARS',
+  'TEST_TZDB',
   'REPL',
 ])
 
-mode = RunModes.REPL
+mode = RunModes.TEST_TZDB
 
 if mode == RunModes.BASIC_DATE_TESTING:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
@@ -76,6 +77,8 @@ elif mode == RunModes.TEST_CALENDARS:
   print('Holocene:')
   print(HoloceneDate(12024, 4, 13).get_yearly_calendar())
   print()
+elif mode == RunModes.TEST_TZDB:
+  print(get_tzdb_data())
 elif mode == RunModes.REPL:
   # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
   code.interact(local = globals())
