@@ -1,5 +1,3 @@
-ensure auto leap seconds sets fixedprec as type of offset
-
 continue parsing tzdb
 
 support for -00:00 offset as None

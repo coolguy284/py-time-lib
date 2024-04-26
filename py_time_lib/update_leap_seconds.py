@@ -1,5 +1,6 @@
 from re import compile as re_compile
 
+from .named_tuples import LeapSecEntry
 from .lib_funcs import get_file_at_path, set_file_at_path, get_file_from_online
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
@@ -42,7 +43,7 @@ _leap_sec_file_last_update_regex = re_compile(r'^#\$\s+(\d+)$')
 _leap_sec_file_expiry_regex = re_compile(r'^#@\s+(\d+)$')
 _leap_sec_file_leap_sec_regex = re_compile(r'^(\d+)\s+(\d+)')
 
-def parse_leap_sec_file(file_content: str) -> dict[str, int | FixedPrec | list[tuple[str, FixedPrec, FixedPrec]]]:
+def parse_leap_sec_file(file_content: str) -> dict[str, int | FixedPrec | list[LeapSecEntry]]:
   file_lines = file_content.split('\n')
   
   # strip comments
@@ -78,7 +79,7 @@ def parse_leap_sec_file(file_content: str) -> dict[str, int | FixedPrec | list[t
     days_since_epoch, secs = ntp_timestamp_to_days_and_secs(leap_time)
     utc_tai_offset = -new_utc_tai_offset
     leap_sec_delta = utc_tai_offset - past_utc_tai_offset
-    leap_secs.append((GregorianDate(days_since_epoch).to_iso_string(), FixedPrec(secs), FixedPrec(leap_sec_delta)))
+    leap_secs.append(LeapSecEntry(GregorianDate(days_since_epoch).to_iso_string(), FixedPrec(secs), FixedPrec(leap_sec_delta)))
     past_utc_tai_offset = utc_tai_offset
   
   return {
@@ -88,7 +89,7 @@ def parse_leap_sec_file(file_content: str) -> dict[str, int | FixedPrec | list[t
     'leap_seconds': leap_secs,
   }
 
-def get_leap_sec_data(file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FILE_URL) -> dict[str, int | FixedPrec | list[tuple[str, FixedPrec, FixedPrec]]]:
+def get_leap_sec_data(file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FILE_URL) -> dict[str, int | FixedPrec | list[LeapSecEntry]]:
   'Gets leap second array from file (if not past expiry) or from https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list.'
   
   current_timestamp = get_current_ntp_timestamp()
