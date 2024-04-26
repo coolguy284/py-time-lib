@@ -185,3 +185,17 @@ class TestCalendarGregorian(unittest.TestCase):
     self.assertEqual(cls.from_month_week_day(2024, 4, 3, 0, from_month_end = True).to_date_tuple(), (2024, 4, 14))
     self.assertEqual(cls.from_month_week_day(2024, 4, 3, 1, from_month_end = True).to_date_tuple(), (2024, 4, 15))
     self.assertEqual(cls.from_month_week_day(2024, 4, 1, 0, from_month_end = True).to_date_tuple(), (2024, 4, 28))
+  
+  def test_month_day_week_comp_day(self):
+    self.assertEqual(cls.from_month_day_of_week_comp_day(2024, 4, 25, 0, False), cls(2024, 4, 21))
+    self.assertEqual(cls.from_month_day_of_week_comp_day(2024, 4, 25, 0, True), cls(2024, 4, 28))
+    
+    self.assertEqual(cls.from_month_day_of_week_comp_day(2024, 4, 30, 1, False), cls(2024, 4, 29))
+    self.assertEqual(cls.from_month_day_of_week_comp_day(2024, 4, 30, 1, True), cls(2024, 5, 6))
+    
+    self.assertEqual(cls.from_month_day_of_week_comp_day(2024, 4, 25, 0, False, out_of_month_bounds_allowed = False), cls(2024, 4, 21))
+    self.assertEqual(cls.from_month_day_of_week_comp_day(2024, 4, 25, 0, True, out_of_month_bounds_allowed = False), cls(2024, 4, 28))
+    
+    self.assertEqual(cls.from_month_day_of_week_comp_day(2024, 4, 30, 1, False, out_of_month_bounds_allowed = False), cls(2024, 4, 29))
+    with self.assertRaises(ValueError):
+      cls.from_month_day_of_week_comp_day(2024, 4, 30, 1, True, out_of_month_bounds_allowed = False)

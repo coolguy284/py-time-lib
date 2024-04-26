@@ -7,6 +7,7 @@ from typing import Self
 
 from ..lib_funcs import binary_search
 from ..named_tuples import MonthWeekDate
+from .date_delta import DateDelta
 from .date_base import DateBase
 
 class JulGregBaseDate(DateBase):
@@ -167,6 +168,31 @@ class JulGregBaseDate(DateBase):
     else:
       week_flipped = cls.num_weeks_on_day(year, month, day_of_week) - week + 1
       return cls.from_month_week_day(year, month, week_flipped, day_of_week)
+  
+  @classmethod
+  def from_month_day_of_week_comp_day(cls, year: Integral, month: Integral, day: Integral, day_of_week: Integral, greater_than_equals: bool, out_of_month_bounds_allowed: bool = True) -> Self:
+    '''
+    Returns a date in the month that is on the given day of week and
+    greater than or equal to (or less than or equal to if greater_than_equals
+    is False) the given date. For example, the first sunday in april 2024 that
+    is less than or equal to the 25th of the month is apr 21.
+    '''
+    
+    base_date = cls(year, month, day)
+    base_day_of_week = base_date.day_of_week()
+    
+    if greater_than_equals:
+      day_increment = (day_of_week - base_day_of_week) % cls.DAYS_IN_WEEK
+      result = base_date + DateDelta(day_increment)
+    else:
+      day_decrement = (base_day_of_week - day_of_week) % cls.DAYS_IN_WEEK
+      result = base_date - DateDelta(day_decrement)
+    
+    if not out_of_month_bounds_allowed:
+      if result.month != base_date.month or result.year != base_date.year:
+        raise ValueError('Calculating date of given day of week goes outside of month bounds')
+    
+    return result
   
   @property
   def year(self) -> Integral:
