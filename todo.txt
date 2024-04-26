@@ -43,5 +43,6 @@ bump up max precision on the fixedprec on julian date calculations during calcul
 add default high detail tostring for tai and utc
 timedelta/timeinstant from datetime/timedelta when doing math operations
 datebase/datedelta from/to datetime.date when doing math operations
+timeinstant: have _auto_reset_class_vars reset all other vars like julian date and TimeInstant static vars, or remove it to not reset the nominal vars
 tests:
   date: monthly/yearly calendar generation funcs
