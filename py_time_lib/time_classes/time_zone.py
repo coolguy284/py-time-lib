@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import lru_cache
 from numbers import Integral
 from typing import Iterable
 
@@ -16,6 +17,29 @@ class TimeZone:
     'MONTH_WEEKDAY_DAY_GE',
     'MONTH_WEEKDAY_DAY_LE',
   ))
+  
+  @classmethod
+  def realize_offset_entry[T: type[JulGregBaseDate]](cls, year: Integral, offset_day_entry: dict[str], date_cls: T = GregorianDate) -> T:
+    if offset_day_entry['offset_day_mode'] == cls.OffsetDayMode.MONTH_AND_DAY:
+      return date_cls(year, offset_day_entry['month'], offset_day_entry['day'])
+    elif offset_day_entry['offset_day_mode'] == cls.OffsetDayMode.MONTH_WEEK_DAY:
+      return date_cls.from_month_week_day(
+        year, offset_day_entry['month'],
+        offset_day_entry['week'], offset_day_entry['day_in_week'],
+        from_month_end = offset_day_entry['from_month_end']
+      )
+    elif offset_day_entry['offset_day_mode'] == cls.OffsetDayMode.MONTH_WEEKDAY_DAY_GE:
+      return date_cls.from_month_day_of_week_comp_day(
+        year, offset_day_entry['month'],
+        offset_day_entry['day'], offset_day_entry['day_in_week'],
+        greater_than_equals = True
+      )
+    elif offset_day_entry['offset_day_mode'] == cls.OffsetDayMode.MONTH_WEEKDAY_DAY_LE:
+      return date_cls.from_month_day_of_week_comp_day(
+        year, offset_day_entry['month'],
+        offset_day_entry['day'], offset_day_entry['day_in_week'],
+        greater_than_equals = False
+      )
   
   # instance stuff
   
@@ -97,7 +121,8 @@ class TimeZone:
   def later_offsets(self) -> tuple[dict[str], ...]:
     return self._later_offsets
   
-  def get_offset_utc_times_for_year(self, year, date_cls: type[JulGregBaseDate] = GregorianDate):
+  @lru_cache(maxsize = 32)
+  def get_offset_utc_times_for_year(self, year: Integral, date_cls: type[JulGregBaseDate] = GregorianDate):
     # format:
     # [
     #   {
@@ -113,26 +138,16 @@ class TimeZone:
     
     current_offset = self.initial_utc_offset
     year_start_time = time_inst.TimeInstant.date_tuple_to_epoch_instant(year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate)
+    
     for later_offset_entry in self.later_offsets:
-      if later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_AND_DAY:
-        later_instant = time_inst.TimeInstant.date_tuple_to_epoch_instant(
-          year, later_offset_entry['month'], later_offset_entry['day'],
-          0, 0, 0, 0,
-          date_cls = GregorianDate
-        )
-      elif later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEK_DAY:
-        later_instant = time_inst.TimeInstant.date_tuple_to_epoch_instant(
-          *date_cls.from_month_week_day(
-            year, later_offset_entry['month'], later_offset_entry['week'], later_offset_entry['day_in_week'],
-            from_month_end = later_offset_entry['from_month_end']
-          ).to_date_tuple(),
-          0, 0, 0, 0,
-          date_cls = GregorianDate
-        )
-      elif later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEKDAY_DAY_GE:
-        continue
-      elif later_offset_entry['offset_day_mode'] == self.OffsetDayMode.MONTH_WEEKDAY_DAY_LE:
-        continue
+      later_date = self.realize_offset_entry(year, later_offset_entry, date_cls = date_cls)
+      
+      later_instant = time_inst.TimeInstant.date_tuple_to_epoch_instant(
+        later_date.year, later_date.month, later_date.day,
+        0, 0, 0, 0,
+        date_cls = date_cls
+      )
+      
       later_time = later_instant + later_offset_entry['start_time_in_day'] - (current_offset - self.initial_utc_offset)
       init_offset_start_time_in_year = later_time - year_start_time
       current_offset_start_time_in_year = init_offset_start_time_in_year + (current_offset - self.initial_utc_offset)

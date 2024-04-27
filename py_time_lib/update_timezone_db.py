@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from enum import Enum
+from numbers import Integral
 from re import compile as re_compile
 from tarfile import open as tarfile_open, TarFile
 from typing import Generator
@@ -66,6 +67,7 @@ _parse_tzdb_time_types = Enum('_parse_tzdb_rule_time_types', (
   'UTC',
 ))
 _parse_tzdb_offset_regex = re_compile(r'^(?:(-?)(\d+)(?::(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?)$')
+type _parse_tzdb_DayDict = dict[str, TimeZone.OffsetDayMode | int | bool]
 
 def _parse_tzdb_time_str_to_fixedprec_secs_from_day_start(time_str: str) -> tuple[FixedPrec, _parse_tzdb_time_types]:
   if match := _parse_tzdb_time_regex.match(time_str):
@@ -102,6 +104,40 @@ def _parse_tzdb_offset_str_to_fixedprec_secs(offset_str: str) -> FixedPrec:
     return offset_abs * sign
   else:
     raise ValueError(f'Offset string format unknown: {offset_str}')
+
+def _parse_tzdb_parse_day_in_month_str(day_in_month_str: str) -> _parse_tzdb_DayDict:
+  if match := _parse_tzdb_rule_date_int_regex.match(day_in_month_str):
+    return {
+      'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+      'day': int(match[1]),
+    }
+  elif match := _parse_tzdb_rule_date_last_regex.match(day_in_month_str):
+    return {
+      'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
+      'week': 1,
+      'day_in_week': GregorianDate.WEEK_NAMES_SHORT.index(match[1]),
+      'from_month_end': True,
+    }
+  elif match := _parse_tzdb_rule_date_ge_regex.match(day_in_month_str):
+    return {
+      'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEKDAY_DAY_GE,
+      'day_in_week': GregorianDate.WEEK_NAMES_SHORT.index(match[1]),
+      'day': int(match[2]),
+    }
+  elif match := _parse_tzdb_rule_date_le_regex.match(day_in_month_str):
+    return {
+      'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEKDAY_DAY_LE,
+      'day_in_week': GregorianDate.WEEK_NAMES_SHORT.index(match[1]),
+      'day': int(match[2]),
+    }
+  else:
+    raise ValueError(f'day in month format unknown: {day_in_month_str}')
+
+def _parse_tzdb_day_in_month_dict_to_date(year: Integral, month: Integral, day_dict: _parse_tzdb_DayDict) -> GregorianDate:
+  return TimeZone.realize_offset_entry(year, {
+    'month': month,
+    **day_dict,
+  })
 
 def _parse_tzdb_get_filtered_lines(tgz_file: TarFile) -> list[str]:
   # get all zone/rule files
@@ -181,7 +217,7 @@ def _parse_tzdb_get_result_dicts_zone(offset_str, rules, abbr_format, until_list
       month = GregorianDate.MONTH_NAMES_SHORT.index(until_list[1]) + 1
       
       if len(until_list) >= 3:
-        day = int(until_list[2])
+        day_dict = _parse_tzdb_parse_day_in_month_str(until_list[2])
         
         if len(until_list) >= 4:
           secs_since_day_start, time_mode = _parse_tzdb_time_str_to_fixedprec_secs_from_day_start(until_list[3])
@@ -189,16 +225,25 @@ def _parse_tzdb_get_result_dicts_zone(offset_str, rules, abbr_format, until_list
           secs_since_day_start = FixedPrec(0)
           time_mode = _parse_tzdb_time_types.WALL
       else:
-        day = 1
+        day_dict = {
+          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+          'day': 1,
+        }
         secs_since_day_start = FixedPrec(0)
         time_mode = _parse_tzdb_time_types.WALL
     else:
       month = 1
-      day = 1
+      day_dict = {
+        'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+        'day': 1,
+      }
       secs_since_day_start = FixedPrec(0)
       time_mode = _parse_tzdb_time_types.WALL
     
-    time_since_year_start = (GregorianDate(year, month, day) - GregorianDate(year, 1, 1)).date_delta * NOMINAL_SECS_PER_DAY + secs_since_day_start
+    time_since_year_start = (
+      _parse_tzdb_day_in_month_dict_to_date(year, month, day_dict) -
+      GregorianDate(year, 1, 1)
+    ).date_delta * NOMINAL_SECS_PER_DAY + secs_since_day_start
     
     entry_dict['until'] = {
       'year': year,
@@ -210,7 +255,7 @@ def _parse_tzdb_get_result_dicts_zone(offset_str, rules, abbr_format, until_list
   
   return entry_dict
 
-def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict:
+def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict[str, dict[str, list[str | dict]]]:
   last_line_type = None
   
   # format:
@@ -290,33 +335,7 @@ def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict:
           entry_dict['to_year_inclusive'] = int(to_year_str)
         
         entry_dict['month'] = GregorianDate.MONTH_NAMES_SHORT.index(month) + 1
-        
-        if match := _parse_tzdb_rule_date_int_regex.match(date):
-          entry_dict['day'] = {
-            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
-            'day': int(match[1]),
-          }
-        elif match := _parse_tzdb_rule_date_last_regex.match(date):
-          entry_dict['day'] = {
-            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
-            'week': 1,
-            'day_in_week': GregorianDate.WEEK_NAMES_SHORT.index(match[1]),
-            'from_month_end': True,
-          }
-        elif match := _parse_tzdb_rule_date_ge_regex.match(date):
-          entry_dict['day'] = {
-            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEKDAY_DAY_GE,
-            'day_in_week': GregorianDate.WEEK_NAMES_SHORT.index(match[1]),
-            'day': int(match[2]),
-          }
-        elif match := _parse_tzdb_rule_date_le_regex.match(date):
-          entry_dict['day'] = {
-            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEKDAY_DAY_LE,
-            'day_in_week': GregorianDate.WEEK_NAMES_SHORT.index(match[1]),
-            'day': int(match[2]),
-          }
-        else:
-          raise ValueError(f'date in month format unknown: {date}')
+        entry_dict['day'] = _parse_tzdb_parse_day_in_month_str(date)
         
         entry_dict['from_day_start'] = _parse_tzdb_time_str_to_fixedprec_secs_from_day_start(time_str)
         entry_dict['offset_from_standard'] = _parse_tzdb_offset_str_to_fixedprec_secs(offset_str)
@@ -339,10 +358,6 @@ def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict:
       
       case ('Zone-Continue',), offset_str, rules, abbr_format, *until_list:
         if last_line_type == 'Zone':
-          if len(until_list) >= 3:
-            # TODO remove ignored cases
-            if until_list[2] == 'lastSun' or until_list[2] == 'Sun>=1':
-              continue
           entry_dict = _parse_tzdb_get_result_dicts_zone(offset_str, rules, abbr_format, until_list)
           
           if zone_name not in zones_dict:

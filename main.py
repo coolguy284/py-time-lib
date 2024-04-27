@@ -9,21 +9,24 @@ from py_time_lib.update_timezone_db import _parse_tzdb_get_filtered_lines, _pars
 TimeInstant.update_leap_seconds()
 
 RunModes = Enum('RunModes', (
-  'BASIC_DATE_TESTING',
-  'ISO_WEEK_TESTING',
-  'AUTO_LEAP_SECONDS_TESTS',
+  'TEST_BASIC_DATE',
+  'TEST_ISO_WEEK',
+  'TEST_AUTO_LEAP_SECONDS',
   'TEST_CALENDARS',
   'TEST_TZDB',
+  'GENERATE_TZDB_DUMP',
+  'HELP',
   'REPL',
 ))
 
-mode = RunModes.REPL
+mode = RunModes.HELP
 
 if len(sys.argv) > 1:
+  run_mode = sys.argv[1]
   try:
-    mode = RunModes[sys.argv[1]]
+    mode = RunModes[run_mode]
   except KeyError:
-    pass
+    raise SystemExit(f'Unrecognized run mode {run_mode}')
 
 def save_tzdb_stage_1_dump():
   os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
@@ -47,7 +50,7 @@ def save_tzdb_stage_2_dump():
     
     f.write(fancy_format(data) + '\n')
 
-if mode == RunModes.BASIC_DATE_TESTING:
+if mode == RunModes.TEST_BASIC_DATE:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
   
   print(date_to_days_since_epoch(1901, 1, 1) - date_to_days_since_epoch(1900, 1, 1))
@@ -82,14 +85,14 @@ if mode == RunModes.BASIC_DATE_TESTING:
   
   print(GregorianDate.from_iso_string('2024-03-27'))
   print()
-elif mode == RunModes.ISO_WEEK_TESTING:
+elif mode == RunModes.TEST_ISO_WEEK:
   def print_date_info(year):
     prev_date = (datetime.date(year, 12, 31) + datetime.timedelta(days = 1)).isocalendar()
     next_date = (datetime.date(year, 1, 1) - datetime.timedelta(days = 1)).isocalendar()
     print([prev_date, next_date])
   for i in range(2020, 2030):
     print_date_info(i)
-elif mode == RunModes.AUTO_LEAP_SECONDS_TESTS:
+elif mode == RunModes.TEST_AUTO_LEAP_SECONDS:
   #print(parse_leap_sec_file(get_leap_sec_stored_file()))
   #print(get_current_ntp_timestamp())
   print(get_leap_sec_data())
@@ -107,8 +110,17 @@ elif mode == RunModes.TEST_CALENDARS:
   print(HoloceneDate(12024, 4, 13).get_yearly_calendar())
   print()
 elif mode == RunModes.TEST_TZDB:
-  save_tzdb_stage_1_dump()
+  #print(repr(get_tzdb_data())[:1000])
   save_tzdb_stage_2_dump()
+elif mode == RunModes.GENERATE_TZDB_DUMP:
+  print('Stage 1 dump...')
+  save_tzdb_stage_1_dump()
+  print('Stage 2 dump...')
+  save_tzdb_stage_2_dump()
+elif mode == RunModes.HELP:
+  print('Available Run Modes:')
+  for mode in RunModes.__members__:
+    print(mode)
 elif mode == RunModes.REPL:
   # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
   code.interact(local = globals())
