@@ -103,7 +103,7 @@ def _parse_tzdb_offset_str_to_fixedprec_secs(offset_str: str) -> FixedPrec:
   else:
     raise ValueError(f'Offset string format unknown: {offset_str}')
 
-def _parse_tzdb_get_processed_lines(tgz_file: TarFile) -> list[list[str]]:
+def _parse_tzdb_get_filtered_lines(tgz_file: TarFile) -> list[str]:
   # get all zone/rule files
   
   all_names = tgz_file.getnames()
@@ -146,6 +146,9 @@ def _parse_tzdb_get_processed_lines(tgz_file: TarFile) -> list[list[str]]:
     if len(non_comment.strip()) > 0:
       filtered_lines.append(non_comment)
   
+  return filtered_lines
+
+def _parse_tzdb_get_processed_lines(filtered_lines: list[str]) -> list[list[str]]:
   # split lines to each part
   
   lines_split = []
@@ -367,8 +370,8 @@ def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict:
   }
 
 def parse_tzdb(tgz_file: TarFile) -> dict:
-  lines_split = _parse_tzdb_get_processed_lines(tgz_file)
-  
+  filtered_lines = _parse_tzdb_get_filtered_lines(tgz_file)
+  lines_split = _parse_tzdb_get_processed_lines(filtered_lines)
   result_dicts = _parse_tzdb_get_result_dicts(lines_split)
   
   return result_dicts
@@ -377,15 +380,13 @@ def get_tzdb_stored_file_version(file_path: str = DEFAULT_TZDB_PATH) -> str:
   with get_tzdb_stored_file(file_path) as tgz_file:
     return parse_tzdb_version(tgz_file)
 
-def get_tzdb_data(
+def update_stored_tzdb_if_needed(
     update_check_time: TimeStorageType = DEFAULT_TZDB_UPDATE_CHECK_TIME,
     tzdb_url: str = DEFAULT_TZDB_URL,
     version_url: str = DEFAULT_TZDB_VERSION_URL,
     db_file_path: str = DEFAULT_TZDB_PATH,
     downloaded_time_file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH
   ):
-  'Gets leap second array from file (if not too old) or from https://data.iana.org/time-zones/tzdata-latest.tar.gz.'
-  
   current_instant = time_inst.TimeInstant.now()
   
   create_new_file = False
@@ -412,6 +413,23 @@ def get_tzdb_data(
   if create_new_file:
     set_tzdb_stored_file(get_tzdb_online_file(tzdb_url), db_file_path)
     set_tzdb_stored_file_downloaded_time(current_instant, downloaded_time_file_path)
+
+def get_tzdb_data(
+    update_check_time: TimeStorageType = DEFAULT_TZDB_UPDATE_CHECK_TIME,
+    tzdb_url: str = DEFAULT_TZDB_URL,
+    version_url: str = DEFAULT_TZDB_VERSION_URL,
+    db_file_path: str = DEFAULT_TZDB_PATH,
+    downloaded_time_file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH
+  ):
+  'Gets timezone database from file (if not too old) or from https://data.iana.org/time-zones/tzdata-latest.tar.gz.'
+  
+  update_stored_tzdb_if_needed(
+    update_check_time = update_check_time,
+    tzdb_url = tzdb_url,
+    version_url = version_url,
+    db_file_path = db_file_path,
+    downloaded_time_file_path = downloaded_time_file_path
+  )
   
   with get_tzdb_stored_file(db_file_path) as tgz_file:
     return parse_tzdb(tgz_file)

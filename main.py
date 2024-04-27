@@ -4,6 +4,7 @@ from enum import Enum
 from py_time_lib import *
 from py_time_lib.update_leap_seconds import *
 from py_time_lib.update_timezone_db import *
+from py_time_lib.update_timezone_db import _parse_tzdb_get_filtered_lines, _parse_tzdb_get_processed_lines, _parse_tzdb_get_result_dicts
 
 TimeInstant.update_leap_seconds()
 
@@ -24,13 +25,26 @@ if len(sys.argv) > 1:
   except KeyError:
     pass
 
+def save_tzdb_stage_1_dump():
+  os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
+  
+  update_stored_tzdb_if_needed()
+  
+  with open('main_data/tzdb_dump_stage_1.txt', 'w') as f:
+    with get_tzdb_stored_file() as tgz_file:
+      data = _parse_tzdb_get_filtered_lines(tgz_file)
+    
+    f.write('\n'.join(data) + '\n')
+
 def save_tzdb_stage_2_dump():
   os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
   
-  with open('main_data/tzdb_dump.txt', 'w') as f:
-    data = get_tzdb_data()
+  update_stored_tzdb_if_needed()
+  
+  with open('main_data/tzdb_dump_stage_2.txt', 'w') as f:
+    with get_tzdb_stored_file() as tgz_file:
+      data = _parse_tzdb_get_result_dicts(_parse_tzdb_get_processed_lines(_parse_tzdb_get_filtered_lines(tgz_file)))
     
-    #pprint.pprint(data, f)
     f.write(fancy_format(data) + '\n')
 
 if mode == RunModes.BASIC_DATE_TESTING:
@@ -93,6 +107,7 @@ elif mode == RunModes.TEST_CALENDARS:
   print(HoloceneDate(12024, 4, 13).get_yearly_calendar())
   print()
 elif mode == RunModes.TEST_TZDB:
+  save_tzdb_stage_1_dump()
   save_tzdb_stage_2_dump()
 elif mode == RunModes.REPL:
   # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
