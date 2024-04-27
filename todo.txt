@@ -5,19 +5,25 @@ support for -00:00 offset as None
 and include factory zone as result
 use proper timezone names so that timeinstant to struct time doesnt have name of NULL (2 instances of this in code)
 
+support leapsecs on timezones with fractional offset by abruptly going to second 60 then going back to normal after (negative leap seconds are just a normal skip)
+
 strptime support
 add leap smear support
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
 complete all ... and notimplementederrors
 
+_mono functions for to and from monotonic timescales
+
 low prio:
 proper handling of "factory" timezone in tzdb
 make some static methods underscore to show they are internal
 error for out of bounds values in timeinstant from date tuple
-datedelta from/to timedelta
 support dst shifts that go across a year boundary
 add leap second support to now
+remove year = <>, month = <> from gregorian date repr
 strftime & strptime add param for enabling custom flags like %f.6
+  and add datetime's 4 custom format strings
+
 add aliases from datetime library, maybe full compatibility class
 simpledatetime/simpletimedelta wrapper around the date classes
   maybe holds a timezone value to use for setyear and stuff
@@ -38,6 +44,7 @@ tests:
   timeinstant: test for fixed offset timezone support of pos/neg leap seconds
 
 prob not doing:
+datedelta from/to timedelta
 add calendar functionality for isoweekdate
 bump up max precision on the fixedprec on julian date calculations during calculation and reduce max prec to normal after
   default false option to do this

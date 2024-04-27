@@ -16,7 +16,7 @@ RunModes = Enum('RunModes', (
   'REPL',
 ))
 
-mode = RunModes.TEST_TZDB
+mode = RunModes.REPL
 
 if mode == RunModes.BASIC_DATE_TESTING:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
