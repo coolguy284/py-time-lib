@@ -1,4 +1,4 @@
-import code, datetime, time
+import code, datetime, pprint, os, sys, time
 from enum import Enum
 
 from py_time_lib import *
@@ -17,6 +17,21 @@ RunModes = Enum('RunModes', (
 ))
 
 mode = RunModes.REPL
+
+if len(sys.argv) > 1:
+  try:
+    mode = RunModes[sys.argv[1]]
+  except KeyError:
+    pass
+
+def save_tzdb_stage_2_dump():
+  os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
+  
+  with open('main_data/tzdb_dump.txt', 'w') as f:
+    data = get_tzdb_data()
+    
+    #pprint.pprint(data, f)
+    f.write(fancy_format(data) + '\n')
 
 if mode == RunModes.BASIC_DATE_TESTING:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
@@ -78,7 +93,7 @@ elif mode == RunModes.TEST_CALENDARS:
   print(HoloceneDate(12024, 4, 13).get_yearly_calendar())
   print()
 elif mode == RunModes.TEST_TZDB:
-  get_tzdb_data()
+  save_tzdb_stage_2_dump()
 elif mode == RunModes.REPL:
   # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
   code.interact(local = globals())

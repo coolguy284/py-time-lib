@@ -1,4 +1,5 @@
 __pycache__
+main_data
 py_time_lib/data/leap-seconds.list
 py_time_lib/data/tzdata-latest.tar.gz
 py_time_lib/data/tzdb-downloaded-time.txt
