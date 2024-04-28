@@ -7,6 +7,7 @@ _mono functions for to and from monotonic timescales
 
 low prio:
 find listing of mappings from timezone abbreviations to timezone full names
+  fix all edge cases with proleptic fixed abbreviations
 support leapsecs on timezones with fractional offset by abruptly going to second 60 then going back to normal after (negative leap seconds are just a normal skip)
   can do this for leap seconds at any point in minute on utc as well; and 2nd leap second in same minute would just continue ticking past 61 where the past leap second left off
 support for -00:00 offset as None

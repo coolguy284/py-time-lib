@@ -454,7 +454,8 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
             'abbreviation': abbr,
           })
     else:
-      initial_abbr = abbr_format
+      # guess "S" as the standard letter when no valid rule providing a letter exists
+      initial_abbr = abbr_format.replace('%s', 'S')
       later_offsets = ()
     
     proleptic_varying[zone_name] = TimeZone({
