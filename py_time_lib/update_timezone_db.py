@@ -475,7 +475,7 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
   #   ...
   # }
   return {
-    'proleptic_varying': proleptic_varying,
+    'proleptic_variable': proleptic_varying,
     'proleptic_fixed': proleptic_fixed,
     'full_varying': {},
     'full_fixed': {},

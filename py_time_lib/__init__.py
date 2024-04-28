@@ -28,7 +28,7 @@ from .update_timezone_db import get_tzdb_data as _Tzdb_get_tzdb_data
 _DateBase_init_module_vars()
 
 TIMEZONES: dict[str, dict[str, TimeZone]] = {
-  'proleptic_varying': {},
+  'proleptic_variable': {},
   'proleptic_fixed': {},
   'full_varying': {},
   'full_fixed': {},

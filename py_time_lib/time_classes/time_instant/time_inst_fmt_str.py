@@ -140,7 +140,10 @@ class TimeInstantFormatString(TimeInstantTimeZones):
           elif char == 'y':
             result += f'{info['year'] % 100:0>2}'
           elif char == 'Y':
-            result += f'{info['year']:0>4}'
+            if info['year'] < 0:
+              result += f'-{-info['year']:0>3}'
+            else:
+              result += f'{info['year']:0>4}'
           elif char == 'z':
             result += cls.fixedprec_offset_to_str(info['tz_offset'])
           elif char == 'Z':
