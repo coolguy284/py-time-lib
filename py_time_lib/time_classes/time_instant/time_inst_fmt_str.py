@@ -88,7 +88,7 @@ class TimeInstantFormatString(TimeInstantTimeZones):
         elif char == 'd':
           result += f'{info['day']:0>2}'
         elif char == 'f':
-          result += f'{int(info['frac_second'] * cls.NOMINAL_MICROSECS_PER_SEC):0>2}'
+          result += f'{int(info['frac_second'] * cls.NOMINAL_MICROSECS_PER_SEC):0>6}'
         elif char == 'H':
           result += f'{info['hour']:0>2}'
         elif char == 'I':
