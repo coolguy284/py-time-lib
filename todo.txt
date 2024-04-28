@@ -1,11 +1,6 @@
-continue parsing tzdb
 find listing of mappings from timezone abbreviations to timezone full names
 
-support for -00:00 offset as None
-and include factory zone as result
 use proper timezone names so that timeinstant to struct time doesnt have name of NULL (2 instances of this in code)
-
-support leapsecs on timezones with fractional offset by abruptly going to second 60 then going back to normal after (negative leap seconds are just a normal skip)
 
 strptime support
 add leap smear support
@@ -15,7 +10,10 @@ complete all ... and notimplementederrors
 _mono functions for to and from monotonic timescales
 
 low prio:
-proper handling of "factory" timezone in tzdb
+support leapsecs on timezones with fractional offset by abruptly going to second 60 then going back to normal after (negative leap seconds are just a normal skip)
+  can do this for leap seconds at any point in minute on utc as well; and 2nd leap second in same minute would just continue ticking past 61 where the past leap second left off
+support for -00:00 offset as None
+and include factory zone as result (proper handling of "factory" timezone in tzdb)
 make some static methods underscore to show they are internal
 error for out of bounds values in timeinstant from date tuple
 support dst shifts that go across a year boundary
@@ -42,6 +40,7 @@ tests:
   timeinstant: test for passing in non-gregoriandate into to/from date tuple
   timeinstant: proper tests for timezone leapsecond, dst support
   timeinstant: test for fixed offset timezone support of pos/neg leap seconds
+  timezone: test for tz name not just abbreviation
 
 prob not doing:
 datedelta from/to timedelta

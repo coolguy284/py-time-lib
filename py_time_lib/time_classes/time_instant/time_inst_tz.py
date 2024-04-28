@@ -53,15 +53,15 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
               raise TimeUnmappableError('tz time does not map to utc')
           
           # past the end of spring forward or adjusted to the end
-          initial_tz_secs_since_epoch = tz_secs_since_epoch - (dst_entry['utc_offset'] - time_zone.initial_utc_offset)
+          initial_tz_secs_since_epoch = tz_secs_since_epoch - (dst_entry['utc_offset'] - time_zone.initial_offset['utc_offset'])
         else:
           # fall back
           if dst_second_fold or current_offset_time_in_year >= dst_entry['current_offset_start_time_in_year']:
-            initial_tz_secs_since_epoch = tz_secs_since_epoch - (dst_entry['utc_offset'] - time_zone.initial_utc_offset)
+            initial_tz_secs_since_epoch = tz_secs_since_epoch - (dst_entry['utc_offset'] - time_zone.initial_offset['utc_offset'])
           else:
-            initial_tz_secs_since_epoch = tz_secs_since_epoch - (dst_entry['utc_offset'] - time_zone.initial_utc_offset) + dst_entry['dst_transition_offset']
+            initial_tz_secs_since_epoch = tz_secs_since_epoch - (dst_entry['utc_offset'] - time_zone.initial_offset['utc_offset']) + dst_entry['dst_transition_offset']
     
-    secs_since_epoch = initial_tz_secs_since_epoch - time_zone.initial_utc_offset
+    secs_since_epoch = initial_tz_secs_since_epoch - time_zone.initial_offset['utc_offset']
     
     return cls.from_utc_secs_since_epoch(secs_since_epoch, leap_second_fold, round_invalid_time_upwards = round_invalid_leap_time_upwards)
   
@@ -84,7 +84,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     time += second
     time += frac_second
     
-    offset = cls.from_tz_secs_since_epoch(
+    offset, _ = cls.from_tz_secs_since_epoch(
       time_zone,
       time,
       dst_second_fold = dst_second_fold,
@@ -116,7 +116,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     'Returns a tuple of the form (secs_since_epoch, dst_second_fold, leap_second_fold).'
     
     secs_since_epoch, leap_second_fold = self.to_utc_secs_since_epoch()
-    initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_utc_offset
+    initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_offset['utc_offset']
     
     if len(time_zone.later_offsets) == 0:
       tz_secs_since_epoch = initial_tz_secs_since_epoch
@@ -132,7 +132,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       else:
         dst_table_index = binary_search(lambda x: init_offset_time_in_year >= offset_times[x]['init_offset_start_time_in_year'], 0, len(offset_times))
         dst_entry = offset_times[dst_table_index]
-        tz_secs_since_epoch = initial_tz_secs_since_epoch + (dst_entry['utc_offset'] - time_zone.initial_utc_offset)
+        tz_secs_since_epoch = initial_tz_secs_since_epoch + (dst_entry['utc_offset'] - time_zone.initial_offset['utc_offset'])
         if dst_entry['dst_transition_offset'] < 0:
           if init_offset_time_in_year - dst_entry['init_offset_start_time_in_year'] < -dst_entry['dst_transition_offset']:
             dst_second_fold = True
@@ -157,10 +157,10 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       second = int(second + second_addl)
     return DateTupleTZ(*date, hour, minute, second, frac_second, dst_second_fold)
   
-  def current_tz_offset(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> FixedPrec:
+  def current_tz_offset(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
     secs_since_epoch, _ = self.to_utc_secs_since_epoch()
-    initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_utc_offset
-    offset = time_zone.initial_utc_offset
+    initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_offset['utc_offset']
+    offset = time_zone.initial_offset['utc_offset']
     
     if len(time_zone.later_offsets) != 0:
       prelim_year = self.epoch_instant_to_date_tuple(initial_tz_secs_since_epoch, date_cls = date_cls)[0]
@@ -170,9 +170,14 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       if offset_times[0]['init_offset_start_time_in_year'] <= init_offset_time_in_year:
         dst_table_index = binary_search(lambda x: init_offset_time_in_year >= offset_times[x]['init_offset_start_time_in_year'], 0, len(offset_times))
         dst_entry = offset_times[dst_table_index]
-        offset += (dst_entry['utc_offset'] - time_zone.initial_utc_offset)
+        offset += (dst_entry['utc_offset'] - time_zone.initial_offset['utc_offset'])
+        offset_abbr = dst_entry['abbreviation']
+      else:
+        offset_abbr = time_zone.initial_offset['abbreviation']
+    else:
+      offset_abbr = time_zone.initial_offset['abbreviation']
     
-    return offset
+    return offset, offset_abbr
   
   def get_date_object_tz[T: JulGregBaseDate](self, time_zone: time_zone.TimeZone, date_cls: type[T] = GregorianDate) -> T:
     return date_cls(*self.to_date_tuple_tz(time_zone, date_cls = date_cls)[:3])

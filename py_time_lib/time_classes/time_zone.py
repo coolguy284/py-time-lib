@@ -43,15 +43,28 @@ class TimeZone:
   
   # instance stuff
   
-  __slots__ = '_initial_utc_offset', '_later_offsets'
-  _initial_utc_offset: FixedPrec
+  __slots__ = '_data_name', '_initial_offset', '_later_offsets'
+  _data_name: str
+  _initial_offset: dict[str]
   _later_offsets: tuple[dict[str], ...]
   
-  def __init__(self, initial_utc_offset: FixedPrec | int | float | str, later_offsets: Iterable[dict[str, OffsetDayMode | Integral | FixedPrec | bool]] = (), coerce_to_fixed_prec: bool = True):
-    if coerce_to_fixed_prec and not isinstance(initial_utc_offset, FixedPrec):
-      self._initial_utc_offset = FixedPrec.from_basic(initial_utc_offset)
+  def __init__(self, initial_offset: dict[str, FixedPrec | int | float | str | None], later_offsets: Iterable[dict[str, OffsetDayMode | Integral | FixedPrec | bool]] = (), coerce_to_fixed_prec: bool = True):
+    self._initial_offset = {}
+    
+    if coerce_to_fixed_prec and not isinstance(initial_offset['utc_offset'], FixedPrec):
+      self._initial_offset['utc_offset'] = FixedPrec.from_basic(initial_offset['utc_offset'])
     else:
-      self._initial_utc_offset = initial_utc_offset
+      self._initial_offset['utc_offset'] = initial_offset['utc_offset']
+    
+    self._initial_offset['abbreviation'] = initial_offset.get('abbreviation', None)
+    self._initial_offset['name'] = initial_offset.get('name', None)
+    
+    # format for initial_offset:
+    # {
+    #   'utc_offset': FixedPrec seconds,
+    #   'abbreviation': str | None,
+    #   'name': str | None,
+    # }
     
     # format for later_offsets:
     # [
@@ -67,6 +80,8 @@ class TimeZone:
     #       'from_month_end': bool,
     #     'start_time_in_day': FixedPrec seconds,
     #     'utc_offset': FixedPrec seconds,
+    #     'abbreviation': str | None,
+    #     'name': str | None,
     #   }
     # ]
     
@@ -103,19 +118,22 @@ class TimeZone:
       else:
         offset_entry_processed['utc_offset'] = offset_entry['utc_offset']
       
+      offset_entry_processed['abbreviation'] = offset_entry.get('abbreviation', None)
+      offset_entry_processed['name'] = offset_entry.get('name', None)
+      
       later_offsets_processed.append(offset_entry_processed)
     
     self._later_offsets = tuple(later_offsets_processed)
   
   def __repr__(self):
-    return f'{self.__class__.__name__}({self.initial_utc_offset!r}, {self.later_offsets!r})'
+    return f'{self.__class__.__name__}({self.initial_offset!r}, {self.later_offsets!r})'
   
   def __str__(self):
-    return f'TZ: UTC+{time_inst.TimeInstant.fixedprec_offset_to_str(self.initial_utc_offset)} (initial){'; + others' if len(self.later_offsets) > 0 else ''}'
+    return f'TZ: UTC+{time_inst.TimeInstant.fixedprec_offset_to_str(self.initial_offset['utc_offset'])} (initial){'; + others' if len(self.later_offsets) > 0 else ''}'
   
   @property
-  def initial_utc_offset(self) -> FixedPrec:
-    return self._initial_utc_offset
+  def initial_offset(self) -> FixedPrec:
+    return self._initial_offset
   
   @property
   def later_offsets(self) -> tuple[dict[str], ...]:
@@ -136,7 +154,7 @@ class TimeZone:
     
     offset_times = []
     
-    current_offset = self.initial_utc_offset
+    current_offset = self.initial_offset['utc_offset']
     year_start_time = time_inst.TimeInstant.date_tuple_to_epoch_instant(year, 1, 1, 0, 0, 0, 0, date_cls = GregorianDate)
     
     for later_offset_entry in self.later_offsets:
@@ -148,9 +166,9 @@ class TimeZone:
         date_cls = date_cls
       )
       
-      later_time = later_instant + later_offset_entry['start_time_in_day'] - (current_offset - self.initial_utc_offset)
+      later_time = later_instant + later_offset_entry['start_time_in_day'] - (current_offset - self.initial_offset['utc_offset'])
       init_offset_start_time_in_year = later_time - year_start_time
-      current_offset_start_time_in_year = init_offset_start_time_in_year + (current_offset - self.initial_utc_offset)
+      current_offset_start_time_in_year = init_offset_start_time_in_year + (current_offset - self.initial_offset['utc_offset'])
       utc_offset = later_offset_entry['utc_offset']
       dst_transition_offset = utc_offset - current_offset
       current_offset_end_time_in_year = current_offset_start_time_in_year + dst_transition_offset
@@ -162,6 +180,8 @@ class TimeZone:
         'current_offset_min_time_in_year': current_offset_min_time_in_year,
         'utc_offset': utc_offset,
         'dst_transition_offset': dst_transition_offset,
+        'abbreviation': later_offset_entry['abbreviation'],
+        'name': later_offset_entry['name'],
       })
       current_offset = later_offset_entry['utc_offset']
     

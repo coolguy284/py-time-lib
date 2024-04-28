@@ -738,11 +738,11 @@ class TestTimeClasses(unittest.TestCase):
       d1 = TimeInstant(2024)
       d1.prop = False
     with self.assertRaises(AttributeError):
-      d1 = TimeZone(2, ())
+      d1 = TimeZone({'utc_offset': 2}, ())
       d1.prop = False
   
   def test_timezone_fixed(self):
-    tz = TimeZone(3_600)
+    tz = TimeZone({'utc_offset': 3_600})
     instant = TimeInstant.from_date_tuple_utc(2024, 4, 21, 23, 1, 2, FixedPrec('0.3'))
     instant_copy = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 22, 0, 1, 2, FixedPrec('0.3'))
     self.assertEqual(instant.to_date_tuple_tz(tz), (2024, 4, 22, 0, 1, 2, FixedPrec('0.3'), False))
@@ -750,7 +750,10 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_timezone_variable(self):
     tz = TimeZone(
-      initial_utc_offset = 1 * 3_600,
+      initial_offset = {
+        'utc_offset': 1 * 3_600,
+        'abbreviation': 'Test1',
+      },
       later_offsets = (
         {
           'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
@@ -758,6 +761,7 @@ class TestTimeClasses(unittest.TestCase):
           'day': 15,
           'start_time_in_day': 5 * 3_600,
           'utc_offset': 2 * 3_600,
+          'abbreviation': 'Test2',
         },
         {
           'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
@@ -767,11 +771,12 @@ class TestTimeClasses(unittest.TestCase):
           'from_month_end': True,
           'start_time_in_day': 30 * 60,
           'utc_offset': 1 * 3_600,
+          'abbreviation': 'Test3',
         },
       )
     )
     
-    def test(instant: TimeInstant, utc_tuple, tz_tuple, offset):
+    def test(instant: TimeInstant, utc_tuple, tz_tuple, offset, abbr):
       utc_tuple = *utc_tuple[:6], FixedPrec(utc_tuple[6])
       tz_tuple = *tz_tuple[:6], FixedPrec(tz_tuple[6]), tz_tuple[7]
       inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
@@ -780,7 +785,7 @@ class TestTimeClasses(unittest.TestCase):
       self.assertEqual(instant, inst_from_tz)
       self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
       self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
-      self.assertEqual(instant.current_tz_offset(tz), FixedPrec(offset))
+      self.assertEqual(instant.current_tz_offset(tz), (FixedPrec(offset), abbr))
     
     def test2(instant: TimeInstant, tz_tuple, rounded_utc_tuple, rounded_tz_tuple):
       rounded_utc_tuple = *rounded_utc_tuple[:6], FixedPrec(rounded_utc_tuple[6])
@@ -805,15 +810,15 @@ class TestTimeClasses(unittest.TestCase):
     ta7 = ta4 + TimeDelta(FixedPrec('3600'))
     ta8 = ta4 + TimeDelta(FixedPrec('3600.1'))
     
-    test(ta0, (2023, 4, 15, 2, 59, 59, '0.9'), (2023, 4, 15, 3, 59, 59, '0.9', False), '3600')
-    test(ta1, (2023, 4, 15, 3, 0,  0,  '0'  ), (2023, 4, 15, 4, 0,  0,  '0',   False), '3600')
-    test(ta2, (2023, 4, 15, 3, 0,  0,  '0.1'), (2023, 4, 15, 4, 0,  0,  '0.1', False), '3600')
-    test(ta3, (2023, 4, 15, 3, 59, 59, '0.9'), (2023, 4, 15, 4, 59, 59, '0.9', False), '3600')
-    test(ta4, (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False), '7200')
-    test(ta5, (2023, 4, 15, 4, 0,  0,  '0.1'), (2023, 4, 15, 6, 0,  0,  '0.1', False), '7200')
-    test(ta6, (2023, 4, 15, 4, 59, 59, '0.9'), (2023, 4, 15, 6, 59, 59, '0.9', False), '7200')
-    test(ta7, (2023, 4, 15, 5, 0,  0,  '0'  ), (2023, 4, 15, 7, 0,  0,  '0',   False), '7200')
-    test(ta8, (2023, 4, 15, 5, 0,  0,  '0.1'), (2023, 4, 15, 7, 0,  0,  '0.1', False), '7200')
+    test(ta0, (2023, 4, 15, 2, 59, 59, '0.9'), (2023, 4, 15, 3, 59, 59, '0.9', False), '3600', 'Test1')
+    test(ta1, (2023, 4, 15, 3, 0,  0,  '0'  ), (2023, 4, 15, 4, 0,  0,  '0',   False), '3600', 'Test1')
+    test(ta2, (2023, 4, 15, 3, 0,  0,  '0.1'), (2023, 4, 15, 4, 0,  0,  '0.1', False), '3600', 'Test1')
+    test(ta3, (2023, 4, 15, 3, 59, 59, '0.9'), (2023, 4, 15, 4, 59, 59, '0.9', False), '3600', 'Test1')
+    test(ta4, (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False), '7200', 'Test2')
+    test(ta5, (2023, 4, 15, 4, 0,  0,  '0.1'), (2023, 4, 15, 6, 0,  0,  '0.1', False), '7200', 'Test2')
+    test(ta6, (2023, 4, 15, 4, 59, 59, '0.9'), (2023, 4, 15, 6, 59, 59, '0.9', False), '7200', 'Test2')
+    test(ta7, (2023, 4, 15, 5, 0,  0,  '0'  ), (2023, 4, 15, 7, 0,  0,  '0',   False), '7200', 'Test2')
+    test(ta8, (2023, 4, 15, 5, 0,  0,  '0.1'), (2023, 4, 15, 7, 0,  0,  '0.1', False), '7200', 'Test2')
     
     test2(ta4, (2023, 4, 15, 5, 0,  0,  '0',   False), (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False))
     test2(ta4, (2023, 4, 15, 5, 0,  0,  '0.1', False), (2023, 4, 15, 4, 0,  0,  '0'  ), (2023, 4, 15, 6, 0,  0,  '0',   False))
@@ -832,18 +837,18 @@ class TestTimeClasses(unittest.TestCase):
     tb10 = tb4 + TimeDelta(FixedPrec('7200'))
     tb11 = tb4 + TimeDelta(FixedPrec('7200.1'))
     
-    test(tb0,  (2023, 8, 28, 21, 29, 59, '0.9'), (2023, 8, 28, 23, 29, 59, '0.9', False), '7200')
-    test(tb1,  (2023, 8, 28, 21, 30, 0,  '0'  ), (2023, 8, 28, 23, 30, 0,  '0',   False), '7200')
-    test(tb2,  (2023, 8, 28, 21, 30, 0,  '0.1'), (2023, 8, 28, 23, 30, 0,  '0.1', False), '7200')
-    test(tb3,  (2023, 8, 28, 22, 29, 59, '0.9'), (2023, 8, 29, 0,  29, 59, '0.9', False), '7200')
-    test(tb4,  (2023, 8, 28, 22, 30, 0,  '0'  ), (2023, 8, 28, 23, 30, 0,  '0',   True ), '3600')
-    test(tb5,  (2023, 8, 28, 22, 30, 0,  '0.1'), (2023, 8, 28, 23, 30, 0,  '0.1', True ), '3600')
-    test(tb6,  (2023, 8, 28, 23, 29, 59, '0.9'), (2023, 8, 29, 0,  29, 59, '0.9', True ), '3600')
-    test(tb7,  (2023, 8, 28, 23, 30, 0,  '0'  ), (2023, 8, 29, 0,  30, 0,  '0',   False), '3600')
-    test(tb8,  (2023, 8, 28, 23, 30, 0,  '0.1'), (2023, 8, 29, 0,  30, 0,  '0.1', False), '3600')
-    test(tb9,  (2023, 8, 29, 0,  29, 59, '0.9'), (2023, 8, 29, 1,  29, 59, '0.9', False), '3600')
-    test(tb10, (2023, 8, 29, 0,  30, 0,  '0'  ), (2023, 8, 29, 1,  30, 0,  '0',   False), '3600')
-    test(tb11, (2023, 8, 29, 0,  30, 0,  '0.1'), (2023, 8, 29, 1,  30, 0,  '0.1', False), '3600')
+    test(tb0,  (2023, 8, 28, 21, 29, 59, '0.9'), (2023, 8, 28, 23, 29, 59, '0.9', False), '7200', 'Test2')
+    test(tb1,  (2023, 8, 28, 21, 30, 0,  '0'  ), (2023, 8, 28, 23, 30, 0,  '0',   False), '7200', 'Test2')
+    test(tb2,  (2023, 8, 28, 21, 30, 0,  '0.1'), (2023, 8, 28, 23, 30, 0,  '0.1', False), '7200', 'Test2')
+    test(tb3,  (2023, 8, 28, 22, 29, 59, '0.9'), (2023, 8, 29, 0,  29, 59, '0.9', False), '7200', 'Test2')
+    test(tb4,  (2023, 8, 28, 22, 30, 0,  '0'  ), (2023, 8, 28, 23, 30, 0,  '0',   True ), '3600', 'Test3')
+    test(tb5,  (2023, 8, 28, 22, 30, 0,  '0.1'), (2023, 8, 28, 23, 30, 0,  '0.1', True ), '3600', 'Test3')
+    test(tb6,  (2023, 8, 28, 23, 29, 59, '0.9'), (2023, 8, 29, 0,  29, 59, '0.9', True ), '3600', 'Test3')
+    test(tb7,  (2023, 8, 28, 23, 30, 0,  '0'  ), (2023, 8, 29, 0,  30, 0,  '0',   False), '3600', 'Test3')
+    test(tb8,  (2023, 8, 28, 23, 30, 0,  '0.1'), (2023, 8, 29, 0,  30, 0,  '0.1', False), '3600', 'Test3')
+    test(tb9,  (2023, 8, 29, 0,  29, 59, '0.9'), (2023, 8, 29, 1,  29, 59, '0.9', False), '3600', 'Test3')
+    test(tb10, (2023, 8, 29, 0,  30, 0,  '0'  ), (2023, 8, 29, 1,  30, 0,  '0',   False), '3600', 'Test3')
+    test(tb11, (2023, 8, 29, 0,  30, 0,  '0.1'), (2023, 8, 29, 1,  30, 0,  '0.1', False), '3600', 'Test3')
     
     tc4 = TimeInstant.from_date_tuple_utc(2024, 4, 15, 4, 0, 0, FixedPrec(0))
     tc0 = tc4 - TimeDelta(FixedPrec('3600.1'))
@@ -855,15 +860,15 @@ class TestTimeClasses(unittest.TestCase):
     tc7 = tc4 + TimeDelta(FixedPrec('3600'))
     tc8 = tc4 + TimeDelta(FixedPrec('3600.1'))
     
-    test(tc0, (2024, 4, 15, 2, 59, 59, '0.9'), (2024, 4, 15, 3, 59, 59, '0.9', False), '3600')
-    test(tc1, (2024, 4, 15, 3, 0,  0,  '0'  ), (2024, 4, 15, 4, 0,  0,  '0',   False), '3600')
-    test(tc2, (2024, 4, 15, 3, 0,  0,  '0.1'), (2024, 4, 15, 4, 0,  0,  '0.1', False), '3600')
-    test(tc3, (2024, 4, 15, 3, 59, 59, '0.9'), (2024, 4, 15, 4, 59, 59, '0.9', False), '3600')
-    test(tc4, (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False), '7200')
-    test(tc5, (2024, 4, 15, 4, 0,  0,  '0.1'), (2024, 4, 15, 6, 0,  0,  '0.1', False), '7200')
-    test(tc6, (2024, 4, 15, 4, 59, 59, '0.9'), (2024, 4, 15, 6, 59, 59, '0.9', False), '7200')
-    test(tc7, (2024, 4, 15, 5, 0,  0,  '0'  ), (2024, 4, 15, 7, 0,  0,  '0',   False), '7200')
-    test(tc8, (2024, 4, 15, 5, 0,  0,  '0.1'), (2024, 4, 15, 7, 0,  0,  '0.1', False), '7200')
+    test(tc0, (2024, 4, 15, 2, 59, 59, '0.9'), (2024, 4, 15, 3, 59, 59, '0.9', False), '3600', 'Test1')
+    test(tc1, (2024, 4, 15, 3, 0,  0,  '0'  ), (2024, 4, 15, 4, 0,  0,  '0',   False), '3600', 'Test1')
+    test(tc2, (2024, 4, 15, 3, 0,  0,  '0.1'), (2024, 4, 15, 4, 0,  0,  '0.1', False), '3600', 'Test1')
+    test(tc3, (2024, 4, 15, 3, 59, 59, '0.9'), (2024, 4, 15, 4, 59, 59, '0.9', False), '3600', 'Test1')
+    test(tc4, (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False), '7200', 'Test2')
+    test(tc5, (2024, 4, 15, 4, 0,  0,  '0.1'), (2024, 4, 15, 6, 0,  0,  '0.1', False), '7200', 'Test2')
+    test(tc6, (2024, 4, 15, 4, 59, 59, '0.9'), (2024, 4, 15, 6, 59, 59, '0.9', False), '7200', 'Test2')
+    test(tc7, (2024, 4, 15, 5, 0,  0,  '0'  ), (2024, 4, 15, 7, 0,  0,  '0',   False), '7200', 'Test2')
+    test(tc8, (2024, 4, 15, 5, 0,  0,  '0.1'), (2024, 4, 15, 7, 0,  0,  '0.1', False), '7200', 'Test2')
     
     test2(tc4, (2024, 4, 15, 5, 0,  0,  '0',   False), (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False))
     test2(tc4, (2024, 4, 15, 5, 0,  0,  '0.1', False), (2024, 4, 15, 4, 0,  0,  '0'  ), (2024, 4, 15, 6, 0,  0,  '0',   False))
@@ -882,23 +887,26 @@ class TestTimeClasses(unittest.TestCase):
     td10 = td4 + TimeDelta(FixedPrec('7200'))
     td11 = td4 + TimeDelta(FixedPrec('7200.1'))
     
-    test(td0,  (2024, 8, 26, 21, 29, 59, '0.9'), (2024, 8, 26, 23, 29, 59, '0.9', False), '7200')
-    test(td1,  (2024, 8, 26, 21, 30, 0,  '0'  ), (2024, 8, 26, 23, 30, 0,  '0',   False), '7200')
-    test(td2,  (2024, 8, 26, 21, 30, 0,  '0.1'), (2024, 8, 26, 23, 30, 0,  '0.1', False), '7200')
-    test(td3,  (2024, 8, 26, 22, 29, 59, '0.9'), (2024, 8, 27, 0,  29, 59, '0.9', False), '7200')
-    test(td4,  (2024, 8, 26, 22, 30, 0,  '0'  ), (2024, 8, 26, 23, 30, 0,  '0',   True ), '3600')
-    test(td5,  (2024, 8, 26, 22, 30, 0,  '0.1'), (2024, 8, 26, 23, 30, 0,  '0.1', True ), '3600')
-    test(td6,  (2024, 8, 26, 23, 29, 59, '0.9'), (2024, 8, 27, 0,  29, 59, '0.9', True ), '3600')
-    test(td7,  (2024, 8, 26, 23, 30, 0,  '0'  ), (2024, 8, 27, 0,  30, 0,  '0',   False), '3600')
-    test(td8,  (2024, 8, 26, 23, 30, 0,  '0.1'), (2024, 8, 27, 0,  30, 0,  '0.1', False), '3600')
-    test(td9,  (2024, 8, 27, 0,  29, 59, '0.9'), (2024, 8, 27, 1,  29, 59, '0.9', False), '3600')
-    test(td10, (2024, 8, 27, 0,  30, 0,  '0'  ), (2024, 8, 27, 1,  30, 0,  '0',   False), '3600')
-    test(td11, (2024, 8, 27, 0,  30, 0,  '0.1'), (2024, 8, 27, 1,  30, 0,  '0.1', False), '3600')
+    test(td0,  (2024, 8, 26, 21, 29, 59, '0.9'), (2024, 8, 26, 23, 29, 59, '0.9', False), '7200', 'Test2')
+    test(td1,  (2024, 8, 26, 21, 30, 0,  '0'  ), (2024, 8, 26, 23, 30, 0,  '0',   False), '7200', 'Test2')
+    test(td2,  (2024, 8, 26, 21, 30, 0,  '0.1'), (2024, 8, 26, 23, 30, 0,  '0.1', False), '7200', 'Test2')
+    test(td3,  (2024, 8, 26, 22, 29, 59, '0.9'), (2024, 8, 27, 0,  29, 59, '0.9', False), '7200', 'Test2')
+    test(td4,  (2024, 8, 26, 22, 30, 0,  '0'  ), (2024, 8, 26, 23, 30, 0,  '0',   True ), '3600', 'Test3')
+    test(td5,  (2024, 8, 26, 22, 30, 0,  '0.1'), (2024, 8, 26, 23, 30, 0,  '0.1', True ), '3600', 'Test3')
+    test(td6,  (2024, 8, 26, 23, 29, 59, '0.9'), (2024, 8, 27, 0,  29, 59, '0.9', True ), '3600', 'Test3')
+    test(td7,  (2024, 8, 26, 23, 30, 0,  '0'  ), (2024, 8, 27, 0,  30, 0,  '0',   False), '3600', 'Test3')
+    test(td8,  (2024, 8, 26, 23, 30, 0,  '0.1'), (2024, 8, 27, 0,  30, 0,  '0.1', False), '3600', 'Test3')
+    test(td9,  (2024, 8, 27, 0,  29, 59, '0.9'), (2024, 8, 27, 1,  29, 59, '0.9', False), '3600', 'Test3')
+    test(td10, (2024, 8, 27, 0,  30, 0,  '0'  ), (2024, 8, 27, 1,  30, 0,  '0',   False), '3600', 'Test3')
+    test(td11, (2024, 8, 27, 0,  30, 0,  '0.1'), (2024, 8, 27, 1,  30, 0,  '0.1', False), '3600', 'Test3')
   
   def test_timezone_leap(self):
     with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1))):
       tz = TimeZone(
-        initial_utc_offset = 1 * 3_600,
+        initial_offset = {
+          'utc_offset': 1 * 3_600,
+          'abbreviation': 'Test1',
+        },
         later_offsets = (
           {
             'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
@@ -906,6 +914,7 @@ class TestTimeClasses(unittest.TestCase):
             'day': 15,
             'start_time_in_day': 5 * 3_600,
             'utc_offset': 2 * 3_600,
+            'abbreviation': 'Test2',
           },
           {
             'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
@@ -915,11 +924,12 @@ class TestTimeClasses(unittest.TestCase):
             'from_month_end': True,
             'start_time_in_day': 30 * 60,
             'utc_offset': 1 * 3_600,
+            'abbreviation': 'Test3',
           },
         )
       )
       
-      def test(delta, utc_tuple, tz_tuple, offset):
+      def test(delta, utc_tuple, tz_tuple, offset, abbr):
         instant = current_instant + TimeDelta(delta)
         utc_tuple = *utc_tuple[:6], FixedPrec(utc_tuple[6])
         tz_tuple = *tz_tuple[:6], FixedPrec(tz_tuple[6]), tz_tuple[7]
@@ -929,29 +939,29 @@ class TestTimeClasses(unittest.TestCase):
         self.assertEqual(instant, inst_from_tz)
         self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
         self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
-        self.assertEqual(instant.current_tz_offset(tz), FixedPrec(offset))
+        self.assertEqual(instant.current_tz_offset(tz), (FixedPrec(offset), abbr))
       
       current_instant = TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 59, FixedPrec('0.9'))
       
-      test('0',   (2016, 12, 31, 23, 59, 59, '0.9'), (2017, 1, 1, 0, 59, 59, '0.9', False), '3600')
-      test('0.1', (2016, 12, 31, 23, 59, 60, '0'  ), (2017, 1, 1, 0, 59, 60, '0'  , False), '3600')
-      test('0.15', (2016, 12, 31, 23, 59, 60, '0.05'), (2017, 1, 1, 0, 59, 60, '0.05', False), '3600')
-      test('0.2', (2016, 12, 31, 23, 59, 60, '0.1'), (2017, 1, 1, 0, 59, 60, '0.1', False), '3600')
-      test('1',   (2016, 12, 31, 23, 59, 60, '0.9'), (2017, 1, 1, 0, 59, 60, '0.9', False), '3600')
-      test('1.1', (2017, 1,  1,  0,  0,  0,  '0'  ), (2017, 1, 1, 1, 0,  0,  '0'  , False), '3600')
-      test('1.2', (2017, 1,  1,  0,  0,  0,  '0.1'), (2017, 1, 1, 1, 0,  0,  '0.1', False), '3600')
-      test('2',   (2017, 1,  1,  0,  0,  0,  '0.9'), (2017, 1, 1, 1, 0,  0,  '0.9', False), '3600')
-      test('2.1', (2017, 1,  1,  0,  0,  1,  '0'  ), (2017, 1, 1, 1, 0,  1,  '0'  , False), '3600')
-      test('2.2', (2017, 1,  1,  0,  0,  1,  '0.1'), (2017, 1, 1, 1, 0,  1,  '0.1', False), '3600')
+      test('0',   (2016, 12, 31, 23, 59, 59, '0.9'), (2017, 1, 1, 0, 59, 59, '0.9', False), '3600', 'Test1')
+      test('0.1', (2016, 12, 31, 23, 59, 60, '0'  ), (2017, 1, 1, 0, 59, 60, '0'  , False), '3600', 'Test1')
+      test('0.15', (2016, 12, 31, 23, 59, 60, '0.05'), (2017, 1, 1, 0, 59, 60, '0.05', False), '3600', 'Test1')
+      test('0.2', (2016, 12, 31, 23, 59, 60, '0.1'), (2017, 1, 1, 0, 59, 60, '0.1', False), '3600', 'Test1')
+      test('1',   (2016, 12, 31, 23, 59, 60, '0.9'), (2017, 1, 1, 0, 59, 60, '0.9', False), '3600', 'Test1')
+      test('1.1', (2017, 1,  1,  0,  0,  0,  '0'  ), (2017, 1, 1, 1, 0,  0,  '0'  , False), '3600', 'Test1')
+      test('1.2', (2017, 1,  1,  0,  0,  0,  '0.1'), (2017, 1, 1, 1, 0,  0,  '0.1', False), '3600', 'Test1')
+      test('2',   (2017, 1,  1,  0,  0,  0,  '0.9'), (2017, 1, 1, 1, 0,  0,  '0.9', False), '3600', 'Test1')
+      test('2.1', (2017, 1,  1,  0,  0,  1,  '0'  ), (2017, 1, 1, 1, 0,  1,  '0'  , False), '3600', 'Test1')
+      test('2.2', (2017, 1,  1,  0,  0,  1,  '0.1'), (2017, 1, 1, 1, 0,  1,  '0.1', False), '3600', 'Test1')
       
       current_instant = TimeInstant.from_date_tuple_utc(2017, 12, 31, 23, 59, 58, FixedPrec('0.9'))
       
-      test('0',   (2017, 12, 31, 23, 59, 58, '0.9'), (2018, 1, 1, 0, 59, 58, '0.9', False), '3600')
-      test('0.1', (2018, 1,  1,  0,  0,  0,  '0'  ), (2018, 1, 1, 1, 0,  0,  '0'  , False), '3600')
-      test('0.2', (2018, 1,  1,  0,  0,  0,  '0.1'), (2018, 1, 1, 1, 0,  0,  '0.1', False), '3600')
-      test('1',   (2018, 1,  1,  0,  0,  0,  '0.9'), (2018, 1, 1, 1, 0,  0,  '0.9', False), '3600')
-      test('1.1', (2018, 1,  1,  0,  0,  1,  '0'  ), (2018, 1, 1, 1, 0,  1,  '0'  , False), '3600')
-      test('1.2', (2018, 1,  1,  0,  0,  1,  '0.1'), (2018, 1, 1, 1, 0,  1,  '0.1', False), '3600')
+      test('0',   (2017, 12, 31, 23, 59, 58, '0.9'), (2018, 1, 1, 0, 59, 58, '0.9', False), '3600', 'Test1')
+      test('0.1', (2018, 1,  1,  0,  0,  0,  '0'  ), (2018, 1, 1, 1, 0,  0,  '0'  , False), '3600', 'Test1')
+      test('0.2', (2018, 1,  1,  0,  0,  0,  '0.1'), (2018, 1, 1, 1, 0,  0,  '0.1', False), '3600', 'Test1')
+      test('1',   (2018, 1,  1,  0,  0,  0,  '0.9'), (2018, 1, 1, 1, 0,  0,  '0.9', False), '3600', 'Test1')
+      test('1.1', (2018, 1,  1,  0,  0,  1,  '0'  ), (2018, 1, 1, 1, 0,  1,  '0'  , False), '3600', 'Test1')
+      test('1.2', (2018, 1,  1,  0,  0,  1,  '0.1'), (2018, 1, 1, 1, 0,  1,  '0.1', False), '3600', 'Test1')
   
   def test_struct_time(self):
     def struct_time_equals(struct1, struct2):
@@ -991,29 +1001,34 @@ class TestTimeClasses(unittest.TestCase):
     test_utc((2017, 1,  1,  0,  0,  1 ), 6, 1  )
     
     tz = TimeZone(
-      initial_utc_offset = 1 * 3_600,
-      later_offsets = (
-        {
-          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
-          'month': 4,
-          'day': 15,
-          'start_time_in_day': 5 * 3_600,
-          'utc_offset': 2 * 3_600,
-        },
-        {
-          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
-          'month': 8,
-          'week': 1,
-          'day_in_week': 2,
-          'from_month_end': True,
-          'start_time_in_day': 30 * 60,
+        initial_offset = {
           'utc_offset': 1 * 3_600,
+          'abbreviation': 'Test1',
         },
+        later_offsets = (
+          {
+            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+            'month': 4,
+            'day': 15,
+            'start_time_in_day': 5 * 3_600,
+            'utc_offset': 2 * 3_600,
+            'abbreviation': 'Test2',
+          },
+          {
+            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
+            'month': 8,
+            'week': 1,
+            'day_in_week': 2,
+            'from_month_end': True,
+            'start_time_in_day': 30 * 60,
+            'utc_offset': 1 * 3_600,
+            'abbreviation': 'Test3',
+          },
+        )
       )
-    )
     
-    def test_tz(tz_tuple, week_day, ordinal_date, is_dst, tm_gmtoff):
-      tm_zone = 'NULL'
+    def test_tz(tz_tuple, week_day, ordinal_date, is_dst, tm_gmtoff, abbr):
+      tm_zone = abbr
       instant = TimeInstant.from_date_tuple_tz(tz, *tz_tuple[:6], 0, tz_tuple[6])
       struct_time_obj = struct_time((*tz_tuple[:6], week_day, ordinal_date, is_dst), {'tm_zone': tm_zone, 'tm_gmtoff': tm_gmtoff})
       struct_time_equals(
@@ -1029,27 +1044,27 @@ class TestTimeClasses(unittest.TestCase):
         TimeInstant(struct_time_obj)
       )
     
-    test_tz((2016, 12, 31, 0,  59, 58, False), 5, 366, 0, 3600)
-    test_tz((2016, 12, 31, 0,  59, 59, False), 5, 366, 0, 3600)
-    test_tz((2016, 12, 31, 1,  0,  0,  False), 5, 366, 0, 3600)
-    test_tz((2016, 12, 31, 23, 59, 58, False), 5, 366, 0, 3600)
-    test_tz((2016, 12, 31, 23, 59, 59, False), 5, 366, 0, 3600)
-    test_tz((2017, 1,  1,  0,  0,  0,  False), 6, 1,   0, 3600)
-    test_tz((2017, 1,  1,  0,  59, 58, False), 6, 1,   0, 3600)
-    test_tz((2017, 1,  1,  0,  59, 59, False), 6, 1,   0, 3600)
-    test_tz((2017, 1,  1,  0,  59, 60, False), 6, 1,   0, 3600)
-    test_tz((2017, 1,  1,  1,  0,  0,  False), 6, 1,   0, 3600)
-    test_tz((2017, 1,  1,  1,  0,  1,  False), 6, 1,   0, 3600)
+    test_tz((2016, 12, 31, 0,  59, 58, False), 5, 366, 0, 3600, 'Test3')
+    test_tz((2016, 12, 31, 0,  59, 59, False), 5, 366, 0, 3600, 'Test3')
+    test_tz((2016, 12, 31, 1,  0,  0,  False), 5, 366, 0, 3600, 'Test3')
+    test_tz((2016, 12, 31, 23, 59, 58, False), 5, 366, 0, 3600, 'Test3')
+    test_tz((2016, 12, 31, 23, 59, 59, False), 5, 366, 0, 3600, 'Test3')
+    test_tz((2017, 1,  1,  0,  0,  0,  False), 6, 1,   0, 3600, 'Test1')
+    test_tz((2017, 1,  1,  0,  59, 58, False), 6, 1,   0, 3600, 'Test1')
+    test_tz((2017, 1,  1,  0,  59, 59, False), 6, 1,   0, 3600, 'Test1')
+    test_tz((2017, 1,  1,  0,  59, 60, False), 6, 1,   0, 3600, 'Test1')
+    test_tz((2017, 1,  1,  1,  0,  0,  False), 6, 1,   0, 3600, 'Test1')
+    test_tz((2017, 1,  1,  1,  0,  1,  False), 6, 1,   0, 3600, 'Test1')
     
-    test_tz((2024, 4,  15, 4,  59, 59, False), 0, 106, 0, 3600)
-    test_tz((2024, 4,  15, 6,  0,  0,  False), 0, 106, 1, 7200)
+    test_tz((2024, 4,  15, 4,  59, 59, False), 0, 106, 0, 3600, 'Test1')
+    test_tz((2024, 4,  15, 6,  0,  0,  False), 0, 106, 1, 7200, 'Test2')
     
-    test_tz((2024, 8,  26, 23, 29, 59, False), 0, 239, 1, 7200)
-    test_tz((2024, 8,  26, 23, 30, 0,  False), 0, 239, 1, 7200)
-    test_tz((2024, 8,  27, 0,  29, 59, False), 1, 240, 1, 7200)
-    test_tz((2024, 8,  26, 23, 30, 0,  True ), 0, 239, 0, 3600)
-    test_tz((2024, 8,  27, 0,  29, 59, True ), 1, 240, 0, 3600)
-    test_tz((2024, 8,  27, 0,  30, 0,  False), 1, 240, 0, 3600)
+    test_tz((2024, 8,  26, 23, 29, 59, False), 0, 239, 1, 7200, 'Test2')
+    test_tz((2024, 8,  26, 23, 30, 0,  False), 0, 239, 1, 7200, 'Test2')
+    test_tz((2024, 8,  27, 0,  29, 59, False), 1, 240, 1, 7200, 'Test2')
+    test_tz((2024, 8,  26, 23, 30, 0,  True ), 0, 239, 0, 3600, 'Test3')
+    test_tz((2024, 8,  27, 0,  29, 59, True ), 1, 240, 0, 3600, 'Test3')
+    test_tz((2024, 8,  27, 0,  30, 0,  False), 1, 240, 0, 3600, 'Test3')
   
   def test_to_format_string_tai(self):
     time_instant = TimeInstant.from_date_tuple_tai(2024, 4, 14, 13, 2, 3, FixedPrec('0.45678913'))
@@ -1076,7 +1091,7 @@ class TestTimeClasses(unittest.TestCase):
     )
   
   def test_to_format_string_tz(self):
-    tz = TimeZone(3600)
+    tz = TimeZone({'utc_offset': 3_600})
     
     time_instant = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 14, 13, 2, 3, FixedPrec('0.45678913'))
     self.assertEqual(

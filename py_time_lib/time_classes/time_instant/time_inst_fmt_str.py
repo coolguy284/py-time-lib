@@ -199,7 +199,7 @@ class TimeInstantFormatString(TimeInstantTimeZones):
     year, month, day, hour, minute, second, frac_second, _ = self.to_date_tuple_tz(time_zone, date_cls = date_cls)
     day_of_week = date.day_of_week()
     ordinal_day = date.ordinal_date()
-    tz_offset = self.current_tz_offset(time_zone, date_cls = date_cls)
+    tz_offset, tz_offset_abbr = self.current_tz_offset(time_zone, date_cls = date_cls)
     
     return self.format_string_from_info({
       'year': year,
@@ -212,7 +212,7 @@ class TimeInstantFormatString(TimeInstantTimeZones):
       'day_of_week': day_of_week,
       'ordinal_day': ordinal_day,
       'tz_offset': tz_offset,
-      'tz_name': 'NULL',
+      'tz_name': 'NULL' if tz_offset_abbr == None else tz_offset_abbr,
     }, format_str, date_cls = date_cls)
   
   strftime = to_format_string_utc
