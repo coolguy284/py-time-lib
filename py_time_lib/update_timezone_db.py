@@ -384,7 +384,7 @@ def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict[str, dict
     'links': links_dict,
   }
 
-def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]]) -> dict:
+def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]]) -> dict[str, dict[str, TimeZone]]:
   # get rules and zones that go to max time
   
   rules_proleptic = {}
@@ -481,7 +481,7 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
     'full_fixed': {},
   }
 
-def parse_tzdb(tgz_file: TarFile) -> dict:
+def parse_tzdb(tgz_file: TarFile) -> dict[str, dict[str, TimeZone]]:
   filtered_lines = _parse_tzdb_get_filtered_lines(tgz_file)
   lines_split = _parse_tzdb_get_processed_lines(filtered_lines)
   result_dicts = _parse_tzdb_get_result_dicts(lines_split)

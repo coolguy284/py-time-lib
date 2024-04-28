@@ -10,6 +10,7 @@ from py_time_lib.tests.calendars.test_calendar_date_base import TestCalendarDate
 from py_time_lib.tests.time_classes.test_time_classes import TestTimeClasses
 from py_time_lib.tests.test_fixed_prec import TestFixedPrec
 from py_time_lib.tests.test_lib_funcs import TestLibFuncs
+from py_time_lib import update_time_databases
 
-TimeInstant.update_leap_seconds()
+update_time_databases()
 unittest.main()

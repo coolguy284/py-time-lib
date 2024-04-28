@@ -5,7 +5,7 @@ from typing import Self
 
 from .date_delta import DateDelta
 
-def init_module_vars():
+def _init_module_vars():
   global iso_weekdate, gregorian
   from . import iso_weekdate, gregorian
 

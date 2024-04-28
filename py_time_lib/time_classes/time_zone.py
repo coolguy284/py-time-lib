@@ -6,6 +6,7 @@ from typing import Iterable
 from ..fixed_prec import FixedPrec
 from ..calendars.jul_greg_base import JulGregBaseDate
 from ..calendars.gregorian import GregorianDate
+from .lib import TimeStorageType
 from .time_instant import time_inst
 
 class TimeZone:
@@ -40,6 +41,17 @@ class TimeZone:
         offset_day_entry['day'], offset_day_entry['day_in_week'],
         greater_than_equals = False
       )
+  
+  @classmethod
+  def update_leap_seconds(
+    cls,
+    update_check_time: TimeStorageType,
+    tzdb_url: str,
+    version_url: str,
+    db_file_path: str,
+    downloaded_time_file_path: str
+  ):
+    ...
   
   # instance stuff
   
