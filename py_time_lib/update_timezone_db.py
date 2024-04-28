@@ -412,12 +412,16 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
   for zone_name in zones_proleptic:
     zone_entry = zones_proleptic[zone_name]
     
+    abbr_format: str = zone_entry['abbreviation_format']
+    
     utc_offset = zone_entry['utc_offset']
     
     rule_name = zone_entry['rule']
     
     if rule_name in rules_proleptic:
       later_offsets = []
+      
+      initial_abbr = abbr_format.replace('%s', rules_proleptic[rule_name][-1]['tz_added_letter'])
       
       for rule in rules_proleptic[rule_name]:
         tz_rule = {
@@ -438,11 +442,17 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
         
         tz_rule['utc_offset'] = utc_offset + offset_from_standard
         
+        tz_rule['abbreviation'] = abbr_format.replace('%s', rule['tz_added_letter'])
+        
         later_offsets.append(tz_rule)
     else:
+      initial_abbr = abbr_format
       later_offsets = ()
     
-    proleptic_varying[zone_name] = TimeZone(utc_offset, later_offsets)
+    proleptic_varying[zone_name] = TimeZone({
+      'utc_offset': utc_offset,
+      'abbreviation': initial_abbr,
+    }, later_offsets)
   
   # format for proleptic/full:
   # {

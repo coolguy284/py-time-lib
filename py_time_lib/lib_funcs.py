@@ -64,22 +64,28 @@ def fancy_format(obj, indent = 2, _start_indent = 0):
   "An alternative to python's pprint that formats massive data in an easier to understand format, more akin to JSON indentation."
   base_indent = ' ' * _start_indent
   if isinstance(obj, list):
-    return \
-      f'{base_indent}[\n' + \
-        '\n'.join(f'{fancy_format(z, indent = indent, _start_indent = _start_indent + indent)},' for z in obj) + '\n' + \
-      f'{base_indent}]'
+    if len(obj) == 0:
+      return '[]'
+    else:
+      return \
+        f'{base_indent}[\n' + \
+          '\n'.join(f'{fancy_format(z, indent = indent, _start_indent = _start_indent + indent)},' for z in obj) + '\n' + \
+        f'{base_indent}]'
   elif isinstance(obj, dict):
-    next_indent = base_indent + ' ' * indent
-    return \
-      f'{base_indent}{{\n' + \
-        '\n'.join(
-          (
-            f'{next_indent}{z!r}: ' + \
-            f'{fancy_format(obj[z], indent = indent, _start_indent = _start_indent + indent).strip()},'
-          )
-          for z in sorted(obj)
-        ) + '\n' + \
-      f'{base_indent}}}'
+    if len(obj) == 0:
+      return '{}'
+    else:
+      next_indent = base_indent + ' ' * indent
+      return \
+        f'{base_indent}{{\n' + \
+          '\n'.join(
+            (
+              f'{next_indent}{z!r}: ' + \
+              f'{fancy_format(obj[z], indent = indent, _start_indent = _start_indent + indent).strip()},'
+            )
+            for z in sorted(obj)
+          ) + '\n' + \
+        f'{base_indent}}}'
   else:
     return f'{base_indent}{obj!r}'
 
