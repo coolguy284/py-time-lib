@@ -384,12 +384,85 @@ def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict[str, dict
     'links': links_dict,
   }
 
+def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]]) -> dict:
+  # get rules and zones that go to max time
+  
+  rules_proleptic = {}
+  
+  for rule_name in result_dicts['rules']:
+    rule_proleptic = sorted(list(filter(lambda x: x['to_year_inclusive'] == None, result_dicts['rules'][rule_name])), key = lambda x: x['month'])
+    
+    if len(rule_proleptic) > 0:
+      rules_proleptic[rule_name] = rule_proleptic
+  
+  zones_proleptic = {}
+  
+  for zone_name in result_dicts['zones']:
+    zone_proleptic = list(filter(lambda x: x['until'] == None, result_dicts['zones'][zone_name]))
+    
+    if len(zone_proleptic) > 1:
+      raise ValueError(f'More than one proleptic zone rule for {zone_name}')
+    elif len(zone_proleptic) == 1:
+      zones_proleptic[zone_name] = zone_proleptic[0]
+  
+  # create timezones
+  
+  proleptic_varying = {}
+  
+  for zone_name in zones_proleptic:
+    zone_entry = zones_proleptic[zone_name]
+    
+    utc_offset = zone_entry['utc_offset']
+    
+    rule_name = zone_entry['rule']
+    
+    if rule_name in rules_proleptic:
+      later_offsets = []
+      
+      for rule in rules_proleptic[rule_name]:
+        tz_rule = {
+          **rule,
+          **rule['day'],
+        }
+        
+        from_day_start_secs, from_day_start_mode = rule['from_day_start']
+        
+        offset_from_standard = rule['offset_from_standard']
+        
+        if from_day_start_mode == _parse_tzdb_time_types.WALL:
+          tz_rule['start_time_in_day'] = from_day_start_secs
+        elif from_day_start_mode == _parse_tzdb_time_types.STANDARD:
+          tz_rule['start_time_in_day'] = from_day_start_secs - offset_from_standard
+        elif from_day_start_mode == _parse_tzdb_time_types.UTC:
+          tz_rule['start_time_in_day'] = from_day_start_secs - offset_from_standard - utc_offset
+        
+        tz_rule['utc_offset'] = utc_offset + offset_from_standard
+        
+        later_offsets.append(tz_rule)
+    else:
+      later_offsets = ()
+    
+    proleptic_varying[zone_name] = TimeZone(utc_offset, later_offsets)
+  
+  # format for proleptic/full:
+  # {
+  #   <str: timezone name>: TimeZone,
+  #   ...
+  # }
+  return {
+    'proleptic_varying': proleptic_varying,
+    'proleptic_fixed': {},
+    'full_varying': {},
+    'full_fixed': {},
+  }
+
 def parse_tzdb(tgz_file: TarFile) -> dict:
   filtered_lines = _parse_tzdb_get_filtered_lines(tgz_file)
   lines_split = _parse_tzdb_get_processed_lines(filtered_lines)
   result_dicts = _parse_tzdb_get_result_dicts(lines_split)
+  tz_dicts = _parse_tzdb_get_tz_dicts(result_dicts)
   
-  return result_dicts
+  return tz_dicts
 
 def get_tzdb_stored_file_version(file_path: str = DEFAULT_TZDB_PATH) -> str:
   with get_tzdb_stored_file(file_path) as tgz_file:

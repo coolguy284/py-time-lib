@@ -110,8 +110,7 @@ elif mode == RunModes.TEST_CALENDARS:
   print(HoloceneDate(12024, 4, 13).get_yearly_calendar())
   print()
 elif mode == RunModes.TEST_TZDB:
-  #print(repr(get_tzdb_data())[:1000])
-  save_tzdb_stage_2_dump()
+  print(repr(get_tzdb_data())[:1000])
 elif mode == RunModes.GENERATE_TZDB_DUMP:
   print('Stage 1 dump...')
   save_tzdb_stage_1_dump()
