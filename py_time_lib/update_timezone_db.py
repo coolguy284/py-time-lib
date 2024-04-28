@@ -422,6 +422,7 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
     if rule_name in rules_proleptic:
       later_offsets = []
       
+      initial_utc_offset = utc_offset + rules_proleptic[rule_name][-1]['offset_from_standard']
       initial_abbr = abbr_format.replace('%s', rules_proleptic[rule_name][-1]['tz_added_letter'])
       
       for rule in rules_proleptic[rule_name]:
@@ -454,18 +455,19 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
             'abbreviation': abbr,
           })
     else:
+      initial_utc_offset = utc_offset
       # guess "S" as the standard letter when no valid rule providing a letter exists
       initial_abbr = abbr_format.replace('%s', 'S')
       later_offsets = ()
     
     proleptic_varying[zone_name] = TimeZone({
-      'utc_offset': utc_offset,
+      'utc_offset': initial_utc_offset,
       'abbreviation': initial_abbr,
     }, later_offsets)
     
     if initial_abbr not in proleptic_fixed:
       proleptic_fixed[initial_abbr] = TimeZone({
-        'utc_offset': utc_offset,
+        'utc_offset': initial_utc_offset,
         'abbreviation': initial_abbr,
       })
   
