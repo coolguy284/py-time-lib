@@ -14,7 +14,7 @@ pygame.init()
 
 width = 1280
 height = 720
-format_str = '%a %b %d %Y %I:%M:%S.%f %p'
+format_str = '%a %b %d %Y %I:%M:%S.%.9f %p'
 
 screen = pygame.display.set_mode((width, height))
 refresh_rate = pygame.display.get_current_refresh_rate()
