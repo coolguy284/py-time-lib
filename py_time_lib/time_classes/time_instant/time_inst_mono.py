@@ -60,3 +60,9 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   
   def to_date_tuple_mono(self, time_scale: TIME_SCALES, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     return self.epoch_instant_to_date_tuple(self.to_mono_secs_since_epoch(time_scale), date_cls = date_cls)
+  
+  def get_date_object_mono[T: JulGregBaseDate](self, time_scale: TIME_SCALES, date_cls: type[T] = GregorianDate) -> T:
+    return date_cls(*self.to_date_tuple_mono(time_scale, date_cls = date_cls)[:3])
+  
+  def get_mono_tai_offset(self, time_scale: TIME_SCALES) -> TimeStorageType:
+    return self.to_mono_secs_since_epoch(time_scale) - self.time

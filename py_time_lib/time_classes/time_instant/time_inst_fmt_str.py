@@ -6,8 +6,8 @@ from ...fixed_prec import FixedPrec
 from ...calendars.gregorian import GregorianDate
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.iso_weekdate import IsoWeekDate
-from ..lib import TimeStorageType
 from ..time_zone import TimeZone
+from ..lib import TimeStorageType
 from .time_inst_mono import TimeInstMonotonic
 
 class TimeInstantFormatString(TimeInstMonotonic):
@@ -20,13 +20,14 @@ class TimeInstantFormatString(TimeInstMonotonic):
   
   @classmethod
   def fixedprec_offset_to_str(cls, offset_secs: TimeStorageType, minute_colon: bool = False) -> str:
+    offset_secs = FixedPrec.from_basic(offset_secs)
     offset_sign = '+' if offset_secs >= 0 else '-'
     offset_hrs, remainder = divmod(abs(offset_secs), cls.NOMINAL_SECS_PER_HOUR)
     offset_mins, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
     offset_secs, offset_frac_secs = divmod(remainder, 1)
     
     if offset_frac_secs != 0:
-      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs):0>2}.{str(offset_frac_secs).split('.')[1]}'
+      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs):0>2}.{str(offset_frac_secs.reduce_to_lowest_place()).split('.')[1]}'
     elif offset_secs != 0:
       return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs):0>2}'
     elif offset_mins != 0 or offset_hrs != 0:
@@ -212,6 +213,10 @@ class TimeInstantFormatString(TimeInstMonotonic):
   def from_format_string_tz(cls, time_zone: TimeZone, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     raise NotImplementedError()
   
+  @classmethod
+  def from_format_string_mono(cls, time_scale: TimeInstMonotonic.TIME_SCALES, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+    raise NotImplementedError()
+  
   def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a TAI time string formatted in the strftime style.'
     
@@ -286,6 +291,32 @@ class TimeInstantFormatString(TimeInstMonotonic):
       'ordinal_day': ordinal_day,
       'tz_offset': tz_offset,
       'tz_name': 'NULL' if tz_offset_abbr == None else tz_offset_abbr,
+      'iso_week_date_year': iso_date.year,
+      'iso_week_date_week': iso_date.week,
+      'iso_week_date_day': iso_date.day,
+    }, format_str, date_cls = date_cls)
+  
+  def to_format_string_mono(self, time_scale: TimeInstMonotonic.TIME_SCALES, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    'Returns a monotonic-time-scale time string formatted in the strftime style.'
+    
+    date = self.get_date_object_mono(time_scale, date_cls = date_cls)
+    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_mono(time_scale, date_cls = date_cls)
+    day_of_week = date.day_of_week()
+    ordinal_day = date.ordinal_date()
+    iso_date = IsoWeekDate(date)
+    
+    return self.format_string_from_info({
+      'year': year,
+      'month': month,
+      'day': day,
+      'hour': hour,
+      'minute': minute,
+      'second': second,
+      'frac_second': frac_second,
+      'day_of_week': day_of_week,
+      'ordinal_day': ordinal_day,
+      'tz_offset': -self.get_utc_tai_offset() + self.get_mono_tai_offset(time_scale),
+      'tz_name': time_scale.name,
       'iso_week_date_year': iso_date.year,
       'iso_week_date_week': iso_date.week,
       'iso_week_date_day': iso_date.day,

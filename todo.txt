@@ -2,8 +2,10 @@ strptime support
 add leap smear support
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
 complete all ... and notimplementederrors
+fixedprec default max prec configurable
 
 low prio:
+change get utc tai offset to return a timestoragetype?
 add test for dst in tzdb zones where summer/dst is in january
 find listing of mappings from timezone abbreviations to timezone full names
   fix all edge cases with proleptic fixed abbreviations
@@ -18,7 +20,6 @@ add leap second support to now
 remove year = <>, month = <> from gregorian date repr
 strftime & strptime add param for enabling custom flags like %f.6
   and add datetime's 4 custom format strings
-
 add aliases from datetime library, maybe full compatibility class
 simpledatetime/simpletimedelta wrapper around the date classes
   maybe holds a timezone value to use for setyear and stuff
