@@ -28,10 +28,10 @@ Times:
 >>> from py_time_lib import *
 
 >>> t1 = TimeInstant.from_date_tuple_utc(
-...   year=2024, month=4, day=26,
-...   hour=13, minute=2, second=0,
-...   frac_second=FixedPrec('0.01')
-... )
+  year=2024, month=4, day=26,
+  hour=13, minute=2, second=0,
+  frac_second=FixedPrec('0.01')
+)
 
 # Internally stored as seconds since Jan 1, 1 BCE, Proleptic Gregorian Calendar:
 >>> t1
@@ -54,10 +54,10 @@ DateTupleBasic(
 
 # T2 is right before the leap second at the end of 2016-12-31:
 >>> t2 = TimeInstant.from_date_tuple_utc(
-...   year=2016, month=12, day=31,
-...   hour=23, minute=59, second=59,
-...   frac_second=0
-... )
+  year=2016, month=12, day=31,
+  hour=23, minute=59, second=59,
+  frac_second=0
+)
 
 >>> t2.to_date_tuple_utc()
 DateTupleBasic(

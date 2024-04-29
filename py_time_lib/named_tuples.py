@@ -1,16 +1,52 @@
-from collections import namedtuple
+from numbers import Integral
+from typing import NamedTuple
+
+from .fixed_prec import FixedPrec
+from .time_classes.lib import TimeStorageType
 
 # date tuples
 
-MonthWeekDate = namedtuple('MonthWeekDate', ('year', 'month', 'week', 'day_of_week'))
+class MonthWeekDate(NamedTuple):
+  year: Integral
+  month: Integral
+  week: Integral
+  day_of_week: Integral
 
 # time tuples
 
-LeapSecEntry = namedtuple('LeapSecEntry', ('date_str', 'time_in_day_secs', 'leap_sec_delta'))
+class LeapSecEntry(NamedTuple):
+  date_str: str
+  time_in_day_secs: FixedPrec
+  leap_sec_delta: FixedPrec
 
-SecsSinceEpochUTC = namedtuple('SecsSinceEpochUTC', ('secs_since_epoch', 'leap_second_fold'))
-SecsSinceEpochTZ = namedtuple('SecsSinceEpochTZ', ('secs_since_epoch', 'dst_second_fold', 'leap_second_fold'))
-DateTupleBasic = namedtuple('DateTupleBasic', ('year', 'month', 'day', 'hour', 'minute', 'second', 'frac_second'))
-DateTupleTZ = namedtuple('DateTupleTZ', ('year', 'month', 'day', 'hour', 'minute', 'second', 'frac_second', 'dst_second_fold'))
+class SecsSinceEpochUTC(NamedTuple):
+  secs_since_epoch: TimeStorageType
+  leap_second_fold: bool
 
-UnixTimestampUTC = namedtuple('SecsSinceEpochUTC', ('unix_secs_since_epoch', 'leap_second_fold'))
+class SecsSinceEpochTZ(NamedTuple):
+  secs_since_epoch: TimeStorageType
+  dst_second_fold: bool
+  leap_second_fold: bool
+
+class DateTupleBasic(NamedTuple):
+  year: Integral
+  month: Integral
+  day: Integral
+  hour: Integral
+  minute: Integral
+  second: Integral
+  frac_second: TimeStorageType
+
+class DateTupleTZ(NamedTuple):
+  year: Integral
+  month: Integral
+  day: Integral
+  hour: Integral
+  minute: Integral
+  second: Integral
+  frac_second: TimeStorageType
+  dst_second_fold: bool
+
+class UnixTimestampUTC(NamedTuple):
+  unix_secs_since_epoch: TimeStorageType
+  leap_second_fold: bool
