@@ -55,21 +55,32 @@ class TimeZone:
   
   # instance stuff
   
-  __slots__ = '_data_name', '_initial_offset', '_later_offsets'
+  __slots__ = '_base_utc_offset', '_data_name', '_initial_offset', '_later_offsets'
+  _base_utc_offset: FixedPrec
   _data_name: str
   _initial_offset: dict[str]
   _later_offsets: tuple[dict[str], ...]
   
-  def __init__(self, initial_offset: dict[str, FixedPrec | int | float | str | None], later_offsets: Iterable[dict[str, OffsetDayMode | Integral | FixedPrec | bool]] = (), coerce_to_fixed_prec: bool = True):
+  def __init__(self, base_utc_offset: FixedPrec, initial_offset: dict[str, FixedPrec | int | float | str | None] = None, later_offsets: Iterable[dict[str, OffsetDayMode | Integral | FixedPrec | bool]] = (), coerce_to_fixed_prec: bool = True):
+    if coerce_to_fixed_prec and not isinstance(base_utc_offset, FixedPrec):
+      self._base_utc_offset = FixedPrec.from_basic(base_utc_offset)
+    else:
+      self._base_utc_offset = base_utc_offset
+    
     self._initial_offset = {}
     
-    if coerce_to_fixed_prec and not isinstance(initial_offset['utc_offset'], FixedPrec):
-      self._initial_offset['utc_offset'] = FixedPrec.from_basic(initial_offset['utc_offset'])
+    if initial_offset != None:
+      if coerce_to_fixed_prec and not isinstance(initial_offset['utc_offset'], FixedPrec):
+        self._initial_offset['utc_offset'] = FixedPrec.from_basic(initial_offset['utc_offset'])
+      else:
+        self._initial_offset['utc_offset'] = initial_offset['utc_offset']
+      
+      self._initial_offset['abbreviation'] = initial_offset.get('abbreviation', None)
+      self._initial_offset['name'] = initial_offset.get('name', None)
     else:
-      self._initial_offset['utc_offset'] = initial_offset['utc_offset']
-    
-    self._initial_offset['abbreviation'] = initial_offset.get('abbreviation', None)
-    self._initial_offset['name'] = initial_offset.get('name', None)
+      self._initial_offset['utc_offset'] = base_utc_offset
+      self._initial_offset['abbreviation'] = None
+      self._initial_offset['name'] = None
     
     # format for initial_offset:
     # {
@@ -141,10 +152,14 @@ class TimeZone:
     return f'{self.__class__.__name__}({self.initial_offset!r}, {self.later_offsets!r})'
   
   def __str__(self):
-    return f'TZ: UTC+{time_inst.TimeInstant.fixedprec_offset_to_str(self.initial_offset['utc_offset'])} (initial){'; + others' if len(self.later_offsets) > 0 else ''}'
+    return f'TZ: UTC{time_inst.TimeInstant.fixedprec_offset_to_str(self.initial_offset['utc_offset'])} (initial){'; + others' if len(self.later_offsets) > 0 else ''}'
   
   @property
-  def initial_offset(self) -> FixedPrec:
+  def base_utc_offset(self) -> FixedPrec:
+    return self._base_utc_offset
+  
+  @property
+  def initial_offset(self) -> dict[str, FixedPrec | int | float | str | None]:
     return self._initial_offset
   
   @property

@@ -4,6 +4,7 @@ import unittest
 
 from ... import FixedPrec, GregorianDate, TimeDelta, TimeZone, TimeInstant, TimeUnmappableError
 from ...data.leap_seconds import NOMINAL_SECS_PER_DAY
+from ... import TIMEZONES
 
 class TestTimeClasses(unittest.TestCase):
   def __init__(self, *args):
@@ -738,11 +739,11 @@ class TestTimeClasses(unittest.TestCase):
       d1 = TimeInstant(2024)
       d1.prop = False
     with self.assertRaises(AttributeError):
-      d1 = TimeZone({'utc_offset': 2}, ())
+      d1 = TimeZone(2)
       d1.prop = False
   
   def test_timezone_fixed(self):
-    tz = TimeZone({'utc_offset': 3_600})
+    tz = TimeZone(3_600)
     instant = TimeInstant.from_date_tuple_utc(2024, 4, 21, 23, 1, 2, FixedPrec('0.3'))
     instant_copy = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 22, 0, 1, 2, FixedPrec('0.3'))
     self.assertEqual(instant.to_date_tuple_tz(tz), (2024, 4, 22, 0, 1, 2, FixedPrec('0.3'), False))
@@ -750,6 +751,7 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_timezone_variable(self):
     tz = TimeZone(
+      1 * 3_600,
       initial_offset = {
         'utc_offset': 1 * 3_600,
         'abbreviation': 'Test1',
@@ -903,6 +905,7 @@ class TestTimeClasses(unittest.TestCase):
   def test_timezone_leap(self):
     with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1))):
       tz = TimeZone(
+        1 * 3_600,
         initial_offset = {
           'utc_offset': 1 * 3_600,
           'abbreviation': 'Test1',
@@ -1001,31 +1004,32 @@ class TestTimeClasses(unittest.TestCase):
     test_utc((2017, 1,  1,  0,  0,  1 ), 6, 1  )
     
     tz = TimeZone(
-        initial_offset = {
-          'utc_offset': 1 * 3_600,
-          'abbreviation': 'Test1',
+      1 * 3_600,
+      initial_offset = {
+        'utc_offset': 1 * 3_600,
+        'abbreviation': 'Test1',
+      },
+      later_offsets = (
+        {
+          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
+          'month': 4,
+          'day': 15,
+          'start_time_in_day': 5 * 3_600,
+          'utc_offset': 2 * 3_600,
+          'abbreviation': 'Test2',
         },
-        later_offsets = (
-          {
-            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_AND_DAY,
-            'month': 4,
-            'day': 15,
-            'start_time_in_day': 5 * 3_600,
-            'utc_offset': 2 * 3_600,
-            'abbreviation': 'Test2',
-          },
-          {
-            'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
-            'month': 8,
-            'week': 1,
-            'day_in_week': 2,
-            'from_month_end': True,
-            'start_time_in_day': 30 * 60,
-            'utc_offset': 1 * 3_600,
-            'abbreviation': 'Test3',
-          },
-        )
+        {
+          'offset_day_mode': TimeZone.OffsetDayMode.MONTH_WEEK_DAY,
+          'month': 8,
+          'week': 1,
+          'day_in_week': 2,
+          'from_month_end': True,
+          'start_time_in_day': 30 * 60,
+          'utc_offset': 1 * 3_600,
+          'abbreviation': 'Test3',
+        },
       )
+    )
     
     def test_tz(tz_tuple, week_day, ordinal_date, is_dst, tm_gmtoff, abbr):
       tm_zone = abbr
@@ -1091,7 +1095,7 @@ class TestTimeClasses(unittest.TestCase):
     )
   
   def test_to_format_string_tz(self):
-    tz = TimeZone({'utc_offset': 3_600})
+    tz = TimeZone(3_600)
     
     time_instant = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(
@@ -1140,3 +1144,23 @@ class TestTimeClasses(unittest.TestCase):
       time_instant_2.to_format_string_mono(ts, 'U:%U W:%W'),
       'U:15 W:16'
     )
+  
+  def test_generated_timezones(self):
+    chicago = TIMEZONES['proleptic_variable']['America/Chicago']
+    sydney = TIMEZONES['proleptic_variable']['Australia/Sydney']
+    
+    def test(tz, date_tup, date_tup_tz, offset, is_dst):
+      instant = TimeInstant.from_date_tuple_utc(*date_tup)
+      self.assertEqual(instant.to_date_tuple_tz(tz), date_tup_tz)
+      self.assertEqual(instant.current_tz_offset(tz)[0], offset)
+      self.assertEqual(instant.to_struct_time(tz).tm_isdst, is_dst)
+    
+    test(chicago, (2024, 3,  10, 7,  59, 59, 0), (2024, 3,  10, 1, 59, 59, 0, False), -6 * 3600, 0)
+    test(chicago, (2024, 3,  10, 8,  0,  0,  0), (2024, 3,  10, 3, 0,  0,  0, False), -5 * 3600, 1)
+    test(chicago, (2024, 11, 3,  6,  59, 59, 0), (2024, 11, 3,  1, 59, 59, 0, False), -5 * 3600, 1)
+    test(chicago, (2024, 11, 3,  7,  0,  0,  0), (2024, 11, 3,  1, 0,  0,  0, True ), -6 * 3600, 0)
+    
+    test(sydney,  (2024, 4,  6,  15, 59, 59, 0), (2024, 4,  7,  2, 59, 59, 0, False), 11 * 3600, 1)
+    test(sydney,  (2024, 4,  6,  16, 0,  0,  0), (2024, 4,  7,  2, 0,  0,  0, True ), 10 * 3600, 0)
+    test(sydney,  (2024, 10, 5,  15, 59, 59, 0), (2024, 10, 6,  1, 59, 59, 0, False), 10 * 3600, 0)
+    test(sydney,  (2024, 10, 5,  16, 0,  0,  0), (2024, 10, 6,  3, 0,  0,  0, False), 11 * 3600, 1)

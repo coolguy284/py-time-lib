@@ -54,7 +54,7 @@ class TimeInstant(TimeInstantJulianDateAndUnixTimestamp, TimeInstantFormatString
   @classmethod
   def from_struct_time(cls, struct_time_obj: struct_time, round_invalid_leap_time_upwards: bool = True, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     return cls.from_date_tuple_tz(
-      TimeZone({'utc_offset': struct_time_obj.tm_gmtoff}),
+      TimeZone(struct_time_obj.tm_gmtoff),
       struct_time_obj.tm_year,
       struct_time_obj.tm_mon,
       struct_time_obj.tm_mday,
@@ -99,7 +99,7 @@ class TimeInstant(TimeInstantJulianDateAndUnixTimestamp, TimeInstantFormatString
       date = date_cls(year, month, day)
       current_tz_offset, current_tz_abbr = self.current_tz_offset(time_zone, date_cls = date_cls)
       return struct_time(
-        (year, month, day, hour, minute, second, date.iso_day_of_week() - 1, date.ordinal_date(), current_tz_offset != time_zone.initial_offset['utc_offset']),
+        (year, month, day, hour, minute, second, date.iso_day_of_week() - 1, date.ordinal_date(), current_tz_offset != time_zone.base_utc_offset),
         {
           'tm_zone': 'NULL' if current_tz_abbr == None else current_tz_abbr,
           'tm_gmtoff': int(current_tz_offset),

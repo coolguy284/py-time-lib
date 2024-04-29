@@ -422,7 +422,8 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
     if rule_name in rules_proleptic:
       later_offsets = []
       
-      initial_utc_offset = utc_offset + rules_proleptic[rule_name][-1]['offset_from_standard']
+      past_offset_from_standard = rules_proleptic[rule_name][-1]['offset_from_standard']
+      initial_utc_offset = utc_offset + past_offset_from_standard
       initial_abbr = abbr_format.replace('%s', rules_proleptic[rule_name][-1]['tz_added_letter'])
       
       for rule in rules_proleptic[rule_name]:
@@ -438,9 +439,9 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
         if from_day_start_mode == _parse_tzdb_time_types.WALL:
           tz_rule['start_time_in_day'] = from_day_start_secs
         elif from_day_start_mode == _parse_tzdb_time_types.STANDARD:
-          tz_rule['start_time_in_day'] = from_day_start_secs - offset_from_standard
+          tz_rule['start_time_in_day'] = from_day_start_secs + past_offset_from_standard
         elif from_day_start_mode == _parse_tzdb_time_types.UTC:
-          tz_rule['start_time_in_day'] = from_day_start_secs - offset_from_standard - utc_offset
+          tz_rule['start_time_in_day'] = from_day_start_secs + past_offset_from_standard + utc_offset
         
         tz_rule['utc_offset'] = utc_offset + offset_from_standard
         
@@ -450,26 +451,38 @@ def _parse_tzdb_get_tz_dicts(result_dicts: dict[str, dict[str, list[str | dict]]
         later_offsets.append(tz_rule)
         
         if abbr not in proleptic_fixed:
-          proleptic_fixed[abbr] = TimeZone({
-            'utc_offset': tz_rule['utc_offset'],
-            'abbreviation': abbr,
-          })
+          proleptic_fixed[abbr] = TimeZone(
+            tz_rule['utc_offset'],
+            {
+              'utc_offset': tz_rule['utc_offset'],
+              'abbreviation': abbr,
+            }
+          )
+        
+        past_offset_from_standard = offset_from_standard
     else:
       initial_utc_offset = utc_offset
       # guess "S" as the standard letter when no valid rule providing a letter exists
       initial_abbr = abbr_format.replace('%s', 'S')
       later_offsets = ()
     
-    proleptic_varying[zone_name] = TimeZone({
-      'utc_offset': initial_utc_offset,
-      'abbreviation': initial_abbr,
-    }, later_offsets)
-    
-    if initial_abbr not in proleptic_fixed:
-      proleptic_fixed[initial_abbr] = TimeZone({
+    proleptic_varying[zone_name] = TimeZone(
+      utc_offset,
+      {
         'utc_offset': initial_utc_offset,
         'abbreviation': initial_abbr,
-      })
+      },
+      later_offsets
+    )
+    
+    if initial_abbr not in proleptic_fixed:
+      proleptic_fixed[initial_abbr] = TimeZone(
+        initial_utc_offset,
+        {
+          'utc_offset': initial_utc_offset,
+          'abbreviation': initial_abbr,
+        }
+      )
   
   # format for proleptic/full:
   # {
