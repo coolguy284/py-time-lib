@@ -17,6 +17,11 @@ if len(sys.argv) > 1:
   if tz_name == 'None':
     tz_name = None
     tz = None
+  elif tz_name == 'help':
+    print('Timezones:')
+    print(sorted(set([*TIMEZONES['proleptic_variable'], *TIMEZONES['proleptic_fixed']])))
+    
+    exit()
   else:
     try:
       tz = TIMEZONES['proleptic_variable'][tz_name]
@@ -27,10 +32,8 @@ if len(sys.argv) > 1:
         print(f'Timezone unknown: {tz_name}')
         exit()
 else:
-  print('Timezones:')
-  print(sorted(set([*TIMEZONES['proleptic_variable'], *TIMEZONES['proleptic_fixed']])))
-  
-  exit()
+  tz_name = None
+  tz = None
 
 pygame.init()
 
@@ -88,10 +91,14 @@ while loop:
   
   draw_text_centered(screen, 'Current Time', (width / 2, 50), centered = True, size = 43)
   
-  draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - 480, 130))
-  draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - 480, 200))
+  y_start = 130
+  y_step = 70
+  
   if tz != None:
-    draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - 480, 270))
+    draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - 480, y_start + 0 * y_step))
+  draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - 480, y_start + 1 * y_step))
+  draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - 480, y_start + 2 * y_step))
+  draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, format_str)}', (width / 2 - 480, y_start + 3 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)
