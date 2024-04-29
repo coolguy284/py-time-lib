@@ -8,9 +8,9 @@ from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.iso_weekdate import IsoWeekDate
 from ..lib import TimeStorageType
 from ..time_zone import TimeZone
-from .time_inst_tz import TimeInstantTimeZones
+from .time_inst_mono import TimeInstMonotonic
 
-class TimeInstantFormatString(TimeInstantTimeZones):
+class TimeInstantFormatString(TimeInstMonotonic):
   # static stuff
   
   FORMAT_STRING_MAX_DIGITS = 1000

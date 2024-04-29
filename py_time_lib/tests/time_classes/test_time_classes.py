@@ -1103,3 +1103,26 @@ class TestTimeClasses(unittest.TestCase):
       time_instant_2.to_format_string_tz(tz, 'U:%U W:%W'),
       'U:15 W:16'
     )
+  
+  def test_monotonic_time_scales(self):
+    self.assertEqual(TimeInstant(3).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI), 3)
+    self.assertEqual(TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI, 3).time, 3)
+    self.assertEqual(
+      TimeInstant.from_date_tuple_tai(2024, 4, 28, 12, 0, 0, 0).to_date_tuple_mono(TimeInstant.TIME_SCALES.TAI),
+      (2024, 4, 28, 12, 0, 0, 0)
+    )
+    self.assertEqual(
+      TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TAI, 2024, 4, 28, 12, 0, 0, 0).to_date_tuple_tai(),
+      (2024, 4, 28, 12, 0, 0, 0)
+    )
+    
+    self.assertEqual(TimeInstant(3).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TT), 3 + FixedPrec('32.184'))
+    self.assertEqual(TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TT, 3).time, 3 - FixedPrec('32.184'))
+    self.assertEqual(
+      TimeInstant.from_date_tuple_tai(2024, 4, 28, 12, 0, 0, 0).to_date_tuple_mono(TimeInstant.TIME_SCALES.TT),
+      (2024, 4, 28, 12, 0, 32, FixedPrec('0.184'))
+    )
+    self.assertEqual(
+      TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TT, 2024, 4, 28, 12, 0, 32, FixedPrec('0.184')).to_date_tuple_tai(),
+      (2024, 4, 28, 12, 0, 0, 0)
+    )
