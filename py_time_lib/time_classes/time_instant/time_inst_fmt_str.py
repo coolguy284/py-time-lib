@@ -24,12 +24,12 @@ class TimeInstantFormatString(TimeInstMonotonic):
     offset_sign = '+' if offset_secs >= 0 else '-'
     offset_hrs, remainder = divmod(abs(offset_secs), cls.NOMINAL_SECS_PER_HOUR)
     offset_mins, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
-    offset_secs, offset_frac_secs = divmod(remainder, 1)
+    offset_secs_trunc, offset_frac_secs = divmod(remainder, 1)
     
     if offset_frac_secs != 0:
-      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs):0>2}.{str(offset_frac_secs.reduce_to_lowest_place()).split('.')[1]}'
-    elif offset_secs != 0:
-      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs):0>2}'
+      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{str(offset_frac_secs.reduce_to_lowest_place()).split('.')[1]}'
+    elif offset_secs_trunc != 0:
+      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
     elif offset_mins != 0 or offset_hrs != 0:
       if minute_colon:
         return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}'
