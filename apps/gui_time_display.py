@@ -8,7 +8,7 @@ sys.path.append(str(parent_dir))
 
 from functools import cache
 import pygame
-from py_time_lib import FixedPrec, TimeInstant, TimeDelta, TIMEZONES, update_time_databases
+from py_time_lib import TimeInstant, TIMEZONES, update_time_databases
 
 update_time_databases()
 
@@ -40,8 +40,11 @@ pygame.init()
 width = 1280
 height = 720
 format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
+format_str_start = '%a %b %d %Y %I:%M:%S.%.9f %p'
+format_str_end = '%:z'
 
-screen = pygame.display.set_mode((width, height))
+# https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
+screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 refresh_rate = pygame.display.get_current_refresh_rate()
 clock = pygame.time.Clock()
 
@@ -100,7 +103,12 @@ while loop:
   draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - x_center_offset, y_start + 1 * y_step))
   draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - x_center_offset, y_start + 2 * y_step))
   draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, format_str)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
-  draw_text_centered(screen, f'TGC: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, format_str)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
+  draw_text_centered(screen, f'TCG: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, format_str)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
+  offset = now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, format_str_end)
+  if '.' in offset:
+    start, end = offset.split('.')
+    offset = f'{start}.{end[:10]}'
+  draw_text_centered(screen, f'TCB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, format_str_start)} {offset}', (width / 2 - x_center_offset, y_start + 5 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)

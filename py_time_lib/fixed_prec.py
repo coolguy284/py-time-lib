@@ -12,6 +12,12 @@ class FixedPrec(Real):
   RADIX = 10
   RADIX_FLOAT = float(RADIX)
   ROUND_UP_THRESHOLD = RADIX // 2
+  PI_STR = '3.14159265358979323846264338327950288419716939937510'
+  PI_MAX_PREC = len(PI_STR) - 2
+  # https://en.wikipedia.org/wiki/E_(mathematical_constant)
+  E_STR = '2.7182818284590452353602874713526624977572'
+  E_MAX_PREC = len(E_STR) - 2
+  
   _int_regex = re.compile(r'^(-?\d+)$')
   _float_regex = re.compile(r'^(-?)(\d+)\.(\d+)$')
   
@@ -634,3 +640,45 @@ class FixedPrec(Real):
   @property
   def imag(self) -> Self:
     return self.__class__(0)
+  
+  def pi(self):
+    if self.max_prec > self.PI_MAX_PREC:
+      raise OverflowError(f'Cannot return pi to {self.max_prec} digits, max precision is {self.PI_MAX_PREC}')
+    return FixedPrec(self.PI_STR, max_prec = self.max_prec).reduce_to_max_prec()
+  
+  def e(self):
+    if self.max_prec > self.E_MAX_PREC:
+      raise OverflowError(f'Cannot return pi to {self.max_prec} digits, max precision is {self.PI_MAX_PREC}')
+    return FixedPrec(self.E_STR, max_prec = self.max_prec).reduce_to_max_prec()
+  
+  def exp(self) -> Self:
+    return self.e() ** self
+  
+  def sin(self) -> Self:
+    # x - x^3/3! + x^5/5! + ...
+    PI = self.pi()
+    PI1_2 = PI / 2
+    if self < 0 or self > PI1_2:
+      repeat, remainder = divmod(self, PI1_2)
+      if repeat % 2 == 0:
+        return remainder.sin()
+      else:
+        return (PI1_2 - remainder).sin()
+    else:
+      self_sq = self * self
+      x_prod = self
+      total_sum = x_prod
+      k = 0
+      while x_prod > 0:
+        total_sum += x_prod * (1 if k % 2 == 0 else -1)
+        x_prod *= self_sq / ((2 * k + 2) * (2 * k + 3))
+        k += 1
+      return total_sum
+  
+  def cos(self) -> Self:
+    PI = self.pi()
+    PI1_2 = PI / 2
+    return (self + PI1_2).sin()
+  
+  def tan(self) -> Self:
+    return self.sin() / self.cos()

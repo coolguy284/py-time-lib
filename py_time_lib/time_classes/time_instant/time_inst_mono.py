@@ -2,6 +2,7 @@ from enum import Enum
 from numbers import Integral
 from typing import Self
 
+from ...lib_funcs import binary_search_float
 from ...fixed_prec import FixedPrec
 from ...named_tuples import DateTupleBasic
 from ...calendars.jul_greg_base import JulGregBaseDate
@@ -16,10 +17,10 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     'TAI',
     'TT',
     'TCG',
-    #'TCB',
-    #'UT1',
+    'TCB', # inaccurate
     #'TIME_CENTER_GALAXY',
     #'TIME_COMOVING_FRAME',
+    #'UT1',
   ))
   
   # https://en.wikipedia.org/wiki/Terrestrial_Time
@@ -49,6 +50,13 @@ class TimeInstMonotonic(TimeInstantTimeZones):
       
       case cls.TIME_SCALES.TCG:
         return cls((mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI - cls.TT_EPOCH) * cls.TCG_TO_TT_FACTOR + cls.TT_EPOCH)
+      
+      case cls.TIME_SCALES.TCB:
+        delta = abs(time_scale - cls.TT_EPOCH) * FixedPrec('0.01')
+        low = mono_secs_since_epoch - delta
+        high = mono_secs_since_epoch + delta
+        
+        return cls(binary_search_float(lambda x: cls(x).to_date_tuple_mono(cls.TIME_SCALES.TCB) <= mono_secs_since_epoch, low, high))
   
   @classmethod
   def from_date_tuple_mono(
@@ -73,6 +81,18 @@ class TimeInstMonotonic(TimeInstantTimeZones):
       
       case self.TIME_SCALES.TCG:
         return (self._time - self.TT_EPOCH) / self.TCG_TO_TT_FACTOR + self.TT_EPOCH + self.TT_OFFSET_FROM_TAI
+      
+      case self.TIME_SCALES.TCB:
+        # https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems#TDT_-_TDB,_TCB
+        J2000_EPOCH = self.from_date_tuple_mono(self.TIME_SCALES.TT, 2000, 1, 1, 0, 0, 0, 0).time
+        
+        T = (self._time - J2000_EPOCH) / (36525 * 86400)
+        g = (FixedPrec('3.141592653589') / 180) * (FixedPrec('357.528') + FixedPrec('35999.050') * T)
+        TDB = self._time + self.TT_OFFSET_FROM_TAI + FixedPrec('0.001658') * (g + FixedPrec('0.0167') * g.sin()).sin()
+        LB = FixedPrec(f'0.{'0' * 7}155051976772', max_prec = 19) # 1.55051976772e-8
+        P0 = FixedPrec(f'0.{'0' * 4}65510') # 6.5510e-5
+        TCB = TDB + LB * (self._time - self.TT_EPOCH) + P0
+        return TCB
   
   def to_date_tuple_mono(self, time_scale: TIME_SCALES, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     return self.epoch_instant_to_date_tuple(self.to_mono_secs_since_epoch(time_scale), date_cls = date_cls)
