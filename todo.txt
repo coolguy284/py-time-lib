@@ -5,6 +5,7 @@ complete all ... and notimplementederrors
 fixedprec default max prec configurable
 
 low prio:
+timeinstant: fix low precision error on from_mono_secs_since_epoch
 change get utc tai offset to return a timestoragetype?
 add test for dst in tzdb zones where summer/dst is in january
 find listing of mappings from timezone abbreviations to timezone full names

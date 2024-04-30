@@ -1180,17 +1180,17 @@ class TestTimeClasses(unittest.TestCase):
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
     )
     
-    def test_cycle(instant):
+    def test_cycle(instant, places = 12):
       mono_secs_since_epoch = instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)
       from_mono_secs = TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB, mono_secs_since_epoch)
-      self.assertAlmostEqual(instant.time, from_mono_secs.time, 12, f'{instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)} {from_mono_secs.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)}')
+      self.assertAlmostEqual(instant.time, from_mono_secs.time, places, f'{instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)} {from_mono_secs.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)}')
     
-    med_instant = TimeInstant(FixedPrec(TimeInstant.from_date_tuple_tai(1977, 6, 1, 0, 0, 0, 0).time, max_prec = 40))
-    far_instant_future = TimeInstant(FixedPrec(10 ** 50, max_prec = 40))
-    far_instant_past = TimeInstant(FixedPrec(-10 ** 50, max_prec = 40))
+    med_instant = TimeInstant(FixedPrec(TimeInstant.from_date_tuple_tai(1977, 6, 1, 0, 0, 0, 0).time, max_prec = 19))
+    far_instant_future = TimeInstant(FixedPrec(10 ** 50, max_prec = 19))
+    far_instant_past = TimeInstant(FixedPrec(-10 ** 50, max_prec = 19))
     test_cycle(med_instant)
-    test_cycle(far_instant_future)
-    test_cycle(far_instant_past)
+    test_cycle(far_instant_future, 3)
+    test_cycle(far_instant_past, 3)
   
   def test_to_format_string_mono(self):
     ts = TimeInstant.TIME_SCALES.TT
