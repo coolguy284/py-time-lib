@@ -14,6 +14,7 @@ RunModes = Enum('RunModes', (
   'TEST_AUTO_LEAP_SECONDS',
   'TEST_CALENDARS',
   'TEST_TZDB',
+  'TEST_TIME_SCALES',
   'GENERATE_TZDB_DUMP',
   'HELP',
   'REPL',
@@ -122,6 +123,19 @@ elif mode == RunModes.TEST_CALENDARS:
   print()
 elif mode == RunModes.TEST_TZDB:
   print(repr(get_tzdb_data())[:1000])
+elif mode == RunModes.TEST_TIME_SCALES:
+  # https://docs.astropy.org/en/stable/time/
+  from astropy.time import Time
+  t1a = TimeInstant.from_date_tuple_tai(1977, 1, 1, 0, 0, 0, 0)
+  t2a = TimeInstant.from_date_tuple_tai(2010, 1, 1, 0, 0, 0, 0)
+  t3a = TimeInstant.from_date_tuple_tai(2024, 1, 1, 0, 0, 0, 0)
+  t1b = Time('1977-01-01 00:00:00', format='iso', scale='tai')
+  t2b = Time('2010-01-01 00:00:00', format='iso', scale='tai')
+  t3b = Time('2024-01-01 00:00:00', format='iso', scale='tai')
+  print(t2a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCG) - 32.184, (t2b.tcg - t1b.tcg).to_value(format='sec') - (t2b.tai - t1b.tai).to_value(format='sec'))
+  print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCG) - 32.184, (t3b.tcg - t1b.tcg).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
+  print(t2a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB) - 32.184, (t2b.tcb - t1b.tcb).to_value(format='sec') - (t2b.tai - t1b.tai).to_value(format='sec'))
+  print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB) - 32.184, (t3b.tcb - t1b.tcb).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
 elif mode == RunModes.GENERATE_TZDB_DUMP:
   print('Stage 1 dump...')
   save_tzdb_stage_1_dump()
