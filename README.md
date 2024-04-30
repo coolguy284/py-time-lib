@@ -5,10 +5,12 @@ This is a time library for python that attempts to handle some of the complexiti
 Features:
 - Leap second support
 - Support for dates arbitrarily far into the past or future (taking advantage of the unlimited size of python ints)
+- Limited timezone support (only counting current rules, not past rules)
+- Approximate support for other time scales (TCG, TCB, galactic or universal coordinate timescales)
 
 ## Examples
 
-Dates:
+### Dates:
 
 ```python
 >>> from py_time_lib import *
@@ -20,9 +22,16 @@ DateDelta(118)
 # Far dates:
 >>> GregorianDate(2024, 4, 26) + DateDelta(10 ** 21)
 GregorianDate(year = 2737907006988509659, month = 8, day = 28)
+
+# Conversion between date formats:
+>>> JulianDate(GregorianDate(2024, 4, 26))
+JulianDate(year = 2024, month = 4, day = 13)
+
+>>> IsoWeekDate(GregorianDate(2024, 4, 26))
+IsoWeekDate(year = 2024, week = 17, day = 5)
 ```
 
-Times:
+### Leap Seconds:
 
 ```python
 >>> from py_time_lib import *
@@ -81,4 +90,58 @@ DateTupleBasic(
   hour=0, minute=0, second=0,
   frac_second=FixedPrec(0)
 )
+```
+
+### Time Zones:
+```python
+>>> from py_time_lib import *
+
+>>> chicago = TIMEZONES['proleptic_variable']['America/Chicago']
+
+>>> t1 = TimeInstant.from_date_tuple_utc(
+  year=2024, month=4, day=26,
+  hour=11, minute=2, second=0,
+  frac_second=FixedPrec('0.01')
+)
+
+>>> t1.to_date_tuple_utc()
+DateTupleBasic(
+  year=2024, month=4, day=26,
+  hour=11, minute=2, second=0,
+  frac_second=FixedPrec('0.01')
+)
+
+# In April, Chicago is 5 hours behind UTC:
+>>> t1.to_date_tuple_tz(chicago)
+DateTupleTZ(
+  year=2024, month=4, day=26,
+  hour=6, minute=2, second=0,
+  frac_second=FixedPrec('0.01'),
+  dst_second_fold=False
+)
+```
+
+### Time Scales:
+```python
+>>> from py_time_lib import *
+
+>>> t1 = TimeInstant.from_date_tuple_utc(
+  year=2010, month=1, day=1,
+  hour=0, minute=0, second=0,
+  frac_second=0
+)
+
+>>> t2 = TimeInstant.from_date_tuple_utc(
+  year=2024, month=1, day=1,
+  hour=0, minute=0, second=0,
+  frac_second=0
+)
+
+# In 2010, TCB is approximately 48.3 seconds ahead of TAI:
+>>> t1.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB)
+FixedPrec('48.3307954016341152648')
+
+# In 2024, TCB is approximately 55.2 seconds ahead of TAI:
+>>> t2.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB)
+FixedPrec('55.1804027969721473364')
 ```

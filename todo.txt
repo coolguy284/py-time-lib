@@ -1,3 +1,7 @@
+test true leap second handling in windows
+add symmetry454 calendar system
+
+full tz support
 strptime support
 add leap smear support
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
