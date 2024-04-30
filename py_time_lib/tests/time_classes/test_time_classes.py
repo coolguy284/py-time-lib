@@ -1151,6 +1151,46 @@ class TestTimeClasses(unittest.TestCase):
       (1977, 1, 1, 0, 0, 0, FixedPrec('0.9999999993030709866')),
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.184'))
     )
+    
+    def test_approx(time_scale, tai_tuple, ts_tuple_start, ts_tuple_end):
+      tcg_start = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      mono_secs = TimeInstant.from_date_tuple_tai(*tai_tuple).to_mono_secs_since_epoch(time_scale)
+      tcg_end = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      self.assertTrue(
+        tcg_start < mono_secs < tcg_end,
+        f'{tcg_start} < {mono_secs} < {tcg_end}'
+      )
+      mono_start = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      mono_end = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      self.assertTrue(
+        mono_start < tcg_start < mono_end,
+        f'{mono_start} < {tcg_start} < {mono_end}'
+      )
+    
+    test_approx(
+      TimeInstant.TIME_SCALES.TCB,
+      (1977, 1, 1, 0, 0, 0, 0),
+      (1977, 1, 1, 0, 0, 32, FixedPrec('0.184')),
+      (1977, 1, 1, 0, 0, 32, FixedPrec('0.185'))
+    )
+    test_approx(
+      TimeInstant.TIME_SCALES.TCB,
+      (1977, 1, 1, 0, 0, 1, 0),
+      (1977, 1, 1, 0, 0, 33, FixedPrec('0.184')),
+      (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
+    )
+    
+    def test_cycle(instant):
+      mono_secs_since_epoch = instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)
+      from_mono_secs = TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB, mono_secs_since_epoch)
+      self.assertAlmostEqual(instant.time, from_mono_secs.time, 12, f'{instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)} {from_mono_secs.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)}')
+    
+    med_instant = TimeInstant(FixedPrec(TimeInstant.from_date_tuple_tai(1977, 6, 1, 0, 0, 0, 0).time, max_prec = 40))
+    far_instant_future = TimeInstant(FixedPrec(10 ** 50, max_prec = 40))
+    far_instant_past = TimeInstant(FixedPrec(-10 ** 50, max_prec = 40))
+    test_cycle(med_instant)
+    test_cycle(far_instant_future)
+    test_cycle(far_instant_past)
   
   def test_to_format_string_mono(self):
     ts = TimeInstant.TIME_SCALES.TT

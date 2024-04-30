@@ -18,8 +18,8 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     'TT',
     'TCG',
     'TCB', # inaccurate
-    #'TIME_CENTER_GALAXY',
-    #'TIME_COMOVING_FRAME',
+    #'GALACTIC_COORDINATE_TIME', # inaccurate
+    #'TIME_COMOVING_FRAME', # inaccurate
     #'UT1',
   ))
   
@@ -52,11 +52,13 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         return cls((mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI - cls.TT_EPOCH) * cls.TCG_TO_TT_FACTOR + cls.TT_EPOCH)
       
       case cls.TIME_SCALES.TCB:
-        delta = abs(time_scale - cls.TT_EPOCH) * FixedPrec('0.01')
-        low = mono_secs_since_epoch - delta
-        high = mono_secs_since_epoch + delta
-        
-        return cls(binary_search_float(lambda x: cls(x).to_date_tuple_mono(cls.TIME_SCALES.TCB) <= mono_secs_since_epoch, low, high))
+        delta = abs(mono_secs_since_epoch - cls.TT_EPOCH) * FixedPrec('0.01')
+        low = mono_secs_since_epoch - delta - cls.TT_OFFSET_FROM_TAI
+        high = mono_secs_since_epoch + delta + cls.TT_OFFSET_FROM_TAI
+        test = lambda x: cls(x).to_mono_secs_since_epoch(time_scale) <= mono_secs_since_epoch
+        assert test(low)
+        assert not test(high)
+        return cls(binary_search_float(test, low, high))
   
   @classmethod
   def from_date_tuple_mono(
