@@ -51,6 +51,8 @@ run_mode = RunMode.CURRENT
 
 # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+# https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
+pygame.display.set_caption('GUI Time Display')
 refresh_rate = pygame.display.get_current_refresh_rate()
 clock = pygame.time.Clock()
 
