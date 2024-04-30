@@ -6,9 +6,10 @@ import os, sys
 parent_dir = Path(os.path.realpath(__file__)).parent.parent
 sys.path.append(str(parent_dir))
 
+from enum import Enum
 from functools import cache
 import pygame
-from py_time_lib import TimeInstant, TIMEZONES, update_time_databases
+from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases
 
 update_time_databases()
 
@@ -42,6 +43,11 @@ height = 720
 format_str_start = '%a %b %d %Y %I:%M:%S.%.9f %p'
 format_str_offset = '%:z'
 format_str = f'{format_str_start} {format_str_offset}'
+RunMode = Enum('RunMode', (
+  'CURRENT',
+  'LEAP_SEC_REPLAY',
+))
+run_mode = RunMode.CURRENT
 
 # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -74,12 +80,17 @@ def draw_text_centered(
     coords = pos
   surf.blit(font_rendered, coords)
 
-def get_format_string(now, time_scale):
+def get_format_string(now, time_scale, pad_end = True):
   out_start = now.to_format_string_mono(time_scale, format_str_start)
   offset = now.to_format_string_mono(time_scale, format_str_offset)
   if '.' in offset:
     start, end = offset.split('.')
-    offset = f'{start}.{end[:10]}'
+    if pad_end:
+      offset = f'{start}.{end[:10]:0<10}'
+    else:
+      offset = f'{start}.{end[:10]}'
+  elif pad_end:
+    offset = f'{offset}.{'':0<10}'
   return f'{out_start} {offset}'
 
 loop = True
@@ -91,14 +102,16 @@ while loop:
   
   screen.fill((0, 0, 0))
   
-  # now = TimeInstant(
-  #   (
-  #     TimeInstant.now().time -
-  #     TimeInstant.from_date_tuple_utc(2024, 4, 28, 15, 28, 0, 0).time
-  #   ) * 1 +
-  #   TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 60, FixedPrec('0.994')).time
-  # )
-  now = TimeInstant.now()
+  if run_mode == RunMode.CURRENT:
+    now = TimeInstant.now()
+  elif run_mode == RunMode.LEAP_SEC_REPLAY:
+    now = TimeInstant(
+      (
+        TimeInstant.now().time -
+        TimeInstant.from_date_tuple_utc(2024, 4, 28, 15, 28, 0, 0).time
+      ) * 1 +
+      TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 60, FixedPrec('0.994')).time
+    )
   
   draw_text_centered(screen, 'Current Time', (width / 2, 50), centered = True, size = 43)
   
@@ -110,7 +123,7 @@ while loop:
     draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - x_center_offset, y_start + 0 * y_step))
   draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - x_center_offset, y_start + 1 * y_step))
   draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - x_center_offset, y_start + 2 * y_step))
-  draw_text_centered(screen, f'TT:  {get_format_string(now, TimeInstant.TIME_SCALES.TT)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
+  draw_text_centered(screen, f'TT:  {get_format_string(now, TimeInstant.TIME_SCALES.TT, pad_end = False)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
   draw_text_centered(screen, f'TCG: {get_format_string(now, TimeInstant.TIME_SCALES.TCG)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
   draw_text_centered(screen, f'TCB: {get_format_string(now, TimeInstant.TIME_SCALES.TCB)}', (width / 2 - x_center_offset, y_start + 5 * y_step))
   draw_text_centered(screen, f'GAL: {get_format_string(now, TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 6 * y_step))
