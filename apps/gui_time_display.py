@@ -91,14 +91,16 @@ while loop:
   
   draw_text_centered(screen, 'Current Time', (width / 2, 50), centered = True, size = 43)
   
+  x_center_offset = 600
   y_start = 130
   y_step = 70
   
   if tz != None:
-    draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - 480, y_start + 0 * y_step))
-  draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - 480, y_start + 1 * y_step))
-  draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - 480, y_start + 2 * y_step))
-  draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, format_str)}', (width / 2 - 480, y_start + 3 * y_step))
+    draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - x_center_offset, y_start + 0 * y_step))
+  draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - x_center_offset, y_start + 1 * y_step))
+  draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - x_center_offset, y_start + 2 * y_step))
+  draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, format_str)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
+  draw_text_centered(screen, f'TGC: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, format_str)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)
