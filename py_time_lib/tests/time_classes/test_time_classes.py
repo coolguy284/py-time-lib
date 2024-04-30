@@ -1196,6 +1196,48 @@ class TestTimeClasses(unittest.TestCase):
     test_cycle(far_instant_future, 3)
     test_cycle(far_instant_past, 3)
   
+  def test_monotonic_time_scale_gal_and_uni(self):
+    def test_approx(time_scale, tai_tuple, ts_tuple_start, ts_tuple_end):
+      tcg_start = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      mono_secs = TimeInstant.from_date_tuple_tai(*tai_tuple).to_mono_secs_since_epoch(time_scale)
+      tcg_end = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      self.assertTrue(
+        tcg_start < mono_secs < tcg_end,
+        f'{tcg_start} < {mono_secs} < {tcg_end}'
+      )
+      mono_start = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      mono_end = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      self.assertTrue(
+        mono_start < tcg_start < mono_end,
+        f'{mono_start} < {tcg_start} < {mono_end}'
+      )
+    
+    test_approx(
+      TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME,
+      (1977, 1, 1, 0, 0, 0, 0),
+      (1977, 1, 1, 0, 0, 32, FixedPrec('0.184')),
+      (1977, 1, 1, 0, 0, 32, FixedPrec('0.185'))
+    )
+    test_approx(
+      TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME,
+      (1977, 1, 1, 0, 0, 1, 0),
+      (1977, 1, 1, 0, 0, 33, FixedPrec('0.184')),
+      (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
+    )
+    
+    test_approx(
+      TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME,
+      (1977, 1, 1, 0, 0, 0, 0),
+      (1977, 1, 1, 0, 0, 32, FixedPrec('0.184')),
+      (1977, 1, 1, 0, 0, 32, FixedPrec('0.185'))
+    )
+    test_approx(
+      TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME,
+      (1977, 1, 1, 0, 0, 1, 0),
+      (1977, 1, 1, 0, 0, 33, FixedPrec('0.184')),
+      (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
+    )
+  
   def test_to_format_string_mono(self):
     ts = TimeInstant.TIME_SCALES.TT
     

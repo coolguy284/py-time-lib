@@ -18,8 +18,8 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     'TT',
     'TCG',
     'TCB', # inaccurate
-    #'GALACTIC_COORDINATE_TIME', # inaccurate
-    #'COMOVING_COORDINATE_TIME', # inaccurate
+    'GALACTIC_COORDINATE_TIME', # complete estimates
+    'UNIVERSE_COORDINATE_TIME', # complete estimates
     #'UT1',
   ))
   
@@ -29,10 +29,40 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   TCG_TO_TT_LG: FixedPrec = FixedPrec(f'0.{'0' * 9}6969290134', max_prec = 19) # 0.6969290134e-10
   TCG_TO_TT_FACTOR: FixedPrec = 1 - TCG_TO_TT_LG # 0.9999999993030709866
   
+  # from https://github.com/coolguy284/html5-time-standards
+  # to get universe time, stuff will be done.
+  #
+  # thank you https://www.quora.com/How-much-faster-would-an-atomic-clock-in-intergalactic-space-run-compared-to-one-on-the-surface-of-the-Earth
+  #
+  # formula for time dialation: sqrt(1 - (v / c) ^ 2); v can be moving velocity, or it can be escape velocity in the case of gravitational time dialation, the formula works either case
+  #
+  # start with scaling factor of solar system's velocity in the milky way
+  # https://en.wikipedia.org/wiki/Galactic_year
+  # solar system speed rel to milky way: 230 km/s
+  #
+  # then add scaling factor of our current milky way position to intergalactic space
+  # https://www.quora.com/How-much-faster-would-an-atomic-clock-in-intergalactic-space-run-compared-to-one-on-the-surface-of-the-Earth
+  # escape velocity of milky way: 550 km/s
+  #
+  # then add scaling factor of milky way's speed relative to cmb
+  # https://en.wikipedia.org/wiki/Milky_Way
+  # milky way speed rel to cmb: 630 km/s
+  
+  SPEED_OF_LIGHT = FixedPrec(299_792_458, max_prec = 19)
+  SUN_SPEED_IN_MILKY_WAY = FixedPrec(230_000, max_prec = 19)
+  MILKY_WAY_ESCAPE_VEL = FixedPrec(550_000, max_prec = 19)
+  MILKY_WAY_CMB_REL_SPEED = FixedPrec(630_000, max_prec = 19)
+  
+  @classmethod
+  def _time_dilation_factor(cls, velocity: FixedPrec) -> FixedPrec:
+    return (1 - (velocity / cls.SPEED_OF_LIGHT) ** 2)._nthroot(2)
+  
   @classmethod
   def _init_class_vars(cls):
     super()._init_class_vars()
     cls.TT_EPOCH: TimeStorageType = cls.from_date_tuple_tai(*cls.TT_EPOCH_TAI_TUPLE).time
+    cls.GALACTIC_COORDINATE_TIME_TO_TCB_FACTOR: FixedPrec = cls._time_dilation_factor(cls.SUN_SPEED_IN_MILKY_WAY) * cls._time_dilation_factor(cls.MILKY_WAY_ESCAPE_VEL)
+    cls.UNIVERSE_COORDINATE_TIME_TO_TCB_FACTOR: FixedPrec = cls.GALACTIC_COORDINATE_TIME_TO_TCB_FACTOR * cls._time_dilation_factor(cls.MILKY_WAY_CMB_REL_SPEED)
   
   # instance stuff
   
@@ -51,7 +81,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
       case cls.TIME_SCALES.TCG:
         return cls((mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI - cls.TT_EPOCH) * cls.TCG_TO_TT_FACTOR + cls.TT_EPOCH)
       
-      case cls.TIME_SCALES.TCB:
+      case _ if time_scale == cls.TIME_SCALES.TCB or time_scale == cls.TIME_SCALES.GALACTIC_COORDINATE_TIME or time_scale == cls.TIME_SCALES.UNIVERSE_COORDINATE_TIME:
         delta = abs(mono_secs_since_epoch - cls.TT_EPOCH) * FixedPrec('0.01')
         low = mono_secs_since_epoch - delta - cls.TT_OFFSET_FROM_TAI
         high = mono_secs_since_epoch + delta + cls.TT_OFFSET_FROM_TAI
@@ -95,6 +125,16 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         P0 = FixedPrec(f'0.{'0' * 4}65510') # 6.5510e-5
         TCB = TDB + LB * (self._time - self.TT_EPOCH) + P0
         return TCB
+      
+      case self.TIME_SCALES.GALACTIC_COORDINATE_TIME:
+        TCB = self.to_mono_secs_since_epoch(self.TIME_SCALES.TCB)
+        GALACTIC_COORDINATE_TIME = (TCB - self.TT_EPOCH) / self.GALACTIC_COORDINATE_TIME_TO_TCB_FACTOR + self.TT_EPOCH
+        return GALACTIC_COORDINATE_TIME
+      
+      case self.TIME_SCALES.UNIVERSE_COORDINATE_TIME:
+        TCB = self.to_mono_secs_since_epoch(self.TIME_SCALES.TCB)
+        UNIVERSE_COORDINATE_TIME = (TCB - self.TT_EPOCH) / self.UNIVERSE_COORDINATE_TIME_TO_TCB_FACTOR + self.TT_EPOCH
+        return UNIVERSE_COORDINATE_TIME
   
   def to_date_tuple_mono(self, time_scale: TIME_SCALES, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     return self.epoch_instant_to_date_tuple(self.to_mono_secs_since_epoch(time_scale), date_cls = date_cls)

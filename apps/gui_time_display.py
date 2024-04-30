@@ -113,6 +113,8 @@ while loop:
   draw_text_centered(screen, f'TT:  {get_format_string(now, TimeInstant.TIME_SCALES.TT)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
   draw_text_centered(screen, f'TCG: {get_format_string(now, TimeInstant.TIME_SCALES.TCG)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
   draw_text_centered(screen, f'TCB: {get_format_string(now, TimeInstant.TIME_SCALES.TCB)}', (width / 2 - x_center_offset, y_start + 5 * y_step))
+  draw_text_centered(screen, f'GAL: {get_format_string(now, TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 6 * y_step))
+  draw_text_centered(screen, f'UNI: {get_format_string(now, TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 7 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)
