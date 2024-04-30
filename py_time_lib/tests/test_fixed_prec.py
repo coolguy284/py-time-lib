@@ -668,6 +668,9 @@ class TestFixedPrec(unittest.TestCase):
       d1 = FixedPrec(2024)
       d1.prop = False
   
+  def test_reset_max_prec(self):
+    self.assertEqual(FixedPrec(FixedPrec(4, max_prec = 12), max_prec = 19).max_prec, 19)
+  
   def test_consts(self):
     self.assertEqual(FixedPrec(0).pi(), FixedPrec('3.141592653589'))
     self.assertEqual(FixedPrec(0).e(),  FixedPrec('2.718281828459'))

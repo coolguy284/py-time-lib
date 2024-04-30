@@ -8,6 +8,7 @@ from .lib_funcs import binary_search_float
 class FixedPrec(Real):
   # static stuff
   
+  DEFAULT_MAX_PREC = 12
   FLOAT_ADDED_PREC = 15
   RADIX = 10
   RADIX_FLOAT = float(RADIX)
@@ -28,7 +29,7 @@ class FixedPrec(Real):
   max_prec: Integral
   
   @classmethod
-  def from_basic(cls, value: int | float | str | Self, max_prec: Integral = 12, cast_only: bool = False) -> Self:
+  def from_basic(cls, value: int | float | str | Self, max_prec: Integral = None, cast_only: bool = False) -> Self:
     'Converts a value from a basic type like int, float, or FixedPrec to a FixedPrec.'
     if isinstance(value, int):
       return cls(value, 0, max_prec = max_prec)
@@ -57,11 +58,14 @@ class FixedPrec(Real):
     else:
       if hasattr(value, 'value') and hasattr(value, 'place') and hasattr(value, 'max_prec'):
         # duck typing
-        return value
+        if max_prec != None:
+          return FixedPrec(value.value, value.place, max_prec = max_prec)
+        else:
+          return value
       else:
         raise TypeError(f'Could not convert object to {cls.__name__}')
   
-  def __init__(self, *args: tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = 12):
+  def __init__(self, *args: tuple[int | float | str] | tuple[Integral, Integral] | tuple[Integral, Integral, Integral], max_prec: Integral = None):
     if len(args) == 1:
       value = args[0]
       converted = self.from_basic(value, max_prec = max_prec)
@@ -72,12 +76,12 @@ class FixedPrec(Real):
       value, place = args
       self.value = value
       self.place = place
-      self.max_prec = max_prec
+      self.max_prec = max_prec if max_prec != None else self.DEFAULT_MAX_PREC
     elif len(args) == 3:
       value, place, max_prec = args
       self.value = value
       self.place = place
-      self.max_prec = max_prec
+      self.max_prec = max_prec if max_prec != None else self.DEFAULT_MAX_PREC
     else:
       raise TypeError(f'{self.__class__.__name__} constructor takes 1-3 arguments ({len(args)} given)')
   
