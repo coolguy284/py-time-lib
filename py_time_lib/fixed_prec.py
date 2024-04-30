@@ -660,14 +660,19 @@ class FixedPrec(Real):
     PI1_2 = PI / 2
     if self < 0 or self > PI1_2:
       repeat, remainder = divmod(self, PI1_2)
+      repeat %= 4
       if repeat % 2 == 0:
-        return remainder.sin()
+        initial = remainder.sin()
       else:
-        return (PI1_2 - remainder).sin()
+        initial = (PI1_2 - remainder).sin()
+      if repeat >= 2:
+        return -initial
+      else:
+        return initial
     else:
       self_sq = self * self
       x_prod = self
-      total_sum = x_prod
+      total_sum = 0
       k = 0
       while x_prod > 0:
         total_sum += x_prod * (1 if k % 2 == 0 else -1)

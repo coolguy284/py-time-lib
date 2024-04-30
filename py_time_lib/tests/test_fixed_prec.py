@@ -1,4 +1,4 @@
-from math import floor, ceil, trunc
+from math import floor, ceil, trunc, sin
 import unittest
 
 from .. import FixedPrec
@@ -667,3 +667,34 @@ class TestFixedPrec(unittest.TestCase):
     with self.assertRaises(AttributeError):
       d1 = FixedPrec(2024)
       d1.prop = False
+  
+  def test_consts(self):
+    self.assertEqual(FixedPrec(0).pi(), FixedPrec('3.141592653589'))
+    self.assertEqual(FixedPrec(0).e(),  FixedPrec('2.718281828459'))
+  
+  def test_exp(self):
+    self.assertEqual(FixedPrec(0).exp(), 1)
+    self.assertEqual(FixedPrec(1).exp(), FixedPrec(0).e())
+    self.assertEqual(FixedPrec(2).exp(), FixedPrec(0).e() ** 2)
+    self.assertEqual(FixedPrec(1.5).exp(), FixedPrec(0).e() ** 1.5)
+    self.assertEqual(FixedPrec(-1.5).exp(), FixedPrec(0).e() ** -1.5)
+  
+  def test_sin(self):
+    self.assertAlmostEqual((-FixedPrec(0).pi() / 6).sin(), -FixedPrec('0.5'), places = 11)
+    self.assertEqual(FixedPrec(0).sin(), 0)
+    self.assertAlmostEqual((FixedPrec(0).pi() / 6).sin(), FixedPrec('0.5'), places = 11)
+    self.assertEqual((FixedPrec(0).pi() / 4).sin(), FixedPrec(2)._nthroot(2) / 2)
+    self.assertAlmostEqual((FixedPrec(0).pi() / 3).sin(), FixedPrec(3)._nthroot(2) / 2, places = 11)
+    self.assertEqual((FixedPrec(0).pi() / 2).sin(), 1)
+    self.assertAlmostEqual((2 * FixedPrec(0).pi() / 3).sin(), FixedPrec(3)._nthroot(2) / 2, places = 11)
+    
+    for i in range(-24, 24):
+      num = i * FixedPrec(0).pi() / 12
+      self.assertAlmostEqual(num.sin(), sin(float(num)), places = 11)
+  
+  def test_cos(self):
+    self.assertEqual(FixedPrec(0).cos(), 1)
+  
+  def test_tan(self):
+    self.assertEqual(FixedPrec(0).tan(), 0)
+    self.assertEqual((FixedPrec(0).pi() / 4).tan(), 1)
