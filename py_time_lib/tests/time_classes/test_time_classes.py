@@ -1130,6 +1130,27 @@ class TestTimeClasses(unittest.TestCase):
       TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TT, 2024, 4, 28, 12, 0, 32, FixedPrec('0.184')).to_date_tuple_tai(),
       (2024, 4, 28, 12, 0, 0, 0)
     )
+    
+    def test(time_scale, tai_tuple, ts_tuple):
+      self.assertEqual(
+        TimeInstant.from_date_tuple_tai(*tai_tuple).to_date_tuple_mono(time_scale),
+        ts_tuple
+      )
+      self.assertEqual(
+        TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple).to_date_tuple_tai(),
+        tai_tuple
+      )
+    
+    test(
+      TimeInstant.TIME_SCALES.TCG,
+      (1977, 1, 1, 0, 0, 0, 0),
+      (1977, 1, 1, 0, 0, 32, FixedPrec('0.184'))
+    )
+    test(
+      TimeInstant.TIME_SCALES.TCG,
+      (1977, 1, 1, 0, 0, 0, FixedPrec('0.9999999993030709866')),
+      (1977, 1, 1, 0, 0, 33, FixedPrec('0.184'))
+    )
   
   def test_to_format_string_mono(self):
     ts = TimeInstant.TIME_SCALES.TT

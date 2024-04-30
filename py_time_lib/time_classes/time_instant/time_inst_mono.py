@@ -15,7 +15,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   TIME_SCALES = Enum('TIME_SCALES', (
     'TAI',
     'TT',
-    #'TCG',
+    'TCG',
     #'TCB',
     #'UT1',
     #'TIME_CENTER_GALAXY',
@@ -24,6 +24,14 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   
   # https://en.wikipedia.org/wiki/Terrestrial_Time
   TT_OFFSET_FROM_TAI: FixedPrec = FixedPrec('32.184')
+  TT_EPOCH_TAI_TUPLE: tuple = 1977, 1, 1, 0, 0, 0, 0
+  TCG_TO_TT_LG: FixedPrec = FixedPrec(f'0.{'0' * 9}6969290134', max_prec = 19) # 0.6969290134e-10
+  TCG_TO_TT_FACTOR: FixedPrec = 1 - TCG_TO_TT_LG # 0.9999999993030709866
+  
+  @classmethod
+  def _init_class_vars(cls):
+    super()._init_class_vars()
+    cls.TT_EPOCH: TimeStorageType = cls.from_date_tuple_tai(*cls.TT_EPOCH_TAI_TUPLE).time
   
   # instance stuff
   
@@ -31,12 +39,16 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   
   @classmethod
   def from_mono_secs_since_epoch(cls, time_scale: TIME_SCALES, mono_secs_since_epoch: TimeStorageType) -> Self:
+    'This function still uses the TimeInstant standard epoch of Jan 1, 1 BCE Proleptic Gregorian Calendar.'
     match time_scale:
       case cls.TIME_SCALES.TAI:
         return cls(mono_secs_since_epoch)
       
       case cls.TIME_SCALES.TT:
         return cls(mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI)
+      
+      case cls.TIME_SCALES.TCG:
+        return cls((mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI - cls.TT_EPOCH) * cls.TCG_TO_TT_FACTOR + cls.TT_EPOCH)
   
   @classmethod
   def from_date_tuple_mono(
@@ -51,12 +63,16 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     )
   
   def to_mono_secs_since_epoch(self, time_scale: TIME_SCALES) -> TimeStorageType:
+    'This function still uses the TimeInstant standard epoch of Jan 1, 1 BCE Proleptic Gregorian Calendar.'
     match time_scale:
       case self.TIME_SCALES.TAI:
         return self._time
       
       case self.TIME_SCALES.TT:
         return self._time + self.TT_OFFSET_FROM_TAI
+      
+      case self.TIME_SCALES.TCG:
+        return (self._time - self.TT_EPOCH) / self.TCG_TO_TT_FACTOR + self.TT_EPOCH + self.TT_OFFSET_FROM_TAI
   
   def to_date_tuple_mono(self, time_scale: TIME_SCALES, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     return self.epoch_instant_to_date_tuple(self.to_mono_secs_since_epoch(time_scale), date_cls = date_cls)
