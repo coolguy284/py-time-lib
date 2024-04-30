@@ -1108,7 +1108,7 @@ class TestTimeClasses(unittest.TestCase):
       'U:15 W:16'
     )
   
-  def test_monotonic_time_scales(self):
+  def test_monotonic_time_scale_tai(self):
     self.assertEqual(TimeInstant(3).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI), 3)
     self.assertEqual(TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI, 3).time, 3)
     self.assertEqual(
@@ -1119,7 +1119,8 @@ class TestTimeClasses(unittest.TestCase):
       TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TAI, 2024, 4, 28, 12, 0, 0, 0).to_date_tuple_tai(),
       (2024, 4, 28, 12, 0, 0, 0)
     )
-    
+  
+  def test_monotonic_time_scale_tt(self):
     self.assertEqual(TimeInstant(3).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TT), 3 + FixedPrec('32.184'))
     self.assertEqual(TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TT, 3).time, 3 - FixedPrec('32.184'))
     self.assertEqual(
@@ -1130,7 +1131,8 @@ class TestTimeClasses(unittest.TestCase):
       TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TT, 2024, 4, 28, 12, 0, 32, FixedPrec('0.184')).to_date_tuple_tai(),
       (2024, 4, 28, 12, 0, 0, 0)
     )
-    
+  
+  def test_monotonic_time_scale_tcg(self):
     def test(time_scale, tai_tuple, ts_tuple):
       self.assertEqual(
         TimeInstant.from_date_tuple_tai(*tai_tuple).to_date_tuple_mono(time_scale),
@@ -1151,7 +1153,8 @@ class TestTimeClasses(unittest.TestCase):
       (1977, 1, 1, 0, 0, 0, FixedPrec('0.9999999993030709866')),
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.184'))
     )
-    
+  
+  def test_monotonic_time_scale_tcb(self):
     def test_approx(time_scale, tai_tuple, ts_tuple_start, ts_tuple_end):
       tcg_start = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
       mono_secs = TimeInstant.from_date_tuple_tai(*tai_tuple).to_mono_secs_since_epoch(time_scale)
@@ -1179,7 +1182,8 @@ class TestTimeClasses(unittest.TestCase):
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.184')),
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
     )
-    
+  
+  def test_monotonic_time_scale_tcb_cycle(self):
     def test_cycle(instant, places = 12):
       mono_secs_since_epoch = instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)
       from_mono_secs = TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB, mono_secs_since_epoch)

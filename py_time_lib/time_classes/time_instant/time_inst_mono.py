@@ -19,7 +19,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     'TCG',
     'TCB', # inaccurate
     #'GALACTIC_COORDINATE_TIME', # inaccurate
-    #'TIME_COMOVING_FRAME', # inaccurate
+    #'COMOVING_COORDINATE_TIME', # inaccurate
     #'UT1',
   ))
   

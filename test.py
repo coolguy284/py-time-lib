@@ -20,3 +20,4 @@ if 'unittest.util' in __import__('sys').modules:
   __import__('sys').modules['unittest.util']._MAX_LENGTH = 999999999
 
 unittest.main()
+#unittest.main(argv = ['test.py', '--durations=0'])
