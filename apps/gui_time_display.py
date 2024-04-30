@@ -39,9 +39,9 @@ pygame.init()
 
 width = 1280
 height = 720
-format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
 format_str_start = '%a %b %d %Y %I:%M:%S.%.9f %p'
-format_str_end = '%:z'
+format_str_offset = '%:z'
+format_str = f'{format_str_start} {format_str_offset}'
 
 # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -74,6 +74,14 @@ def draw_text_centered(
     coords = pos
   surf.blit(font_rendered, coords)
 
+def get_format_string(now, time_scale):
+  out_start = now.to_format_string_mono(time_scale, format_str_start)
+  offset = now.to_format_string_mono(time_scale, format_str_offset)
+  if '.' in offset:
+    start, end = offset.split('.')
+    offset = f'{start}.{end[:10]}'
+  return f'{out_start} {offset}'
+
 loop = True
 
 while loop:
@@ -102,13 +110,9 @@ while loop:
     draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - x_center_offset, y_start + 0 * y_step))
   draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - x_center_offset, y_start + 1 * y_step))
   draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - x_center_offset, y_start + 2 * y_step))
-  draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, format_str)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
-  draw_text_centered(screen, f'TCG: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, format_str)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
-  offset = now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, format_str_end)
-  if '.' in offset:
-    start, end = offset.split('.')
-    offset = f'{start}.{end[:10]}'
-  draw_text_centered(screen, f'TCB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, format_str_start)} {offset}', (width / 2 - x_center_offset, y_start + 5 * y_step))
+  draw_text_centered(screen, f'TT:  {get_format_string(now, TimeInstant.TIME_SCALES.TT)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
+  draw_text_centered(screen, f'TCG: {get_format_string(now, TimeInstant.TIME_SCALES.TCG)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
+  draw_text_centered(screen, f'TCB: {get_format_string(now, TimeInstant.TIME_SCALES.TCB)}', (width / 2 - x_center_offset, y_start + 5 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)
