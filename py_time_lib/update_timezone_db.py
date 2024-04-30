@@ -37,11 +37,9 @@ def set_tzdb_stored_file(contents: bytes, file_path: str = DEFAULT_TZDB_PATH) ->
   set_file_at_path(file_path, contents)
 
 def get_tzdb_online_file(url: str = DEFAULT_TZDB_URL) -> bytes:
-  print('of')
   return get_file_from_online(url)
 
 def get_tzdb_online_version(url: str = DEFAULT_TZDB_VERSION_URL) -> str:
-  print('ofv')
   return get_file_from_online(url).decode().strip()
 
 def parse_tzdb_version(tgz_file: TarFile) -> str:
