@@ -1,6 +1,6 @@
 test true leap second handling in windows
 
-add links to each timescale wikipedia, possibly as subbullets at top as well
+ut1 support
 
 full tz support
 strptime support

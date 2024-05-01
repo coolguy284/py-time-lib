@@ -2,11 +2,17 @@
 
 This is a time library for python that attempts to handle some of the complexities associated with time.
 
-Features:
+### Features:
 - Leap second support
 - Support for dates arbitrarily far into the past or future (taking advantage of the unlimited size of python ints)
 - Limited timezone support (only counting current rules, not past rules)
-- Approximate support for other time scales (TCG, TCB, galactic or universal coordinate timescales)
+- Approximate support for other time scales:
+  - [TAI: International Atomic Time](https://en.wikipedia.org/wiki/International_Atomic_Time)
+  - [TT: Terrestrial Time](https://en.wikipedia.org/wiki/Terrestrial_Time)
+  - [TCG: Geocentric Coordinate Time](https://en.wikipedia.org/wiki/Geocentric_Coordinate_Time)
+  - [TCB: Barycentric Coordinate Time](https://en.wikipedia.org/wiki/Barycentric_Coordinate_Time)
+  - Galactic Coordinate Time (super approximate)
+  - Universe Coordinate Time (super approximate)
 
 ## Examples
 
