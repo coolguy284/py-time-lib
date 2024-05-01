@@ -276,7 +276,7 @@ class TimeInstantFormatString(TimeInstMonotonic):
     year, month, day, hour, minute, second, frac_second, _ = self.to_date_tuple_tz(time_zone, date_cls = date_cls)
     day_of_week = date.day_of_week()
     ordinal_day = date.ordinal_date()
-    tz_offset, tz_offset_abbr = self.current_tz_offset(time_zone, date_cls = date_cls)
+    tz_offset, tz_offset_abbr = self.get_current_tz_offset(time_zone, date_cls = date_cls)
     iso_date = IsoWeekDate(date)
     
     return self.format_string_from_info({

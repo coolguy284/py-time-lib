@@ -92,7 +92,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       round_invalid_dst_time_upwards = round_invalid_dst_time_upwards,
       round_invalid_leap_time_upwards = round_invalid_leap_time_upwards,
       date_cls = date_cls
-    ).current_tz_offset(time_zone, date_cls = date_cls)
+    ).get_current_tz_offset(time_zone, date_cls = date_cls)
     
     utc_date_mins = date_mins - (offset // cls.NOMINAL_SECS_PER_MIN)
     
@@ -157,7 +157,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       second = int(second + second_addl)
     return DateTupleTZ(*date, hour, minute, second, frac_second, dst_second_fold)
   
-  def current_tz_offset(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
+  def get_current_tz_offset(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
     secs_since_epoch, _ = self.to_utc_secs_since_epoch()
     initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_offset['utc_offset']
     offset = time_zone.initial_offset['utc_offset']

@@ -774,7 +774,7 @@ class TestTimeClasses(unittest.TestCase):
       self.assertEqual(instant, inst_from_tz)
       self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
       self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
-      self.assertEqual(instant.current_tz_offset(tz), (FixedPrec(offset), abbr))
+      self.assertEqual(instant.get_current_tz_offset(tz), (FixedPrec(offset), abbr))
     
     def test2(instant: TimeInstant, tz_tuple, rounded_utc_tuple, rounded_tz_tuple):
       rounded_utc_tuple = *rounded_utc_tuple[:6], FixedPrec(rounded_utc_tuple[6])
@@ -929,7 +929,7 @@ class TestTimeClasses(unittest.TestCase):
         self.assertEqual(instant, inst_from_tz)
         self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
         self.assertEqual(instant.to_date_tuple_tz(tz), tz_tuple)
-        self.assertEqual(instant.current_tz_offset(tz), (FixedPrec(offset), abbr))
+        self.assertEqual(instant.get_current_tz_offset(tz), (FixedPrec(offset), abbr))
       
       current_instant = TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 59, FixedPrec('0.9'))
       
@@ -1262,7 +1262,7 @@ class TestTimeClasses(unittest.TestCase):
     def test(tz, date_tup, date_tup_tz, offset, is_dst):
       instant = TimeInstant.from_date_tuple_utc(*date_tup)
       self.assertEqual(instant.to_date_tuple_tz(tz), date_tup_tz)
-      self.assertEqual(instant.current_tz_offset(tz)[0], offset)
+      self.assertEqual(instant.get_current_tz_offset(tz)[0], offset)
       self.assertEqual(instant.to_struct_time(tz).tm_isdst, is_dst)
     
     test(chicago, (2024, 3,  10, 7,  59, 59, 0), (2024, 3,  10, 1, 59, 59, 0, False), -6 * 3600, 0)

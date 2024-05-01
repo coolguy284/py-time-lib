@@ -97,7 +97,7 @@ class TimeInstant(TimeInstantJulianDateAndUnixTimestamp, TimeInstantFormatString
     else:
       year, month, day, hour, minute, second, _, _ = self.to_date_tuple_tz(time_zone, date_cls = date_cls)
       date = date_cls(year, month, day)
-      current_tz_offset, current_tz_abbr = self.current_tz_offset(time_zone, date_cls = date_cls)
+      current_tz_offset, current_tz_abbr = self.get_current_tz_offset(time_zone, date_cls = date_cls)
       return struct_time(
         (year, month, day, hour, minute, second, date.iso_day_of_week() - 1, date.ordinal_date(), current_tz_offset != time_zone.base_utc_offset),
         {

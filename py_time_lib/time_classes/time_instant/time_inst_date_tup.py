@@ -99,4 +99,4 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
     return date_cls.from_days_since_epoch(int(days_since_epoch))
   
   def get_date_object_utc[T: JulGregBaseDate](self, date_cls: type[T] = GregorianDate) -> T:
-    return date_cls(*self.to_date_tuple_utc()[:3])
+    return date_cls(*self.to_date_tuple_utc(date_cls = date_cls)[:3])
