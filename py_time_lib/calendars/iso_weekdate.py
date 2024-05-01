@@ -69,8 +69,19 @@ class IsoWeekDate(DateBase):
   _week: Integral
   _day: Integral
   
-  def __init__(self, *args: tuple['str | Integral | DateBase | datetime_date_cls'] | tuple[Integral, Integral, Integral]):
-    if len(args) == 1:
+  def __init__[T: Integral | None](
+      self,
+      *args: tuple['str | Integral | DateBase | datetime_date_cls'] | tuple[Integral, Integral, Integral] | tuple[()],
+      year: T = None, week: T = None, day: T = None
+    ):
+    if len(args) == 0:
+      date_obj = self.__class__(year, week, day)
+      
+      self._days_since_epoch = date_obj.days_since_epoch
+      self._year = date_obj.year
+      self._week = date_obj.week
+      self._day = date_obj.day
+    elif len(args) == 1:
       if isinstance(args[0], str):
         iso_string = args[0]
         year, week, day = self.parse_iso_string(iso_string)

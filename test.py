@@ -7,6 +7,7 @@ from py_time_lib.tests.calendars.test_calendar_holocene import TestCalendarHoloc
 from py_time_lib.tests.calendars.test_calendar_isoweek import TestCalendarIsoWeek
 from py_time_lib.tests.calendars.test_calendar_julian import TestCalendarJulian
 from py_time_lib.tests.calendars.test_calendar_date_base import TestCalendarDateBase
+from py_time_lib.tests.calendars.test_calendar_symmetry import TestCalendarSymmetry
 from py_time_lib.tests.time_classes.test_time_classes import TestTimeClasses
 from py_time_lib.tests.test_fixed_prec import TestFixedPrec
 from py_time_lib.tests.test_lib_funcs import TestLibFuncs

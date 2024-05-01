@@ -1,4 +1,3 @@
-fix year month day kwarg handling for gregorian date
 test true leap second handling in windows
 
 add log downloads option to update dbs func and subfuncs

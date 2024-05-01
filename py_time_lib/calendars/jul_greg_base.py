@@ -108,8 +108,19 @@ class JulGregBaseDate(DateBase):
   _day: Integral
   
   # https://stackoverflow.com/questions/72644693/new-union-shorthand-giving-unsupported-operand-types-for-str-and-type/72644857#72644857
-  def __init__(self, *args: tuple['str | Integral | DateBase | datetime_date_cls'] | tuple[Integral, Integral, Integral]):
-    if len(args) == 1:
+  def __init__[T: Integral | None](
+      self,
+      *args: tuple['str | Integral | DateBase | datetime_date_cls'] | tuple[Integral, Integral, Integral] | tuple[()],
+      year: T = None, month: T = None, day: T = None
+    ):
+    if len(args) == 0:
+      date_obj = self.__class__(year, month, day)
+      
+      self._days_since_epoch = date_obj.days_since_epoch
+      self._year = date_obj.year
+      self._month = date_obj.month
+      self._day = date_obj.day
+    elif len(args) == 1:
       if isinstance(args[0], str):
         iso_string = args[0]
         year, month, day = self.parse_iso_string(iso_string)

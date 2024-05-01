@@ -37,3 +37,23 @@ class TestCalendarSymmetry(unittest.TestCase):
     test((2027, 1,  2 ), (2026, 12, 36), (2026, 13, 6 ), (2026, 12, 34), (2026, 13, 6 ))
     test((2027, 1,  3 ), (2026, 12, 37), (2026, 13, 7 ), (2026, 12, 35), (2026, 13, 7 ))
     test((2027, 1,  4 ), (2027, 1,  1 ), (2027, 1,  1 ), (2027, 1,  1 ), (2027, 1,  1 ))
+  
+  def test_construct_from_kwargs(self):
+    self.assertEqual(str(Symmetry010(year = 2024, month = 4, day = 28)), '2024-04-28')
+    self.assertEqual(str(Symmetry010LeapMonth(year = 2024, month = 4, day = 28)), '2024-04-28')
+    self.assertEqual(str(Symmetry454(year = 2024, month = 4, day = 28)), '2024-04-28')
+    self.assertEqual(str(Symmetry454LeapMonth(year = 2024, month = 4, day = 28)), '2024-04-28')
+  
+  def test_no_attributes(self):
+    with self.assertRaises(AttributeError):
+      d1 = Symmetry010(2024, 2, 4)
+      d1.prop = False
+    with self.assertRaises(AttributeError):
+      d1 = Symmetry010LeapMonth(2024, 2, 4)
+      d1.prop = False
+    with self.assertRaises(AttributeError):
+      d1 = Symmetry454(2024, 2, 4)
+      d1.prop = False
+    with self.assertRaises(AttributeError):
+      d1 = Symmetry454LeapMonth(2024, 2, 4)
+      d1.prop = False

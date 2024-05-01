@@ -2,13 +2,17 @@ from numbers import Integral
 
 from .jul_greg_base import JulGregBaseDate
 from .julian import JulianDate
-from .iso_weekdate import IsoWeekDate
 
 class GregorianDate(JulGregBaseDate):
   # static stuff
   
   JAN_1_YEAR0_DAY_OFFSET = 0
-  REPEAT_PERIOD_DAYS = ((JulGregBaseDate.DAYS_LEAP_YEAR + JulGregBaseDate.DAYS_NON_LEAP_YEAR * 3) * 24 + (JulGregBaseDate.DAYS_NON_LEAP_YEAR * 4)) * 3 + (JulGregBaseDate.DAYS_LEAP_YEAR + JulGregBaseDate.DAYS_NON_LEAP_YEAR * 3) * 25
+  REPEAT_PERIOD_DAYS = \
+    (
+      (JulGregBaseDate.DAYS_LEAP_YEAR + JulGregBaseDate.DAYS_NON_LEAP_YEAR * 3) * 24 +
+      (JulGregBaseDate.DAYS_NON_LEAP_YEAR * 4)
+    ) * 3 + \
+    (JulGregBaseDate.DAYS_LEAP_YEAR + JulGregBaseDate.DAYS_NON_LEAP_YEAR * 3) * 25
   REPEAT_PERIOD_YEARS = 400
   
   @staticmethod

@@ -8,8 +8,8 @@ from .jul_greg_base import JulGregBaseDate
 class SymmetryBase(JulGregBaseDate):
   # static stuff
   
-  MONTH_DAYS_NON_LEAP = [...]
-  MONTH_DAYS_LEAP = [...]
+  MONTH_DAYS_NON_LEAP = ...
+  MONTH_DAYS_LEAP = ...
   DAYS_NON_LEAP_YEAR = 364
   DAYS_LEAP_YEAR = 371
   JAN_1_YEAR0_DAY_OFFSET = 2

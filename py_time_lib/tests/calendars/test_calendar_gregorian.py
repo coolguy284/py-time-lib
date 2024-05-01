@@ -106,6 +106,9 @@ class TestCalendarGregorian(unittest.TestCase):
   
   # gregorian only tests
   
+  def test_construct_from_kwargs(self):
+    self.assertEqual(str(cls(year = 2024, month = 4, day = 30)), '2024-04-30')
+  
   def test_add_days(self):
     self.assertEqual(str(cls('2024-04-02').add_days(1)), '2024-04-03')
   
