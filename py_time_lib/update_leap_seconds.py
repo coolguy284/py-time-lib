@@ -7,6 +7,7 @@ from .calendars.gregorian import GregorianDate
 from .constants import NOMINAL_SECS_PER_DAY
 from .time_classes.time_instant import time_inst
 
+DEFAULT_LOG_DOWNLOADS = True
 DEFAULT_LEAP_FILE_PATH = 'data/leap-seconds.list'
 DEFAULT_LEAP_FILE_URL = 'https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list'
 
@@ -35,7 +36,9 @@ def get_leap_sec_stored_file(file_path: str = DEFAULT_LEAP_FILE_PATH) -> str | N
 def set_leap_sec_stored_file(contents: str, file_path: str = DEFAULT_LEAP_FILE_PATH) -> None:
   set_file_at_path(file_path, contents.encode())
 
-def get_leap_sec_online_file(url: str = DEFAULT_LEAP_FILE_URL) -> str:
+def get_leap_sec_online_file(log_downloads: bool = DEFAULT_LOG_DOWNLOADS, url: str = DEFAULT_LEAP_FILE_URL) -> str:
+  if log_downloads:
+    print(f'Downloading leap second database from {url}...')
   return get_file_from_online(url).decode()
 
 _leap_sec_file_metadata_lines = {'#$', '#@'}
@@ -89,7 +92,7 @@ def parse_leap_sec_file(file_content: str) -> dict[str, int | FixedPrec | list[L
     'leap_seconds': leap_secs,
   }
 
-def get_leap_sec_data(file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FILE_URL) -> dict[str, int | FixedPrec | list[LeapSecEntry]]:
+def get_leap_sec_data(log_downloads: bool = DEFAULT_LOG_DOWNLOADS, file_path: str = DEFAULT_LEAP_FILE_PATH, url: str = DEFAULT_LEAP_FILE_URL) -> dict[str, int | FixedPrec | list[LeapSecEntry]]:
   'Gets leap second array from file (if not past expiry) or from https://hpiers.obspm.fr/iers/bul/bulc/ntp/leap-seconds.list.'
   
   current_timestamp = get_current_ntp_timestamp()
@@ -108,7 +111,7 @@ def get_leap_sec_data(file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FIL
       create_new_file = True
   
   if create_new_file:
-    leap_secs_file_str = get_leap_sec_online_file(url = url)
+    leap_secs_file_str = get_leap_sec_online_file(log_downloads = log_downloads, url = url)
     set_leap_sec_stored_file(leap_secs_file_str, file_path = file_path)
     leap_secs_data = parse_leap_sec_file(leap_secs_file_str)
   

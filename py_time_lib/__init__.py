@@ -19,6 +19,7 @@ from .named_tuples import MonthWeekDate
 from .named_tuples import LeapSecEntry, SecsSinceEpochUTC, SecsSinceEpochTZ, DateTupleBasic, DateTupleTZ, UnixTimestampUTC
 
 from .calendars.date_base import _init_module_vars as _DateBase_init_module_vars
+from .update_leap_seconds import DEFAULT_LOG_DOWNLOADS as _DEFAULT_LOG_DOWNLOADS
 from .update_timezone_db import DEFAULT_TZDB_UPDATE_CHECK_TIME as _DEFAULT_TZDB_UPDATE_CHECK_TIME
 from .update_timezone_db import DEFAULT_TZDB_URL as _DEFAULT_TZDB_URL
 from .update_timezone_db import DEFAULT_TZDB_VERSION_URL as _DEFAULT_TZDB_VERSION_URL
@@ -36,6 +37,7 @@ TIMEZONES: dict[str, dict[str, TimeZone]] = {
 }
 
 def update_timezone_data(
+    log_downloads: bool = _DEFAULT_LOG_DOWNLOADS,
     update_check_time: TimeStorageType = _DEFAULT_TZDB_UPDATE_CHECK_TIME,
     tzdb_url: str = _DEFAULT_TZDB_URL,
     version_url: str = _DEFAULT_TZDB_VERSION_URL,
@@ -43,15 +45,16 @@ def update_timezone_data(
     downloaded_time_file_path: str = _DEFAULT_TZDB_DOWNLOADED_TIME_PATH
   ) -> None:
   new_data = _Tzdb_get_tzdb_data(
-    update_check_time,
-    tzdb_url,
-    version_url,
-    db_file_path,
-    downloaded_time_file_path
+    log_downloads = log_downloads,
+    update_check_time = update_check_time,
+    tzdb_url = tzdb_url,
+    version_url = version_url,
+    db_file_path = db_file_path,
+    downloaded_time_file_path = downloaded_time_file_path
   )
   for key in new_data:
     TIMEZONES[key] = new_data[key]
 
-def update_time_databases() -> None:
-  TimeInstant.update_leap_seconds()
-  update_timezone_data()
+def update_time_databases(log_downloads: bool = _DEFAULT_LOG_DOWNLOADS) -> None:
+  TimeInstant.update_leap_seconds(log_downloads = log_downloads)
+  update_timezone_data(log_downloads = log_downloads)

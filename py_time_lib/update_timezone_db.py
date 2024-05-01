@@ -11,7 +11,8 @@ from .calendars.gregorian import GregorianDate
 from .time_classes.lib import TimeStorageType
 from .time_classes.time_instant import time_inst
 from .time_classes.time_zone import TimeZone
-from .constants import NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_MIN, NOMINAL_MINS_PER_HOUR, NOMINAL_SECS_PER_HOUR
+from .constants import NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR
+from .update_leap_seconds import DEFAULT_LOG_DOWNLOADS
 
 DEFAULT_TZDB_PATH = 'data/tzdata-latest.tar.gz'
 DEFAULT_TZDB_DOWNLOADED_TIME_PATH = 'data/tzdb-downloaded-time.txt'
@@ -36,10 +37,14 @@ def set_tzdb_stored_file_downloaded_time(time: time_inst.TimeInstant, file_path:
 def set_tzdb_stored_file(contents: bytes, file_path: str = DEFAULT_TZDB_PATH) -> None:
   set_file_at_path(file_path, contents)
 
-def get_tzdb_online_file(url: str = DEFAULT_TZDB_URL) -> bytes:
+def get_tzdb_online_file(log_downloads: bool = DEFAULT_LOG_DOWNLOADS, url: str = DEFAULT_TZDB_URL) -> bytes:
+  if log_downloads:
+    print(f'Downloading timezone database from {url}...')
   return get_file_from_online(url)
 
-def get_tzdb_online_version(url: str = DEFAULT_TZDB_VERSION_URL) -> str:
+def get_tzdb_online_version(log_downloads: bool = DEFAULT_LOG_DOWNLOADS, url: str = DEFAULT_TZDB_VERSION_URL) -> str:
+  if log_downloads:
+    print(f'Downloading version of timezone database from {url}...')
   return get_file_from_online(url).decode().strip()
 
 def parse_tzdb_version(tgz_file: TarFile) -> str:
@@ -507,6 +512,7 @@ def get_tzdb_stored_file_version(file_path: str = DEFAULT_TZDB_PATH) -> str:
     return parse_tzdb_version(tgz_file)
 
 def update_stored_tzdb_if_needed(
+    log_downloads: bool = DEFAULT_LOG_DOWNLOADS,
     update_check_time: TimeStorageType = DEFAULT_TZDB_UPDATE_CHECK_TIME,
     tzdb_url: str = DEFAULT_TZDB_URL,
     version_url: str = DEFAULT_TZDB_VERSION_URL,
@@ -525,7 +531,7 @@ def update_stored_tzdb_if_needed(
     if file_age.time_delta > update_check_time:
       # stored file is old enough to check for update
       file_version = get_tzdb_stored_file_version(db_file_path)
-      online_version = get_tzdb_online_version(version_url)
+      online_version = get_tzdb_online_version(log_downloads = log_downloads, url = version_url)
       if online_version != file_version:
         # stored file is old
         create_new_file = True
@@ -537,10 +543,11 @@ def update_stored_tzdb_if_needed(
       pass
   
   if create_new_file:
-    set_tzdb_stored_file(get_tzdb_online_file(tzdb_url), db_file_path)
+    set_tzdb_stored_file(get_tzdb_online_file(log_downloads = log_downloads, url = tzdb_url), db_file_path)
     set_tzdb_stored_file_downloaded_time(current_instant, downloaded_time_file_path)
 
 def get_tzdb_data(
+    log_downloads: bool = DEFAULT_LOG_DOWNLOADS,
     update_check_time: TimeStorageType = DEFAULT_TZDB_UPDATE_CHECK_TIME,
     tzdb_url: str = DEFAULT_TZDB_URL,
     version_url: str = DEFAULT_TZDB_VERSION_URL,
@@ -550,6 +557,7 @@ def get_tzdb_data(
   'Gets timezone database from file (if not too old) or from https://data.iana.org/time-zones/tzdata-latest.tar.gz.'
   
   update_stored_tzdb_if_needed(
+    log_downloads = log_downloads,
     update_check_time = update_check_time,
     tzdb_url = tzdb_url,
     version_url = version_url,

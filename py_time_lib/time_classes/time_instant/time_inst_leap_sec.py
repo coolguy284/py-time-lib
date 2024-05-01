@@ -9,7 +9,7 @@ from ...fixed_prec import FixedPrec
 from ...data import leap_seconds
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
-from ...update_leap_seconds import DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
+from ...update_leap_seconds import DEFAULT_LOG_DOWNLOADS, DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
 from ...named_tuples import SecsSinceEpochUTC
 from .time_inst_ops import TimeInstantOperators
 
@@ -39,8 +39,8 @@ class TimeInstantLeapSec(TimeInstantOperators):
     return days_since_epoch, mins_in_day * cls.NOMINAL_SECS_PER_MIN + remainder_secs
   
   @classmethod
-  def update_leap_seconds(cls, file_path = DEFAULT_LEAP_FILE_PATH, url = DEFAULT_LEAP_FILE_URL):
-    leap_sec_data = get_leap_sec_data(file_path = file_path, url = url)
+  def update_leap_seconds(cls, log_downloads: bool = DEFAULT_LOG_DOWNLOADS, file_path: str = DEFAULT_LEAP_FILE_PATH, url: str = DEFAULT_LEAP_FILE_URL):
+    leap_sec_data = get_leap_sec_data(log_downloads = log_downloads, file_path = file_path, url = url)
     leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI = leap_sec_data['initial_utc_tai_offset']
     leap_seconds.LEAP_SECONDS = leap_sec_data['leap_seconds']
     cls.UTC_INITIAL_OFFSET_FROM_TAI = leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
