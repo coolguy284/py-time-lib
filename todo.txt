@@ -1,15 +1,27 @@
 test true leap second handling in windows
 
 ut1 support
+add leap smear support
+strptime support
 
 full tz support
-strptime support
-add leap smear support
-add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
 complete all ... and notimplementederrors
-fixedprec default max prec configurable
+  from_format_string_tai
+  from_format_string_utc
+  from_format_string_tz
+  from_format_string_mono
+  test_fixedprec_offset_to_str
+  test_from_format_string_tai
+  test_from_format_string_utc
+  test_from_format_string_tz
+  test_from_format_string_mono
 
 low prio:
+add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
+fixedprec default max prec configurable
+add var to store if leap sec array and timezones list is updated to match file, if so and file not expired, don't run parser; add force reparse option to reparse anyway, and force refresh to download data again anyway
+add auto update every 30days async function that can be used in gui update app
+option to cache parsed tz, leapsecs in pickle file
 timeinstant: fix low precision error on from_mono_secs_since_epoch
 change get utc tai offset to return a timestoragetype?
 add test for dst in tzdb zones where summer/dst is in january

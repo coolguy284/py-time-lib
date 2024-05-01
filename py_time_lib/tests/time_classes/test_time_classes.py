@@ -647,19 +647,6 @@ class TestTimeClasses(unittest.TestCase):
     
     self.assertTrue(abs(now_datetime - current_datetime) <= datetime.timedelta(microseconds = 1015), abs(now_datetime - current_datetime))
   
-  def test_fixedprec_offset_to_str(self):
-    # test inverse func as well
-    ...
-  
-  def test_to_format_string_utc(self):
-    ...
-  
-  def test_from_format_string_tai(self):
-    ...
-  
-  def test_from_format_string_utc(self):
-    ...
-  
   def test_hash_timedelta(self):
     self.assertEqual(hash(TimeDelta(3)), hash(('TimeDelta', FixedPrec(3))))
     self.assertEqual(hash(TimeDelta(3)), hash(('TimeDelta', 3)))
@@ -1070,44 +1057,6 @@ class TestTimeClasses(unittest.TestCase):
     test_tz((2024, 8,  27, 0,  29, 59, True ), 1, 240, 0, 3600, 'Test3')
     test_tz((2024, 8,  27, 0,  30, 0,  False), 1, 240, 0, 3600, 'Test3')
   
-  def test_to_format_string_tai(self):
-    time_instant = TimeInstant.from_date_tuple_tai(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
-    self.assertEqual(
-      time_instant.to_format_string_tai('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f'),
-      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+00:00:37 Z:Time Atomic International %:% str:test G:2024 u:7 V:15 :z:+00:00:37 .10f:0567891300'
-    )
-    time_instant_2 = TimeInstant.from_date_tuple_tai(2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
-    self.assertEqual(
-      time_instant_2.to_format_string_tai('U:%U W:%W'),
-      'U:15 W:16'
-    )
-  
-  def test_to_format_string_utc(self):
-    time_instant = TimeInstant.from_date_tuple_utc(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
-    self.assertEqual(
-      time_instant.to_format_string_utc('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f'),
-      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:Z Z:Universal Time Coordinated %:% str:test G:2024 u:7 V:15 :z:+00:00 .10f:0567891300'
-    )
-    time_instant_2 = TimeInstant.from_date_tuple_utc(2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
-    self.assertEqual(
-      time_instant_2.to_format_string_utc('U:%U W:%W'),
-      'U:15 W:16'
-    )
-  
-  def test_to_format_string_tz(self):
-    tz = TimeZone(3_600)
-    
-    time_instant = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
-    self.assertEqual(
-      time_instant.to_format_string_tz(tz, 'a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
-      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+0100 Z:NULL %:% str:test'
-    )
-    time_instant_2 = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
-    self.assertEqual(
-      time_instant_2.to_format_string_tz(tz, 'U:%U W:%W'),
-      'U:15 W:16'
-    )
-  
   def test_monotonic_time_scale_tai(self):
     self.assertEqual(TimeInstant(3).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI), 3)
     self.assertEqual(TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI, 3).time, 3)
@@ -1238,6 +1187,48 @@ class TestTimeClasses(unittest.TestCase):
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
     )
   
+  def test_fixedprec_offset_to_str(self):
+    # test inverse func as well
+    ...
+  
+  def test_to_format_string_tai(self):
+    time_instant = TimeInstant.from_date_tuple_tai(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant.to_format_string_tai('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f'),
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+00:00:37 Z:Time Atomic International %:% str:test G:2024 u:7 V:15 :z:+00:00:37 .10f:0567891300'
+    )
+    time_instant_2 = TimeInstant.from_date_tuple_tai(2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant_2.to_format_string_tai('U:%U W:%W'),
+      'U:15 W:16'
+    )
+  
+  def test_to_format_string_utc(self):
+    time_instant = TimeInstant.from_date_tuple_utc(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant.to_format_string_utc('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f'),
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:Z Z:Universal Time Coordinated %:% str:test G:2024 u:7 V:15 :z:+00:00 .10f:0567891300'
+    )
+    time_instant_2 = TimeInstant.from_date_tuple_utc(2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant_2.to_format_string_utc('U:%U W:%W'),
+      'U:15 W:16'
+    )
+  
+  def test_to_format_string_tz(self):
+    tz = TimeZone(3_600)
+    
+    time_instant = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant.to_format_string_tz(tz, 'a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+0100 Z:NULL %:% str:test'
+    )
+    time_instant_2 = TimeInstant.from_date_tuple_tz(tz, 2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant_2.to_format_string_tz(tz, 'U:%U W:%W'),
+      'U:15 W:16'
+    )
+  
   def test_to_format_string_mono(self):
     ts = TimeInstant.TIME_SCALES.TT
     
@@ -1251,6 +1242,18 @@ class TestTimeClasses(unittest.TestCase):
       time_instant_2.to_format_string_mono(ts, 'U:%U W:%W'),
       'U:15 W:16'
     )
+  
+  def test_from_format_string_tai(self):
+    ...
+  
+  def test_from_format_string_utc(self):
+    ...
+  
+  def test_from_format_string_tz(self):
+    ...
+  
+  def test_from_format_string_mono(self):
+    ...
   
   def test_generated_timezones(self):
     chicago = TIMEZONES['proleptic_variable']['America/Chicago']

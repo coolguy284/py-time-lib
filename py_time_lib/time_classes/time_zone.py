@@ -42,17 +42,6 @@ class TimeZone:
         greater_than_equals = False
       )
   
-  @classmethod
-  def update_leap_seconds(
-    cls,
-    update_check_time: TimeStorageType,
-    tzdb_url: str,
-    version_url: str,
-    db_file_path: str,
-    downloaded_time_file_path: str
-  ):
-    ...
-  
   # instance stuff
   
   __slots__ = '_base_utc_offset', '_data_name', '_initial_offset', '_later_offsets'
