@@ -1,5 +1,8 @@
+fix year month day kwarg handling for gregorian date
 test true leap second handling in windows
-add symmetry454 calendar system
+
+add log downloads option to update dbs func and subfuncs
+add links to each timescale wikipedia, possibly as subbullets at top as well
 
 full tz support
 strptime support
