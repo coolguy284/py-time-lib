@@ -10,13 +10,17 @@ complete all ... and notimplementederrors
   from_format_string_utc
   from_format_string_tz
   from_format_string_mono
-  test_fixedprec_offset_to_str
   test_from_format_string_tai
   test_from_format_string_utc
   test_from_format_string_tz
   test_from_format_string_mono
 
+after ut1 create funcs for mean solar time that accept a longitude value (that can be out of bounds)
+so in end functions would be:
+  to/from secssinceepoch/datetuple/formatstring tai/utc/tz/mono/solar(mean/true)/leapsmear
+
 low prio:
+astropy test in main into actual test case
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
 fixedprec default max prec configurable
 add var to store if leap sec array and timezones list is updated to match file, if so and file not expired, don't run parser; add force reparse option to reparse anyway, and force refresh to download data again anyway

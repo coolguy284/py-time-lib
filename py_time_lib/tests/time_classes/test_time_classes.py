@@ -1244,7 +1244,24 @@ class TestTimeClasses(unittest.TestCase):
     )
   
   def test_from_format_string_tai(self):
-    ...
+    def test(offset, offset_no_colon, offset_colon):
+      offset = FixedPrec(offset)
+      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = False), offset_no_colon)
+      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = True), offset_colon)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon), offset)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon), offset)
+    
+    test(-3600,   '-0100'      , '-01:00'     )
+    test(-61,     '-00:01:01'  , '-00:01:01'  )
+    test(-60,     '-0001'      , '-00:01'     )
+    test(-59,     '-00:00:59'  , '-00:00:59'  )
+    test('-58.9', '-00:00:58.9', '-00:00:58.9')
+    test(0,       'Z'          , '+00:00'     )
+    test('58.9',  '+00:00:58.9', '+00:00:58.9')
+    test(59,      '+00:00:59'  , '+00:00:59'  )
+    test(60,      '+0001'      , '+00:01'     )
+    test(61,      '+00:01:01'  , '+00:01:01'  )
+    test(3600,    '+0100'      , '+01:00'     )
   
   def test_from_format_string_utc(self):
     ...
