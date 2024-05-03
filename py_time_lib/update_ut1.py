@@ -1,6 +1,6 @@
 from re import compile as re_compile
 
-from .lib_funcs import file_at_path_exists, get_file_at_path, set_file_at_path, get_file_from_online
+from .lib_funcs import binary_search, file_at_path_exists, get_file_at_path, set_file_at_path, get_file_from_online
 from .fixed_prec import FixedPrec
 from .time_classes.lib import TimeStorageType
 from .time_classes.time_instant.time_inst import TimeInstant
@@ -151,15 +151,18 @@ def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_s
   
   first_recent_data_secs_since_epoch = recent_data[0].secs_since_epoch
   
-  recent_data_insert_index = 0
-  
-  for secs_since_epoch, _ in full_data:
-    if secs_since_epoch >= first_recent_data_secs_since_epoch:
-      break
-    
-    recent_data_insert_index += 1
+  recent_data_insert_index = binary_search(lambda x: full_data[x].secs_since_epoch < first_recent_data_secs_since_epoch, 0, len(full_data)) + 1
   
   full_data[recent_data_insert_index:] = recent_data
+  
+  if len(daily_data) > 0:
+    first_daily_data_secs_since_epoch = daily_data[0].secs_since_epoch
+    last_daily_data_secs_since_epoch = daily_data[-1].secs_since_epoch
+    
+    daily_data_start_insert_index = binary_search(lambda x: full_data[x].secs_since_epoch < first_daily_data_secs_since_epoch, 0, len(full_data)) + 1
+    daily_data_end_insert_index = binary_search(lambda x: full_data[x].secs_since_epoch <= last_daily_data_secs_since_epoch, 0, len(full_data)) + 1
+    
+    full_data[daily_data_start_insert_index:daily_data_end_insert_index] = daily_data
   
   return full_data
 
