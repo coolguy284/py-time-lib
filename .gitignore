@@ -1,11 +1,3 @@
 __pycache__
 main_data
-py_time_lib/data/leap-seconds.list
-py_time_lib/data/tzdata-latest.tar.gz
-py_time_lib/data/tzdb-downloaded-time.txt
-py_time_lib/data/eop-historic-downloaded-time.txt
-py_time_lib/data/eop-recent-downloaded-time.txt
-py_time_lib/data/eop-daily-downloaded-time.txt
-py_time_lib/data/EOP_C01_IAU2000_1846-now.txt
-py_time_lib/data/finals.all.iau2000.txt
-py_time_lib/data/finals.daily.iau2000.txt
+py_time_lib/data

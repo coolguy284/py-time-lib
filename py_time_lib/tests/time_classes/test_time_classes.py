@@ -3,7 +3,7 @@ import datetime
 import unittest
 
 from ... import FixedPrec, GregorianDate, TimeDelta, TimeZone, TimeInstant, TimeUnmappableError
-from ...data.leap_seconds import NOMINAL_SECS_PER_DAY
+from ...data_py.leap_seconds import NOMINAL_SECS_PER_DAY
 from ... import TIMEZONES
 
 class TestTimeClasses(unittest.TestCase):

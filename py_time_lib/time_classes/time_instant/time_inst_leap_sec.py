@@ -6,7 +6,7 @@ from ...constants import NOMINAL_SECS_PER_DAY as _NOMINAL_SECS_PER_DAY, NOMINAL_
 from ...lib_funcs import binary_search
 from ...exceptions import TimeUnmappableError
 from ...fixed_prec import FixedPrec
-from ...data import leap_seconds
+from ...data_py import leap_seconds
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
 from ...update_leap_seconds import DEFAULT_LOG_DOWNLOADS, DEFAULT_LEAP_FILE_PATH, DEFAULT_LEAP_FILE_URL, get_leap_sec_data
