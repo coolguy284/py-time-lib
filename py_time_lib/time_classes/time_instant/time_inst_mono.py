@@ -2,7 +2,7 @@ from enum import Enum
 from numbers import Integral
 from typing import Self
 
-from ...lib_funcs import binary_search_float
+from ...lib_funcs import binary_search, binary_search_float
 from ...fixed_prec import FixedPrec
 from ...named_tuples import UT1OffsetEntry, DateTupleBasic
 from ...calendars.jul_greg_base import JulGregBaseDate
@@ -20,7 +20,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     'TCB', # inaccurate
     'GALACTIC_COORDINATE_TIME', # complete estimates
     'UNIVERSE_COORDINATE_TIME', # complete estimates
-    #'UT1',
+    'UT1',
   ))
   
   # https://en.wikipedia.org/wiki/Terrestrial_Time
@@ -95,6 +95,12 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         assert test(low)
         assert not test(high)
         return cls(binary_search_float(test, low, high))
+      
+      case cls.TIME_SCALES.UT1:
+        if len(cls.UT1_OFFSETS) == 0:
+          raise ValueError('Cannot convert UT1 to TAI as no UT1 offsets exist')
+        else:
+          ...
   
   @classmethod
   def from_date_tuple_mono(
@@ -141,6 +147,25 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         TCB = self.to_secs_since_epoch_mono(self.TIME_SCALES.TCB)
         UNIVERSE_COORDINATE_TIME = (TCB - self.TT_EPOCH) / self.UNIVERSE_COORDINATE_TIME_TO_TCB_FACTOR + self.TT_EPOCH
         return UNIVERSE_COORDINATE_TIME
+      
+      case self.TIME_SCALES.UT1:
+        if len(self.UT1_OFFSETS) == 0:
+          raise ValueError('Cannot convert TAI to UT1 as no UT1 offsets exist')
+        else:
+          if self.time < self.UT1_OFFSETS[0].secs_since_epoch:
+            return self.time + self.UT1_OFFSETS[0].ut1_minus_tai
+          elif self.time > self.UT1_OFFSETS[-1].secs_since_epoch:
+            return self.time + self.UT1_OFFSETS[-1].ut1_minus_tai
+          else:
+            start_index = binary_search(lambda x: self.time >= self.UT1_OFFSETS[x].secs_since_epoch, 0, len(self.UT1_OFFSETS))
+            
+            if self.UT1_OFFSETS[start_index].secs_since_epoch == self.time:
+              return self.time + self.UT1_OFFSETS[start_index].ut1_minus_tai
+            else:
+              stop_index = start_index + 1
+              through_fraction = (self.time - self.UT1_OFFSETS[start_index].secs_since_epoch) / (self.UT1_OFFSETS[stop_index].secs_since_epoch - self.UT1_OFFSETS[start_index].secs_since_epoch)
+              ut1_minus_tai = self.UT1_OFFSETS[start_index].ut1_minus_tai + (self.UT1_OFFSETS[stop_index].ut1_minus_tai - self.UT1_OFFSETS[start_index].ut1_minus_tai) * through_fraction
+              return self.time + ut1_minus_tai
   
   def to_date_tuple_mono(self, time_scale: TIME_SCALES, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     return self.epoch_instant_to_date_tuple(self.to_secs_since_epoch_mono(time_scale), date_cls = date_cls)

@@ -39,7 +39,7 @@ else:
 pygame.init()
 
 width = 1280
-height = 720
+height = 780
 format_str_start = '%a %b %d %Y %I:%M:%S.%.9f %p'
 format_str_offset = '%:z'
 format_str = f'{format_str_start} {format_str_offset}'
@@ -130,6 +130,7 @@ while loop:
   draw_text_centered(screen, f'TCB: {get_format_string(now, TimeInstant.TIME_SCALES.TCB)}', (width / 2 - x_center_offset, y_start + 5 * y_step))
   draw_text_centered(screen, f'GAL: {get_format_string(now, TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 6 * y_step))
   draw_text_centered(screen, f'UNI: {get_format_string(now, TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 7 * y_step))
+  draw_text_centered(screen, f'UT1: {get_format_string(now, TimeInstant.TIME_SCALES.UT1)}', (width / 2 - x_center_offset, y_start + 8 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)

@@ -6,6 +6,7 @@ strptime support
 
 full tz support
 complete all ... and notimplementederrors
+  test_monotonic_time_scale_ut1
   from_format_string_tai
   from_format_string_utc
   from_format_string_tz

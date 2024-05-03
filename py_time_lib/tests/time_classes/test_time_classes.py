@@ -1273,9 +1273,28 @@ class TestTimeClasses(unittest.TestCase):
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
     )
   
-  def test_fixedprec_offset_to_str(self):
-    # test inverse func as well
+  def test_monotonic_time_scale_ut1():
     ...
+  
+  def test_fixedprec_offset_to_str(self):
+    def test(offset, offset_no_colon, offset_colon):
+      offset = FixedPrec(offset)
+      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = False), offset_no_colon)
+      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = True), offset_colon)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon), offset)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon), offset)
+    
+    test(-3600,   '-0100'      , '-01:00'     )
+    test(-61,     '-00:01:01'  , '-00:01:01'  )
+    test(-60,     '-0001'      , '-00:01'     )
+    test(-59,     '-00:00:59'  , '-00:00:59'  )
+    test('-58.9', '-00:00:58.9', '-00:00:58.9')
+    test(0,       'Z'          , '+00:00'     )
+    test('58.9',  '+00:00:58.9', '+00:00:58.9')
+    test(59,      '+00:00:59'  , '+00:00:59'  )
+    test(60,      '+0001'      , '+00:01'     )
+    test(61,      '+00:01:01'  , '+00:01:01'  )
+    test(3600,    '+0100'      , '+01:00'     )
   
   def test_to_format_string_tai(self):
     time_instant = TimeInstant.from_date_tuple_tai(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
@@ -1330,24 +1349,7 @@ class TestTimeClasses(unittest.TestCase):
     )
   
   def test_from_format_string_tai(self):
-    def test(offset, offset_no_colon, offset_colon):
-      offset = FixedPrec(offset)
-      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = False), offset_no_colon)
-      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = True), offset_colon)
-      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon), offset)
-      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon), offset)
-    
-    test(-3600,   '-0100'      , '-01:00'     )
-    test(-61,     '-00:01:01'  , '-00:01:01'  )
-    test(-60,     '-0001'      , '-00:01'     )
-    test(-59,     '-00:00:59'  , '-00:00:59'  )
-    test('-58.9', '-00:00:58.9', '-00:00:58.9')
-    test(0,       'Z'          , '+00:00'     )
-    test('58.9',  '+00:00:58.9', '+00:00:58.9')
-    test(59,      '+00:00:59'  , '+00:00:59'  )
-    test(60,      '+0001'      , '+00:01'     )
-    test(61,      '+00:01:01'  , '+00:01:01'  )
-    test(3600,    '+0100'      , '+01:00'     )
+    ...
   
   def test_from_format_string_utc(self):
     ...
