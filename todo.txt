@@ -19,6 +19,7 @@ after ut1 create funcs for mean solar time that accept a longitude value (that c
 true solar time funcs
 
 low prio:
+verify that leap seconds and ut1 offsets are in temporal order
 add TDB timescale
 add format codes for jd
 fixedprec round when reducing precision not flooring
