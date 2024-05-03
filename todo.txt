@@ -21,6 +21,9 @@ after ut1 create funcs for mean solar time that accept a longitude value (that c
 so in end functions would be:
   from/to secssinceepoch/datetuple/formatstring/juliandate tai/utc/tz/mono/solar(mean/true)/leapsmear
 
+fixedprec round when reducing precision not flooring
+  and increase place value of assertAlmostEquals
+
 low prio:
 astropy test in main into actual test case
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime

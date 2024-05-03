@@ -54,3 +54,15 @@ class DateTupleTZ(NamedTuple):
 class UnixTimestampUTC(NamedTuple):
   unix_secs_since_epoch: TimeStorageType
   leap_second_fold: bool
+
+class JulianDateUTC(NamedTuple):
+  julian_date: TimeStorageType
+  leap_second_fold: bool
+
+class ReducedJulianDateUTC(NamedTuple):
+  reduced_julian_date: TimeStorageType
+  leap_second_fold: bool
+
+class ModifiedJulianDateUTC(NamedTuple):
+  modified_julian_date: TimeStorageType
+  leap_second_fold: bool

@@ -569,6 +569,77 @@ class TestTimeClasses(unittest.TestCase):
     from_jd = TimeInstant.from_modified_julian_date_tai(instant.to_modified_julian_date_tai()).to_date_tuple_tai()
     self.assertTrue(from_jd[:6] == date_tuple[:6] or from_jd[:6] == past_date_tuple[:6])
   
+  def test_jd_utc(self):
+    instant = TimeInstant.from_date_tuple_tai(2024, 4, 9, 20, 30, 54, 0)
+    jd_tai = instant.to_julian_date_tai()
+    jd_utc = instant.to_julian_date_utc()
+    rjd_tai = instant.to_reduced_julian_date_tai()
+    rjd_utc = instant.to_reduced_julian_date_utc()
+    mjd_tai = instant.to_modified_julian_date_tai()
+    mjd_utc = instant.to_modified_julian_date_utc()
+    self.assertAlmostEqual(jd_utc.julian_date - jd_tai, FixedPrec('-37') / 86400, 5)
+    self.assertAlmostEqual(rjd_utc.reduced_julian_date - rjd_tai, FixedPrec('-37') / 86400, 5)
+    self.assertAlmostEqual(mjd_utc.modified_julian_date - mjd_tai, FixedPrec('-37') / 86400, 5)
+    self.assertAlmostEqual(TimeInstant.from_julian_date_utc(*jd_utc).time, instant.time, 1)
+    self.assertAlmostEqual(TimeInstant.from_reduced_julian_date_utc(*rjd_utc).time, instant.time, 1)
+    self.assertAlmostEqual(TimeInstant.from_modified_julian_date_utc(*mjd_utc).time, instant.time, 1)
+    
+    with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1))):
+      instant_pos_leap_first_fold = TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 60, FixedPrec('0.5'))
+      instant_pos_leap_second_fold = TimeInstant.from_date_tuple_utc(2017, 1, 1, 0, 0, 0, FixedPrec('0.5'))
+      instant_neg_leap_end = TimeInstant.from_date_tuple_utc(2018, 1, 1, 0, 0, 0, 0)
+      
+      pos_leap_first_fold_jd_tai = instant_pos_leap_first_fold.to_julian_date_tai()
+      pos_leap_first_fold_jd_utc = instant_pos_leap_first_fold.to_julian_date_utc()
+      pos_leap_first_fold_rjd_tai = instant_pos_leap_first_fold.to_reduced_julian_date_tai()
+      pos_leap_first_fold_rjd_utc = instant_pos_leap_first_fold.to_reduced_julian_date_utc()
+      pos_leap_first_fold_mjd_tai = instant_pos_leap_first_fold.to_modified_julian_date_tai()
+      pos_leap_first_fold_mjd_utc = instant_pos_leap_first_fold.to_modified_julian_date_utc()
+      self.assertAlmostEqual(pos_leap_first_fold_jd_utc.julian_date - pos_leap_first_fold_jd_tai, FixedPrec('-36') / 86400, 5)
+      self.assertAlmostEqual(pos_leap_first_fold_rjd_utc.reduced_julian_date - pos_leap_first_fold_rjd_tai, FixedPrec('-36') / 86400, 5)
+      self.assertAlmostEqual(pos_leap_first_fold_mjd_utc.modified_julian_date - pos_leap_first_fold_mjd_tai, FixedPrec('-36') / 86400, 5)
+      self.assertAlmostEqual(TimeInstant.from_julian_date_utc(*pos_leap_first_fold_jd_utc).time, instant_pos_leap_first_fold.time, 0)
+      self.assertAlmostEqual(TimeInstant.from_reduced_julian_date_utc(*pos_leap_first_fold_rjd_utc).time, instant_pos_leap_first_fold.time, 0)
+      self.assertAlmostEqual(TimeInstant.from_modified_julian_date_utc(*pos_leap_first_fold_mjd_utc).time, instant_pos_leap_first_fold.time, 0)
+      
+      pos_leap_second_fold_jd_tai = instant_pos_leap_second_fold.to_julian_date_tai()
+      pos_leap_second_fold_jd_utc = instant_pos_leap_second_fold.to_julian_date_utc()
+      pos_leap_second_fold_rjd_tai = instant_pos_leap_second_fold.to_reduced_julian_date_tai()
+      pos_leap_second_fold_rjd_utc = instant_pos_leap_second_fold.to_reduced_julian_date_utc()
+      pos_leap_second_fold_mjd_tai = instant_pos_leap_second_fold.to_modified_julian_date_tai()
+      pos_leap_second_fold_mjd_utc = instant_pos_leap_second_fold.to_modified_julian_date_utc()
+      self.assertAlmostEqual(pos_leap_second_fold_jd_utc.julian_date - pos_leap_second_fold_jd_tai, FixedPrec('-37') / 86400, 5)
+      self.assertAlmostEqual(pos_leap_second_fold_rjd_utc.reduced_julian_date - pos_leap_second_fold_rjd_tai, FixedPrec('-37') / 86400, 5)
+      self.assertAlmostEqual(pos_leap_second_fold_mjd_utc.modified_julian_date - pos_leap_second_fold_mjd_tai, FixedPrec('-37') / 86400, 5)
+      self.assertAlmostEqual(TimeInstant.from_julian_date_utc(*pos_leap_second_fold_jd_utc).time, instant_pos_leap_second_fold.time, 0)
+      self.assertAlmostEqual(TimeInstant.from_reduced_julian_date_utc(*pos_leap_second_fold_rjd_utc).time, instant_pos_leap_second_fold.time, 0)
+      self.assertAlmostEqual(TimeInstant.from_modified_julian_date_utc(*pos_leap_second_fold_mjd_utc).time, instant_pos_leap_second_fold.time, 0)
+      
+      neg_leap_end_jd_tai = instant_neg_leap_end.to_julian_date_tai()
+      neg_leap_end_jd_utc = instant_neg_leap_end.to_julian_date_utc()
+      neg_leap_end_jd_utc_invalid = neg_leap_end_jd_utc.julian_date - (FixedPrec('0.5') / 86400), False
+      neg_leap_end_rjd_tai = instant_neg_leap_end.to_reduced_julian_date_tai()
+      neg_leap_end_rjd_utc = instant_neg_leap_end.to_reduced_julian_date_utc()
+      neg_leap_end_rjd_utc_invalid = neg_leap_end_rjd_utc.reduced_julian_date - (FixedPrec('0.5') / 86400), False
+      neg_leap_end_mjd_tai = instant_neg_leap_end.to_modified_julian_date_tai()
+      neg_leap_end_mjd_utc = instant_neg_leap_end.to_modified_julian_date_utc()
+      neg_leap_end_mjd_utc_invalid = neg_leap_end_mjd_utc.modified_julian_date - (FixedPrec('0.5') / 86400), False
+      self.assertAlmostEqual(neg_leap_end_jd_utc.julian_date - neg_leap_end_jd_tai, FixedPrec('-36') / 86400, 5)
+      self.assertAlmostEqual(neg_leap_end_rjd_utc.reduced_julian_date - neg_leap_end_rjd_tai, FixedPrec('-36') / 86400, 5)
+      self.assertAlmostEqual(neg_leap_end_mjd_utc.modified_julian_date - neg_leap_end_mjd_tai, FixedPrec('-36') / 86400, 5)
+      self.assertAlmostEqual(TimeInstant.from_julian_date_utc(*neg_leap_end_jd_utc).time, instant_neg_leap_end.time, 1)
+      self.assertAlmostEqual(TimeInstant.from_reduced_julian_date_utc(*neg_leap_end_rjd_utc).time, instant_neg_leap_end.time, 1)
+      self.assertAlmostEqual(TimeInstant.from_modified_julian_date_utc(*neg_leap_end_mjd_utc).time, instant_neg_leap_end.time, 1)
+      self.assertAlmostEqual(TimeInstant.from_julian_date_utc(*neg_leap_end_jd_utc_invalid).time, instant_neg_leap_end.time, 1)
+      self.assertAlmostEqual(TimeInstant.from_reduced_julian_date_utc(*neg_leap_end_rjd_utc_invalid).time, instant_neg_leap_end.time, 1)
+      self.assertAlmostEqual(TimeInstant.from_modified_julian_date_utc(*neg_leap_end_mjd_utc_invalid).time, instant_neg_leap_end.time, 1)
+      with self.assertRaises(TimeUnmappableError):
+        TimeInstant.from_julian_date_utc(*neg_leap_end_jd_utc_invalid, round_invalid_time_upwards = False)
+      with self.assertRaises(TimeUnmappableError):
+        TimeInstant.from_reduced_julian_date_utc(*neg_leap_end_rjd_utc_invalid, round_invalid_time_upwards = False)
+      with self.assertRaises(TimeUnmappableError):
+        TimeInstant.from_modified_julian_date_utc(*neg_leap_end_mjd_utc_invalid, round_invalid_time_upwards = False)
+  
   def test_jd_mono(self):
     instant = TimeInstant.from_date_tuple_tai(2024, 4, 9, 20, 30, 54, 0)
     jd_tai = instant.to_julian_date_tai()
