@@ -14,13 +14,6 @@ class TimeInstant:
   #   '''
   #   ...
   
-  # julian date support
-  # https://en.wikipedia.org/wiki/Julian_day
-  
-  JULIAN_DATE_ORIGIN_TUPLE: tuple[int, int, int, int, int, int, int] = -4712, 1, 1, 12, 0, 0, 0
-  REDUCED_JULIAN_DATE_OFFSET: FixedPrec = FixedPrec('-2400000')
-  MODIFIED_JULIAN_DATE_OFFSET: FixedPrec = FixedPrec('-2400000.5')
-  
   @classmethod
   def from_julian_date(cls, jd: TimeStorageType, second_fold: bool = False, time_scale: TIME_SCALES = TIME_SCALES.TT):
     origin_time = cls.time_to_secs_since_epoch_time_scale(
