@@ -2,18 +2,6 @@ class TimeInstant:
   # omitted beginning of file
   ...
   
-  # @classmethod
-  # def from_date_tuple_time_scale(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, second_fold: bool = False, round_invalid_time_upwards: bool = True, time_scale: TIME_SCALES = TIME_SCALES.TT, date_cls: type[DateBase] = GregorianDate) -> Self:
-  #   '''
-  #   Returns a timeinstant corresponding to the seconds since epoch tuple
-  #   interpreted in the given time scale.
-  #   Note: this function behaves differently than from_date_tuple_tai and
-  #   from_date_tuple_utc, as those use the default timeinstant epoch, not
-  #   a time scale specific epoch. Additionally, this function does not
-  #   take seconds values over 59 in the UTC time scale.
-  #   '''
-  #   ...
-  
   @classmethod
   def from_julian_date(cls, jd: TimeStorageType, second_fold: bool = False, time_scale: TIME_SCALES = TIME_SCALES.TT):
     origin_time = cls.time_to_secs_since_epoch_time_scale(

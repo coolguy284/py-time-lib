@@ -4,9 +4,9 @@ from ...fixed_prec import FixedPrec
 from ...calendars.julian import JulianDate
 from ..lib import TimeStorageType
 from ...named_tuples import UnixTimestampUTC
-from .time_inst_tz import TimeInstantTimeZones
+from .time_inst_mono import TimeInstMonotonic
 
-class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):
+class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
   # static stuff
   
   # https://en.wikipedia.org/wiki/Julian_day
@@ -37,12 +37,24 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):
     return cls((julian_date * cls.NOMINAL_SECS_PER_DAY) + cls.JULIAN_DATE_OFFSET)
   
   @classmethod
+  def from_julian_date_mono(cls, time_scale: TimeInstMonotonic.TIME_SCALES, julian_date: TimeStorageType) -> Self:
+    return cls.from_mono_secs_since_epoch(time_scale, (julian_date * cls.NOMINAL_SECS_PER_DAY) + cls.JULIAN_DATE_OFFSET)
+  
+  @classmethod
   def from_reduced_julian_date_tai(cls, reduced_julian_date: TimeStorageType) -> Self:
     return cls.from_julian_date_tai(reduced_julian_date - cls.REDUCED_JULIAN_DATE_OFFSET_FROM_JD)
   
   @classmethod
+  def from_reduced_julian_date_mono(cls, time_scale: TimeInstMonotonic.TIME_SCALES, reduced_julian_date: TimeStorageType) -> Self:
+    return cls.from_julian_date_mono(time_scale, reduced_julian_date - cls.REDUCED_JULIAN_DATE_OFFSET_FROM_JD)
+  
+  @classmethod
   def from_modified_julian_date_tai(cls, modified_julian_date: TimeStorageType) -> Self:
     return cls.from_julian_date_tai(modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD)
+  
+  @classmethod
+  def from_modified_julian_date_mono(cls, time_scale: TimeInstMonotonic.TIME_SCALES, modified_julian_date: TimeStorageType) -> Self:
+    return cls.from_julian_date_mono(time_scale, modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD)
   
   def to_unix_timestamp(self) -> UnixTimestampUTC:
     '''
@@ -57,8 +69,17 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstantTimeZones):
   def to_julian_date_tai(self) -> TimeStorageType:
     return (self.time - self.JULIAN_DATE_OFFSET) / self.NOMINAL_SECS_PER_DAY
   
+  def to_julian_date_mono(self, time_scale: TimeInstMonotonic.TIME_SCALES) -> TimeStorageType:
+    return (self.to_mono_secs_since_epoch(time_scale) - self.JULIAN_DATE_OFFSET) / self.NOMINAL_SECS_PER_DAY
+  
   def to_reduced_julian_date_tai(self) -> TimeStorageType:
     return self.to_julian_date_tai() + self.REDUCED_JULIAN_DATE_OFFSET_FROM_JD
   
+  def to_reduced_julian_date_mono(self, time_scale: TimeInstMonotonic.TIME_SCALES) -> TimeStorageType:
+    return self.to_julian_date_mono(time_scale) + self.REDUCED_JULIAN_DATE_OFFSET_FROM_JD
+  
   def to_modified_julian_date_tai(self) -> TimeStorageType:
     return self.to_julian_date_tai() + self.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD
+  
+  def to_modified_julian_date_mono(self, time_scale: TimeInstMonotonic.TIME_SCALES) -> TimeStorageType:
+    return self.to_julian_date_mono(time_scale) + self.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD

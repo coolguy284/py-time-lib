@@ -1,3 +1,5 @@
+add TDB timescale
+add format codes for jd
 test true leap second handling in windows
 
 ut1 support
@@ -17,7 +19,7 @@ complete all ... and notimplementederrors
 
 after ut1 create funcs for mean solar time that accept a longitude value (that can be out of bounds)
 so in end functions would be:
-  to/from secssinceepoch/datetuple/formatstring tai/utc/tz/mono/solar(mean/true)/leapsmear
+  from/to secssinceepoch/datetuple/formatstring/juliandate tai/utc/tz/mono/solar(mean/true)/leapsmear
 
 low prio:
 astropy test in main into actual test case

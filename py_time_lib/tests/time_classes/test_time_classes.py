@@ -569,6 +569,21 @@ class TestTimeClasses(unittest.TestCase):
     from_jd = TimeInstant.from_modified_julian_date_tai(instant.to_modified_julian_date_tai()).to_date_tuple_tai()
     self.assertTrue(from_jd[:6] == date_tuple[:6] or from_jd[:6] == past_date_tuple[:6])
   
+  def test_jd_mono(self):
+    instant = TimeInstant.from_date_tuple_tai(2024, 4, 9, 20, 30, 54, 0)
+    jd_tai = instant.to_julian_date_tai()
+    jd_tt = instant.to_julian_date_mono(TimeInstant.TIME_SCALES.TT)
+    rjd_tai = instant.to_reduced_julian_date_tai()
+    rjd_tt = instant.to_reduced_julian_date_mono(TimeInstant.TIME_SCALES.TT)
+    mjd_tai = instant.to_modified_julian_date_tai()
+    mjd_tt = instant.to_modified_julian_date_mono(TimeInstant.TIME_SCALES.TT)
+    self.assertAlmostEqual(jd_tt - jd_tai, FixedPrec('32.184') / 86400, 5)
+    self.assertAlmostEqual(rjd_tt - rjd_tai, FixedPrec('32.184') / 86400, 5)
+    self.assertAlmostEqual(mjd_tt - mjd_tai, FixedPrec('32.184') / 86400, 5)
+    self.assertAlmostEqual(TimeInstant.from_julian_date_mono(TimeInstant.TIME_SCALES.TT, jd_tt).time, instant.time, 1)
+    self.assertAlmostEqual(TimeInstant.from_reduced_julian_date_mono(TimeInstant.TIME_SCALES.TT, rjd_tt).time, instant.time, 1)
+    self.assertAlmostEqual(TimeInstant.from_modified_julian_date_mono(TimeInstant.TIME_SCALES.TT, mjd_tt).time, instant.time, 1)
+  
   def test_days_and_secs_to_mins_since_epoch(self):
     self.assertEqual(TimeInstant.days_and_secs_to_mins_since_epoch(2, FixedPrec('120.3')), (2 * 1440 + 2, FixedPrec('0.3')))
     self.assertEqual(TimeInstant.mins_to_days_and_secs_since_epoch(2 * 1440 + 2, FixedPrec('0.3')), (2, FixedPrec('120.3')))
