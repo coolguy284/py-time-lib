@@ -47,7 +47,7 @@ _leap_sec_file_expiry_regex = re_compile(r'^#@\s+(\d+)$')
 _leap_sec_file_leap_sec_regex = re_compile(r'^(\d+)\s+(\d+)')
 
 def parse_leap_sec_file(file_content: str) -> dict[str, int | FixedPrec | list[LeapSecEntry]]:
-  file_lines = file_content.split('\n')
+  file_lines = file_content.splitlines()
   
   # strip comments
   file_lines = [line for line in file_lines if len(line) > 0 and (line[:2] in _leap_sec_file_metadata_lines or line[:1] != '#')]

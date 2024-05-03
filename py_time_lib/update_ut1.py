@@ -93,6 +93,7 @@ def eop_daily_get_file(
   )
 
 _historic_file_line = re_compile(r'^\s*(-?\d+\.\d{3})(?:\s+(?:-?\d+\.\d{6})){2}\s+(-?\d+\.\d{7})(?:\s+(?:-?\d+\.\d{6})){4}\s+(-?\d+\.\d{7}).*$')
+_recent_file_line = re_compile(r'^(?:[0-9 ]{2}){3}\s+(-?\d+\.\d{2})(?:\s+[IP](?:\s+(?:-?\d+\.\d{6})){4}(?:\s+[IP]\s{0,1}(-?\d+\.\d{7})\s+(?:\d+\.\d{7}))?)?')
 
 def parse_historic_file(file_str: str) -> list[UT1OffsetEntry]:
   file_lines = [line for line in file_str.strip().splitlines() if not line.startswith('#')]
@@ -116,14 +117,34 @@ def parse_historic_file(file_str: str) -> list[UT1OffsetEntry]:
   return ut1_offset_list
 
 def parse_recent_files(file_str: str) -> list[UT1OffsetEntry]:
-  ...
+  file_lines = file_str.strip().splitlines()
+  
+  ut1_offset_list = []
+  
+  for line in file_lines:
+    if match := _recent_file_line.match(line):
+      # ignore lines without information
+      if match[2] != None:
+        mjd = FixedPrec(match[1])
+        ut1_minus_utc = FixedPrec(match[2])
+        
+        instant = TimeInstant.from_modified_julian_date_utc(mjd)
+        
+        tai_secs_since_epoch = instant.time
+        ut1_minus_tai = instant.get_utc_tai_offset() + ut1_minus_utc
+        
+        ut1_offset_list.append(UT1OffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
+    else:
+      raise ValueError(f'Recent file line invalid format: {line!r}')
+  
+  return ut1_offset_list
 
 def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_str: str) -> list[UT1OffsetEntry]:
   historic_data = parse_historic_file(historic_file_str)
   recent_data = parse_recent_files(recent_file_str)
   daily_data = parse_recent_files(daily_file_str)
   
-  return historic_data
+  return []
 
 def get_ut1_offsets(
     historic_min_redownload_age: TimeStorageType | None = DEFAULT_HISTORICAL_UPDATE_TIME,

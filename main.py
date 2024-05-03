@@ -77,19 +77,19 @@ def save_ut1_historic_dump():
 def save_ut1_recent_dump():
   create_main_data_dir()
   
-  with open('main_data/ut1_dump_historic.txt', 'w') as f:
+  with open('main_data/ut1_dump_recent.txt', 'w') as f:
     f.write('\n'.join(f'{ut1entry.secs_since_epoch} {ut1entry.ut1_minus_tai}' for ut1entry in parse_recent_files(eop_recent_get_file())) + '\n')
 
 def save_ut1_daily_dump():
   create_main_data_dir()
   
-  with open('main_data/ut1_dump_historic.txt', 'w') as f:
+  with open('main_data/ut1_dump_daily.txt', 'w') as f:
     f.write('\n'.join(f'{ut1entry.secs_since_epoch} {ut1entry.ut1_minus_tai}' for ut1entry in parse_recent_files(eop_daily_get_file())) + '\n')
 
 def save_ut1_full_dump():
   create_main_data_dir()
   
-  with open('main_data/ut1_dump_historic.txt', 'w') as f:
+  with open('main_data/ut1_dump_full.txt', 'w') as f:
     f.write('\n'.join(f'{ut1entry.secs_since_epoch} {ut1entry.ut1_minus_tai}' for ut1entry in get_ut1_offsets()) + '\n')
 
 if mode == RunModes.TEST_BASIC_DATE:
@@ -179,11 +179,11 @@ elif mode == RunModes.GENERATE_UT1_DUMP:
   print('UT1 Historic Dump...')
   save_ut1_historic_dump()
   print('UT1 Recent Dump...')
-  #save_ut1_recent_dump()
+  save_ut1_recent_dump()
   print('UT1 Daily Dump...')
-  #save_ut1_daily_dump()
+  save_ut1_daily_dump()
   print('UT1 Full Dump...')
-  #save_ut1_full_dump()
+  save_ut1_full_dump()
 elif mode == RunModes.HELP:
   print('Available Run Modes:')
   for mode in RunModes.__members__:

@@ -170,7 +170,7 @@ def _parse_tzdb_get_filtered_lines(tgz_file: TarFile) -> list[str]:
   
   for filename in used_zone_names:
     with tgz_file.extractfile(filename) as f:
-      lines = f.read().decode().split('\n')
+      lines = f.read().decode().splitlines()
       all_lines.extend(lines)
   
   # filter out comments
