@@ -1,5 +1,3 @@
-add TDB timescale
-add format codes for jd
 test true leap second handling in windows
 
 ut1 support
@@ -18,13 +16,13 @@ complete all ... and notimplementederrors
   test_from_format_string_mono
 
 after ut1 create funcs for mean solar time that accept a longitude value (that can be out of bounds)
-so in end functions would be:
-  from/to secssinceepoch/datetuple/formatstring/juliandate tai/utc/tz/mono/solar(mean/true)/leapsmear
-
-fixedprec round when reducing precision not flooring
-  and increase place value of assertAlmostEquals
+true solar time funcs
 
 low prio:
+add TDB timescale
+add format codes for jd
+fixedprec round when reducing precision not flooring
+  and increase place value of assertAlmostEquals
 astropy test in main into actual test case
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
 fixedprec default max prec configurable
@@ -60,6 +58,7 @@ support other timescales and julian dates in other timescales
 fixedprec constructor handle real, integral
 continue splitting timeinstant into many classes
 split fixedprec into many classes
+complete funcs for from/to secssinceepoch/datetuple/formatstring/juliandate tai/utc/tz/mono/solar(mean/true)/leapsmear
 tests:
   timeinstant: tests for leap seconds during day
   timeinstant: test for passing in non-gregoriandate into to/from date tuple

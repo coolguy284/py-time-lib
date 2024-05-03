@@ -1,4 +1,7 @@
+from re import compile as re_compile
+
 from .lib_funcs import file_at_path_exists, get_file_at_path, set_file_at_path, get_file_from_online
+from .fixed_prec import FixedPrec
 from .time_classes.lib import TimeStorageType
 from .time_classes.time_instant.time_inst import TimeInstant
 from .constants import NOMINAL_SECS_PER_DAY
@@ -7,15 +10,15 @@ from .named_tuples import UT1OffsetEntry
 DEFAULT_HISTORICAL_URL = 'https://datacenter.iers.org/data/latestVersion/EOP_C01_IAU2000_1846-now.txt'
 DEFAULT_HISTORICAL_FILE_PATH = 'data/EOP_C01_IAU2000_1846-now.txt'
 DEFAULT_HISTORICAL_DOWNLOADED_TIME_FILE_PATH = 'data/eop-historic-downloaded-time.txt'
-DEFAULT_HISTORICAL_UPDATE_CHECK_TIME = None
+DEFAULT_HISTORICAL_UPDATE_TIME = 365 * NOMINAL_SECS_PER_DAY
 DEFAULT_RECENT_URL = 'https://datacenter.iers.org/data/latestVersion/finals.all.iau2000.txt'
 DEFAULT_RECENT_FILE_PATH = 'data/finals.all.iau2000.txt'
 DEFAULT_RECENT_DOWNLOADED_TIME_FILE_PATH = 'data/eop-recent-downloaded-time.txt'
-DEFAULT_RECENT_UPDATE_CHECK_TIME = 30 * NOMINAL_SECS_PER_DAY
+DEFAULT_RECENT_UPDATE_TIME = 30 * NOMINAL_SECS_PER_DAY
 DEFAULT_DAILY_URL = 'https://datacenter.iers.org/data/latestVersion/finals.daily.iau2000.txt'
 DEFAULT_DAILY_FILE_PATH = 'data/finals.daily.iau2000.txt'
 DEFAULT_DAILY_DOWNLOADED_TIME_FILE_PATH = 'data/eop-daily-downloaded-time.txt'
-DEFAULT_DAILY_UPDATE_CHECK_TIME = 1 * NOMINAL_SECS_PER_DAY
+DEFAULT_DAILY_UPDATE_TIME = 1 * NOMINAL_SECS_PER_DAY
 
 def _get_file(
     file_descriptor: str,
@@ -48,9 +51,9 @@ def _get_file(
   return file_contents.decode()
 
 def eop_historic_get_file(
-    min_redownload_age: TimeStorageType | None = DEFAULT_HISTORICAL_UPDATE_CHECK_TIME,
+    min_redownload_age: TimeStorageType | None = DEFAULT_HISTORICAL_UPDATE_TIME,
     downloaded_time_file_path: str = DEFAULT_HISTORICAL_DOWNLOADED_TIME_FILE_PATH,
-    data_file_path: str = DEFAULT_HISTORICAL_DOWNLOADED_TIME_FILE_PATH,
+    data_file_path: str = DEFAULT_HISTORICAL_FILE_PATH,
     url: str = DEFAULT_HISTORICAL_URL
   ) -> str:
   return _get_file(
@@ -62,9 +65,9 @@ def eop_historic_get_file(
   )
 
 def eop_recent_get_file(
-    min_redownload_age: TimeStorageType | None = DEFAULT_RECENT_UPDATE_CHECK_TIME,
+    min_redownload_age: TimeStorageType | None = DEFAULT_RECENT_UPDATE_TIME,
     downloaded_time_file_path: str = DEFAULT_RECENT_DOWNLOADED_TIME_FILE_PATH,
-    data_file_path: str = DEFAULT_RECENT_DOWNLOADED_TIME_FILE_PATH,
+    data_file_path: str = DEFAULT_RECENT_FILE_PATH,
     url: str = DEFAULT_RECENT_URL
   ) -> str:
   return _get_file(
@@ -76,9 +79,9 @@ def eop_recent_get_file(
   )
 
 def eop_daily_get_file(
-    min_redownload_age: TimeStorageType | None = DEFAULT_DAILY_UPDATE_CHECK_TIME,
+    min_redownload_age: TimeStorageType | None = DEFAULT_DAILY_UPDATE_TIME,
     downloaded_time_file_path: str = DEFAULT_DAILY_DOWNLOADED_TIME_FILE_PATH,
-    data_file_path: str = DEFAULT_DAILY_DOWNLOADED_TIME_FILE_PATH,
+    data_file_path: str = DEFAULT_DAILY_FILE_PATH,
     url: str = DEFAULT_DAILY_URL
   ) -> str:
   return _get_file(
@@ -89,19 +92,49 @@ def eop_daily_get_file(
     url
   )
 
-def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_str: str) -> list[UT1OffsetEntry]:
+_historic_file_line = re_compile(r'^\s*(-?\d+\.\d{3})(?:\s+(?:-?\d+\.\d{6})){2}\s+(-?\d+\.\d{7})(?:\s+(?:-?\d+\.\d{6})){4}\s+(-?\d+\.\d{7}).*$')
+
+def parse_historic_file(file_str: str) -> list[UT1OffsetEntry]:
+  file_lines = [line for line in file_str.strip().splitlines() if not line.startswith('#')]
+  
+  ut1_offset_list = []
+  
+  for line in file_lines:
+    if match := _historic_file_line.match(line):
+      ut1_minus_tai_error_str = match[3]
+      # ignore invalid values
+      if ut1_minus_tai_error_str != '99.9900000':
+        mjd = FixedPrec(match[1])
+        ut1_minus_tai = FixedPrec(match[2])
+        
+        tai_secs_since_epoch = TimeInstant.from_modified_julian_date_utc(mjd).time
+        
+        ut1_offset_list.append(UT1OffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
+    else:
+      raise ValueError(f'Historic file line invalid format: {line!r}')
+  
+  return ut1_offset_list
+
+def parse_recent_files(file_str: str) -> list[UT1OffsetEntry]:
   ...
 
+def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_str: str) -> list[UT1OffsetEntry]:
+  historic_data = parse_historic_file(historic_file_str)
+  recent_data = parse_recent_files(recent_file_str)
+  daily_data = parse_recent_files(daily_file_str)
+  
+  return historic_data
+
 def get_ut1_offsets(
-    historic_min_redownload_age: TimeStorageType | None = DEFAULT_HISTORICAL_UPDATE_CHECK_TIME,
+    historic_min_redownload_age: TimeStorageType | None = DEFAULT_HISTORICAL_UPDATE_TIME,
     historic_downloaded_time_file_path: str = DEFAULT_HISTORICAL_DOWNLOADED_TIME_FILE_PATH,
     historic_data_file_path: str = DEFAULT_HISTORICAL_FILE_PATH,
     historic_url: str = DEFAULT_HISTORICAL_URL,
-    recent_min_redownload_age: TimeStorageType | None = DEFAULT_RECENT_UPDATE_CHECK_TIME,
+    recent_min_redownload_age: TimeStorageType | None = DEFAULT_RECENT_UPDATE_TIME,
     recent_downloaded_time_file_path: str = DEFAULT_RECENT_DOWNLOADED_TIME_FILE_PATH,
     recent_data_file_path: str = DEFAULT_RECENT_FILE_PATH,
     recent_url: str = DEFAULT_RECENT_URL,
-    daily_min_redownload_age: TimeStorageType | None = DEFAULT_DAILY_UPDATE_CHECK_TIME,
+    daily_min_redownload_age: TimeStorageType | None = DEFAULT_DAILY_UPDATE_TIME,
     daily_downloaded_time_file_path: str = DEFAULT_DAILY_DOWNLOADED_TIME_FILE_PATH,
     daily_data_file_path: str = DEFAULT_DAILY_FILE_PATH,
     daily_url: str = DEFAULT_DAILY_URL

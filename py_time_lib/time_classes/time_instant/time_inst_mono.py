@@ -56,7 +56,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   UT1_OFFSETS: list[UT1OffsetEntry] = [
     # format:
     # (FixedPrec TAI seconds since epoch, FixedPrec UT1-TAI offset)
-    UT1OffsetEntry(FixedPrec(0), FixedPrec(0))
+    UT1OffsetEntry(FixedPrec(0), FixedPrec(-37))
   ]
   
   @classmethod

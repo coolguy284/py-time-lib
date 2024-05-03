@@ -5,6 +5,7 @@ from py_time_lib import *
 from py_time_lib.update_leap_seconds import *
 from py_time_lib.update_timezone_db import *
 from py_time_lib.update_timezone_db import _parse_tzdb_get_filtered_lines, _parse_tzdb_get_processed_lines, _parse_tzdb_get_result_dicts, _parse_tzdb_get_tz_dicts
+from py_time_lib.update_ut1 import *
 
 update_time_databases()
 
@@ -15,7 +16,9 @@ RunModes = Enum('RunModes', (
   'TEST_CALENDARS',
   'TEST_TZDB',
   'TEST_TIME_SCALES',
+  'TEST_UT1',
   'GENERATE_TZDB_DUMP',
+  'GENERATE_UT1_DUMP',
   'HELP',
   'REPL',
 ))
@@ -29,8 +32,11 @@ if len(sys.argv) > 1:
   except KeyError:
     raise SystemExit(f'Unrecognized run mode {run_mode}')
 
-def save_tzdb_stage_1_dump():
+def create_main_data_dir():
   os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
+
+def save_tzdb_stage_1_dump():
+  create_main_data_dir()
   
   update_stored_tzdb_if_needed()
   
@@ -41,7 +47,7 @@ def save_tzdb_stage_1_dump():
     f.write('\n'.join(data) + '\n')
 
 def save_tzdb_stage_2_dump():
-  os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
+  create_main_data_dir()
   
   update_stored_tzdb_if_needed()
   
@@ -52,7 +58,7 @@ def save_tzdb_stage_2_dump():
     f.write(fancy_format(data) + '\n')
 
 def save_tzdb_stage_3_dump():
-  os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
+  create_main_data_dir()
   
   update_stored_tzdb_if_needed()
   
@@ -61,6 +67,30 @@ def save_tzdb_stage_3_dump():
       data = _parse_tzdb_get_tz_dicts(_parse_tzdb_get_result_dicts(_parse_tzdb_get_processed_lines(_parse_tzdb_get_filtered_lines(tgz_file))))
     
     f.write(fancy_format(data) + '\n')
+
+def save_ut1_historic_dump():
+  create_main_data_dir()
+  
+  with open('main_data/ut1_dump_historic.txt', 'w') as f:
+    f.write('\n'.join(f'{ut1entry.secs_since_epoch} {ut1entry.ut1_minus_tai}' for ut1entry in parse_historic_file(eop_historic_get_file())) + '\n')
+
+def save_ut1_recent_dump():
+  create_main_data_dir()
+  
+  with open('main_data/ut1_dump_historic.txt', 'w') as f:
+    f.write('\n'.join(f'{ut1entry.secs_since_epoch} {ut1entry.ut1_minus_tai}' for ut1entry in parse_recent_files(eop_recent_get_file())) + '\n')
+
+def save_ut1_daily_dump():
+  create_main_data_dir()
+  
+  with open('main_data/ut1_dump_historic.txt', 'w') as f:
+    f.write('\n'.join(f'{ut1entry.secs_since_epoch} {ut1entry.ut1_minus_tai}' for ut1entry in parse_recent_files(eop_daily_get_file())) + '\n')
+
+def save_ut1_full_dump():
+  create_main_data_dir()
+  
+  with open('main_data/ut1_dump_historic.txt', 'w') as f:
+    f.write('\n'.join(f'{ut1entry.secs_since_epoch} {ut1entry.ut1_minus_tai}' for ut1entry in get_ut1_offsets()) + '\n')
 
 if mode == RunModes.TEST_BASIC_DATE:
   date_to_days_since_epoch = GregorianDate.date_to_days_since_epoch
@@ -136,13 +166,24 @@ elif mode == RunModes.TEST_TIME_SCALES:
   print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCG) - 32.184, (t3b.tcg - t1b.tcg).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
   print(t2a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB) - 32.184, (t2b.tcb - t1b.tcb).to_value(format='sec') - (t2b.tai - t1b.tai).to_value(format='sec'))
   print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB) - 32.184, (t3b.tcb - t1b.tcb).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
+elif mode == RunModes.TEST_UT1:
+  print(get_ut1_offsets())
 elif mode == RunModes.GENERATE_TZDB_DUMP:
-  print('Stage 1 dump...')
+  print('TZDB Stage 1 Dump...')
   save_tzdb_stage_1_dump()
-  print('Stage 2 dump...')
+  print('TZDB Stage 2 Dump...')
   save_tzdb_stage_2_dump()
-  print('Stage 3 dump...')
+  print('TZDB Stage 3 Dump...')
   save_tzdb_stage_3_dump()
+elif mode == RunModes.GENERATE_UT1_DUMP:
+  print('UT1 Historic Dump...')
+  save_ut1_historic_dump()
+  print('UT1 Recent Dump...')
+  #save_ut1_recent_dump()
+  print('UT1 Daily Dump...')
+  #save_ut1_daily_dump()
+  print('UT1 Full Dump...')
+  #save_ut1_full_dump()
 elif mode == RunModes.HELP:
   print('Available Run Modes:')
   for mode in RunModes.__members__:
