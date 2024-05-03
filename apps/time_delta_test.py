@@ -1,5 +1,4 @@
 from pathlib import Path
-from time import sleep, perf_counter_ns, monotonic_ns, time_ns
 import os, sys
 
 # https://stackoverflow.com/questions/60593604/importerror-attempted-relative-import-with-no-known-parent-package
@@ -7,6 +6,7 @@ import os, sys
 parent_dir = Path(os.path.realpath(__file__)).parent.parent
 sys.path.append(str(parent_dir))
 
+from time import sleep, perf_counter_ns, monotonic_ns, time_ns
 from py_time_lib import FixedPrec
 from py_time_lib.constants import NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX
 
