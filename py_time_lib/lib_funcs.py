@@ -1,5 +1,6 @@
 from pathlib import PurePath
 from numbers import Integral, Real
+from os import makedirs
 from os.path import exists
 from typing import Callable, Sequence
 from urllib.request import urlopen
@@ -60,7 +61,7 @@ def binary_search_array_split[T](array: Sequence[T], func: Callable[[T], bool]) 
     
     return array[:largest_true_index + 1], array[largest_true_index + 1:]
 
-def fancy_format(obj, indent = 2, _start_indent = 0):
+def fancy_format(obj, indent = 2, _start_indent = 0) -> None:
   "An alternative to python's pprint that formats massive data in an easier to understand format, more akin to JSON indentation."
   base_indent = ' ' * _start_indent
   if isinstance(obj, list):
@@ -104,7 +105,9 @@ def get_file_at_path(file_path: str) -> bytes | None:
     return None
 
 def set_file_at_path(file_path: str, contents: bytes) -> None:
-  with open(file_relative_path_to_abs(file_path), 'wb') as f:
+  abs_path = file_relative_path_to_abs(file_path)
+  makedirs(PurePath(abs_path).parent, exist_ok = True)
+  with open(abs_path, 'wb') as f:
     f.write(contents)
 
 def get_file_from_online(url: str) -> bytes:
