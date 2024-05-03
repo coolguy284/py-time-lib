@@ -144,7 +144,24 @@ def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_s
   recent_data = parse_recent_files(recent_file_str)
   daily_data = parse_recent_files(daily_file_str)
   
-  return []
+  if len(recent_data) == 0:
+    raise ValueError(f'Recent data length must be greater than 0')
+  
+  full_data = historic_data[:]
+  
+  first_recent_data_secs_since_epoch = recent_data[0].secs_since_epoch
+  
+  recent_data_insert_index = 0
+  
+  for secs_since_epoch, _ in full_data:
+    if secs_since_epoch >= first_recent_data_secs_since_epoch:
+      break
+    
+    recent_data_insert_index += 1
+  
+  full_data[recent_data_insert_index:] = recent_data
+  
+  return full_data
 
 def get_ut1_offsets(
     historic_min_redownload_age: TimeStorageType | None = DEFAULT_HISTORICAL_UPDATE_TIME,
