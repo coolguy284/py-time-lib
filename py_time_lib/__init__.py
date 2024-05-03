@@ -63,7 +63,7 @@ def update_time_databases(
     leapsec_file_path: str = _DEFAULT_LEAP_FILE_PATH,
     leapsec_url: str = _DEFAULT_LEAP_FILE_URL,
     
-    tzdb_update_check_time: TimeStorageType = _DEFAULT_TZDB_UPDATE_CHECK_TIME,
+    tzdb_update_check_time: TimeStorageType | None = _DEFAULT_TZDB_UPDATE_CHECK_TIME,
     tzdb_url: str = _DEFAULT_TZDB_URL,
     tzdb_version_url: str = _DEFAULT_TZDB_VERSION_URL,
     tzdb_file_path: str = _DEFAULT_TZDB_PATH,

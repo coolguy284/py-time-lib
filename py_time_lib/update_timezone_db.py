@@ -513,7 +513,7 @@ def get_tzdb_stored_file_version(file_path: str = DEFAULT_TZDB_PATH) -> str:
 
 def update_stored_tzdb_if_needed(
     log_downloads: bool = DEFAULT_LOG_DOWNLOADS,
-    update_check_time: TimeStorageType = DEFAULT_TZDB_UPDATE_CHECK_TIME,
+    update_check_time: TimeStorageType | None = DEFAULT_TZDB_UPDATE_CHECK_TIME,
     tzdb_url: str = DEFAULT_TZDB_URL,
     version_url: str = DEFAULT_TZDB_VERSION_URL,
     db_file_path: str = DEFAULT_TZDB_PATH,
@@ -527,20 +527,21 @@ def update_stored_tzdb_if_needed(
     # no stored file
     create_new_file = True
   else:
-    file_age = current_instant - get_tzdb_stored_file_downloaded_time(downloaded_time_file_path)
-    if file_age.time_delta > update_check_time:
-      # stored file is old enough to check for update
-      file_version = get_tzdb_stored_file_version(db_file_path)
-      online_version = get_tzdb_online_version(log_downloads = log_downloads, url = version_url)
-      if online_version != file_version:
-        # stored file is old
-        create_new_file = True
+    if update_check_time != None:
+      file_age = current_instant - get_tzdb_stored_file_downloaded_time(downloaded_time_file_path)
+      if file_age.time_delta > update_check_time:
+        # stored file is old enough to check for update
+        file_version = get_tzdb_stored_file_version(db_file_path)
+        online_version = get_tzdb_online_version(log_downloads = log_downloads, url = version_url)
+        if online_version != file_version:
+          # stored file is old
+          create_new_file = True
+        else:
+          # stored file is new, reset version string
+          set_tzdb_stored_file_downloaded_time(current_instant, downloaded_time_file_path)
       else:
-        # stored file is new, reset version string
-        set_tzdb_stored_file_downloaded_time(current_instant, downloaded_time_file_path)
-    else:
-      # stored file is recent enough to keep
-      pass
+        # stored file is recent enough to keep
+        pass
   
   if create_new_file:
     set_tzdb_stored_file(get_tzdb_online_file(log_downloads = log_downloads, url = tzdb_url), db_file_path)
@@ -548,7 +549,7 @@ def update_stored_tzdb_if_needed(
 
 def get_tzdb_data(
     log_downloads: bool = DEFAULT_LOG_DOWNLOADS,
-    update_check_time: TimeStorageType = DEFAULT_TZDB_UPDATE_CHECK_TIME,
+    update_check_time: TimeStorageType | None = DEFAULT_TZDB_UPDATE_CHECK_TIME,
     tzdb_url: str = DEFAULT_TZDB_URL,
     version_url: str = DEFAULT_TZDB_VERSION_URL,
     db_file_path: str = DEFAULT_TZDB_PATH,
