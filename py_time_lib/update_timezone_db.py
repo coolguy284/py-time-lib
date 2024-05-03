@@ -9,7 +9,7 @@ from .lib_funcs import file_relative_path_to_abs, file_at_path_exists, get_file_
 from .fixed_prec import FixedPrec
 from .calendars.gregorian import GregorianDate
 from .time_classes.lib import TimeStorageType
-from .time_classes.time_instant import time_inst
+from .time_classes.time_instant.time_inst import TimeInstant
 from .time_classes.time_zone import TimeZone
 from .constants import NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR
 from .update_leap_seconds import DEFAULT_LOG_DOWNLOADS
@@ -23,15 +23,15 @@ DEFAULT_TZDB_UPDATE_CHECK_TIME = 90 * NOMINAL_SECS_PER_DAY
 def tzdb_stored_file_exists(file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH) -> bool:
   return file_at_path_exists(file_path)
 
-def get_tzdb_stored_file_downloaded_time(file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH) -> time_inst.TimeInstant:
-  return time_inst.TimeInstant(get_file_at_path(file_path).decode().strip())
+def get_tzdb_stored_file_downloaded_time(file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH) -> TimeInstant:
+  return TimeInstant(get_file_at_path(file_path).decode().strip())
 
 @contextmanager
 def get_tzdb_stored_file(file_path: str = DEFAULT_TZDB_PATH) -> Generator[TarFile, None, None]:
   with tarfile_open(file_relative_path_to_abs(file_path)) as tgz_file:
     yield tgz_file
 
-def set_tzdb_stored_file_downloaded_time(time: time_inst.TimeInstant, file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH) -> None:
+def set_tzdb_stored_file_downloaded_time(time: TimeInstant, file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH) -> None:
   set_file_at_path(file_path, f'{time.time!s}\n'.encode())
 
 def set_tzdb_stored_file(contents: bytes, file_path: str = DEFAULT_TZDB_PATH) -> None:
@@ -519,7 +519,7 @@ def update_stored_tzdb_if_needed(
     db_file_path: str = DEFAULT_TZDB_PATH,
     downloaded_time_file_path: str = DEFAULT_TZDB_DOWNLOADED_TIME_PATH
   ):
-  current_instant = time_inst.TimeInstant.now()
+  current_instant = TimeInstant.now()
   
   create_new_file = False
   

@@ -1,6 +1,6 @@
 from .lib_funcs import file_at_path_exists, get_file_at_path, set_file_at_path, get_file_from_online
 from .time_classes.lib import TimeStorageType
-from .time_classes.time_instant import time_inst
+from .time_classes.time_instant.time_inst import TimeInstant
 from .constants import NOMINAL_SECS_PER_DAY
 from .named_tuples import UT1OffsetEntry
 
@@ -24,13 +24,13 @@ def _get_file(
     data_file_path: str,
     url: str
   ) -> str:
-  current_instant = time_inst.TimeInstant.now()
+  current_instant = TimeInstant.now()
   
   create_new_file = False
   
   if file_at_path_exists(downloaded_time_file_path):
     if min_redownload_age != None:
-      downloaded_time = time_inst.TimeInstant(get_file_at_path(downloaded_time_file_path).decode().strip())
+      downloaded_time = TimeInstant(get_file_at_path(downloaded_time_file_path).decode().strip())
       file_age = current_instant - downloaded_time
       if file_age.time_delta > min_redownload_age:
         create_new_file = True
