@@ -4,7 +4,7 @@ from typing import Self
 
 from ...lib_funcs import binary_search_float
 from ...fixed_prec import FixedPrec
-from ...named_tuples import DateTupleBasic
+from ...named_tuples import UT1OffsetEntry, DateTupleBasic
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
@@ -52,6 +52,12 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   SUN_SPEED_IN_MILKY_WAY = FixedPrec(230_000, max_prec = 19)
   MILKY_WAY_ESCAPE_VEL = FixedPrec(550_000, max_prec = 19)
   MILKY_WAY_CMB_REL_SPEED = FixedPrec(630_000, max_prec = 19)
+  
+  UT1_OFFSETS: list[UT1OffsetEntry] = [
+    # format:
+    # (FixedPrec TAI seconds since epoch, FixedPrec UT1-TAI offset)
+    UT1OffsetEntry(FixedPrec(0), FixedPrec(0))
+  ]
   
   @classmethod
   def _time_dilation_factor(cls, velocity: FixedPrec) -> FixedPrec:
