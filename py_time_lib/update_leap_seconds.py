@@ -21,9 +21,9 @@ def get_current_ntp_timestamp() -> int:
   global _ntp_epoch_instant
   
   if _ntp_epoch_instant == None:
-    _ntp_epoch_instant = TimeInstant.from_date_tuple_utc(1900, 1, 1, 0, 0, 0, 0).to_utc_secs_since_epoch()[0]
+    _ntp_epoch_instant = TimeInstant.from_date_tuple_utc(1900, 1, 1, 0, 0, 0, 0).to_secs_since_epoch_utc()[0]
   
-  return int(TimeInstant.now().to_utc_secs_since_epoch()[0] - _ntp_epoch_instant)
+  return int(TimeInstant.now().to_secs_since_epoch_utc()[0] - _ntp_epoch_instant)
 
 def get_leap_sec_stored_file(file_path: str = DEFAULT_LEAP_FILE_PATH) -> str | None:
   result = get_file_at_path(file_path)

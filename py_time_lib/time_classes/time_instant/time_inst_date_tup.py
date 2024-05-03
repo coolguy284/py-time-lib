@@ -75,7 +75,7 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
     else:
       leap_fold = False
     
-    return cls.from_utc_secs_since_epoch(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
+    return cls.from_secs_since_epoch_utc(time, second_fold = leap_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
   def to_date_tuple_tai(self, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     'Returns a date tuple in the TAI timezone (as math is easiest for this).'

@@ -18,7 +18,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
   __slots__ = ()
   
   @classmethod
-  def from_tz_secs_since_epoch(
+  def from_secs_since_epoch_tz(
       cls,
       time_zone: time_zone.TimeZone,
       tz_secs_since_epoch: TimeStorageType,
@@ -63,7 +63,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     
     secs_since_epoch = initial_tz_secs_since_epoch - time_zone.initial_offset['utc_offset']
     
-    return cls.from_utc_secs_since_epoch(secs_since_epoch, leap_second_fold, round_invalid_time_upwards = round_invalid_leap_time_upwards)
+    return cls.from_secs_since_epoch_utc(secs_since_epoch, leap_second_fold, round_invalid_time_upwards = round_invalid_leap_time_upwards)
   
   @classmethod
   def from_date_tuple_tz(
@@ -84,7 +84,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     time += second
     time += frac_second
     
-    offset, _ = cls.from_tz_secs_since_epoch(
+    offset, _ = cls.from_secs_since_epoch_tz(
       time_zone,
       time,
       dst_second_fold = dst_second_fold,
@@ -110,12 +110,12 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     else:
       leap_fold = False
     
-    return cls.from_tz_secs_since_epoch(time_zone, time, dst_second_fold = dst_second_fold, leap_second_fold = leap_fold, round_invalid_dst_time_upwards = round_invalid_dst_time_upwards, round_invalid_leap_time_upwards = round_invalid_leap_time_upwards, date_cls = date_cls)
+    return cls.from_secs_since_epoch_tz(time_zone, time, dst_second_fold = dst_second_fold, leap_second_fold = leap_fold, round_invalid_dst_time_upwards = round_invalid_dst_time_upwards, round_invalid_leap_time_upwards = round_invalid_leap_time_upwards, date_cls = date_cls)
   
-  def to_tz_secs_since_epoch(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> SecsSinceEpochTZ:
+  def to_secs_since_epoch_tz(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> SecsSinceEpochTZ:
     'Returns a tuple of the form (secs_since_epoch, dst_second_fold, leap_second_fold).'
     
-    secs_since_epoch, leap_second_fold = self.to_utc_secs_since_epoch()
+    secs_since_epoch, leap_second_fold = self.to_secs_since_epoch_utc()
     initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_offset['utc_offset']
     
     if len(time_zone.later_offsets) == 0:
@@ -146,7 +146,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
   def to_date_tuple_tz(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleTZ:
     'Returns a date tuple in a timezone. Does not handle leap seconds that occur not on a minute boundary, or timezones not on a minute offset.'
     utc_info = self.to_utc_info()
-    tz_secs_since_epoch, dst_second_fold, _ = self.to_tz_secs_since_epoch(time_zone, date_cls = date_cls)
+    tz_secs_since_epoch, dst_second_fold, _ = self.to_secs_since_epoch_tz(time_zone, date_cls = date_cls)
     if utc_info['positive_leap_second_occurring']:
       time_in_leap = self._time - utc_info['last_leap_transition_time']
       tz_secs_since_epoch -= 1 + time_in_leap
@@ -158,7 +158,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     return DateTupleTZ(*date, hour, minute, second, frac_second, dst_second_fold)
   
   def get_current_tz_offset(self, time_zone: time_zone.TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
-    secs_since_epoch, _ = self.to_utc_secs_since_epoch()
+    secs_since_epoch, _ = self.to_secs_since_epoch_utc()
     initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_offset['utc_offset']
     offset = time_zone.initial_offset['utc_offset']
     

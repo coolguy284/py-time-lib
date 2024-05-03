@@ -134,7 +134,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': second_last_leap_start + 1,
       'current_utc_tai_offset': -36,
     })
-    self.assertEqual(t0.to_utc_secs_since_epoch(), (
+    self.assertEqual(t0.to_secs_since_epoch_utc(), (
       last_leap_utc_secs - FixedPrec('0.1'),
       False,
     ))
@@ -145,7 +145,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start,
       'current_utc_tai_offset': -36,
     })
-    self.assertEqual(t1.to_utc_secs_since_epoch(), (
+    self.assertEqual(t1.to_secs_since_epoch_utc(), (
       last_leap_utc_secs,
       False,
     ))
@@ -156,7 +156,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start,
       'current_utc_tai_offset': -36,
     })
-    self.assertEqual(t2.to_utc_secs_since_epoch(), (
+    self.assertEqual(t2.to_secs_since_epoch_utc(), (
       last_leap_utc_secs + FixedPrec('0.1'),
       False,
     ))
@@ -167,7 +167,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start,
       'current_utc_tai_offset': -36,
     })
-    self.assertEqual(t3.to_utc_secs_since_epoch(), (
+    self.assertEqual(t3.to_secs_since_epoch_utc(), (
       last_leap_utc_secs + FixedPrec('0.9'),
       False,
     ))
@@ -178,7 +178,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start + 1,
       'current_utc_tai_offset': -37,
     })
-    self.assertEqual(t4.to_utc_secs_since_epoch(), (
+    self.assertEqual(t4.to_secs_since_epoch_utc(), (
       last_leap_utc_secs,
       True,
     ))
@@ -189,7 +189,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start + 1,
       'current_utc_tai_offset': -37,
     })
-    self.assertEqual(t5.to_utc_secs_since_epoch(), (
+    self.assertEqual(t5.to_secs_since_epoch_utc(), (
       last_leap_utc_secs + FixedPrec('0.1'),
       True,
     ))
@@ -200,7 +200,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start + 1,
       'current_utc_tai_offset': -37,
     })
-    self.assertEqual(t6.to_utc_secs_since_epoch(), (
+    self.assertEqual(t6.to_secs_since_epoch_utc(), (
       last_leap_utc_secs + FixedPrec('0.9'),
       True,
     ))
@@ -211,7 +211,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start + 1,
       'current_utc_tai_offset': -37,
     })
-    self.assertEqual(t7.to_utc_secs_since_epoch(), (
+    self.assertEqual(t7.to_secs_since_epoch_utc(), (
       last_leap_utc_secs + FixedPrec('1.0'),
       False,
     ))
@@ -222,7 +222,7 @@ class TestTimeClasses(unittest.TestCase):
       'last_leap_transition_time': last_leap_start + 1,
       'current_utc_tai_offset': -37,
     })
-    self.assertEqual(t8.to_utc_secs_since_epoch(), (
+    self.assertEqual(t8.to_secs_since_epoch_utc(), (
       last_leap_utc_secs + FixedPrec('1.1'),
       False,
     ))
@@ -254,7 +254,7 @@ class TestTimeClasses(unittest.TestCase):
         'last_leap_transition_time': second_last_leap_start + 1,
         'current_utc_tai_offset': -37,
       })
-      self.assertEqual(t0.to_utc_secs_since_epoch(), (
+      self.assertEqual(t0.to_secs_since_epoch_utc(), (
         last_leap_utc_secs - FixedPrec('0.1'),
         False,
       ))
@@ -265,7 +265,7 @@ class TestTimeClasses(unittest.TestCase):
         'last_leap_transition_time': last_leap_start,
         'current_utc_tai_offset': -36,
       })
-      self.assertEqual(t1.to_utc_secs_since_epoch(), (
+      self.assertEqual(t1.to_secs_since_epoch_utc(), (
         last_leap_utc_secs + FixedPrec('1.0'),
         False,
       ))
@@ -276,7 +276,7 @@ class TestTimeClasses(unittest.TestCase):
         'last_leap_transition_time': last_leap_start,
         'current_utc_tai_offset': -36,
       })
-      self.assertEqual(t2.to_utc_secs_since_epoch(), (
+      self.assertEqual(t2.to_secs_since_epoch_utc(), (
         last_leap_utc_secs + FixedPrec('1.1'),
         False,
       ))
@@ -287,7 +287,7 @@ class TestTimeClasses(unittest.TestCase):
         'last_leap_transition_time': last_leap_start,
         'current_utc_tai_offset': -36,
       })
-      self.assertEqual(t3.to_utc_secs_since_epoch(), (
+      self.assertEqual(t3.to_secs_since_epoch_utc(), (
         last_leap_utc_secs + FixedPrec('1.9'),
         False,
       ))
@@ -298,7 +298,7 @@ class TestTimeClasses(unittest.TestCase):
         'last_leap_transition_time': last_leap_start,
         'current_utc_tai_offset': -36,
       })
-      self.assertEqual(t4.to_utc_secs_since_epoch(), (
+      self.assertEqual(t4.to_secs_since_epoch_utc(), (
         last_leap_utc_secs + FixedPrec('2.0'),
         False,
       ))
@@ -309,7 +309,7 @@ class TestTimeClasses(unittest.TestCase):
         'last_leap_transition_time': last_leap_start,
         'current_utc_tai_offset': -36,
       })
-      self.assertEqual(t5.to_utc_secs_since_epoch(), (
+      self.assertEqual(t5.to_secs_since_epoch_utc(), (
         last_leap_utc_secs + FixedPrec('2.1'),
         False,
       ))
@@ -327,7 +327,7 @@ class TestTimeClasses(unittest.TestCase):
   def test_from_utc(self):
     def test_one(time):
       instant = TimeInstant(time)
-      self.assertEqual(instant, TimeInstant.from_utc_secs_since_epoch(*instant.to_utc_secs_since_epoch()))
+      self.assertEqual(instant, TimeInstant.from_secs_since_epoch_utc(*instant.to_secs_since_epoch_utc()))
     
     with TimeInstant._temp_add_leap_sec(27, ('2017-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(1))):
       pos_leap_sec_start = 52
@@ -353,54 +353,54 @@ class TestTimeClasses(unittest.TestCase):
       test_one(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] + FixedPrec('1.1'))
       
       instant_before_neg_leap = TimeInstant(TimeInstant.TAI_TO_UTC_OFFSET_TABLE[neg_leap_sec]['start_instant'] - FixedPrec('0.1'))
-      utc_before_neg_leap = instant_before_neg_leap.to_utc_secs_since_epoch()[0]
+      utc_before_neg_leap = instant_before_neg_leap.to_secs_since_epoch_utc()[0]
       
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap, round_invalid_time_upwards = True),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap, round_invalid_time_upwards = True),
         instant_before_neg_leap
       )
       #print('\n'.join([repr(i) for i in TimeInstant.UTC_TO_TAI_OFFSET_TABLE]))
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.1'), round_invalid_time_upwards = True),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('0.1'), round_invalid_time_upwards = True),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
       )
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.2'), round_invalid_time_upwards = True),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('0.2'), round_invalid_time_upwards = True),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
       )
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.0'), round_invalid_time_upwards = True),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('1.0'), round_invalid_time_upwards = True),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
       )
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.1'), round_invalid_time_upwards = True),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('1.1'), round_invalid_time_upwards = True),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
       )
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.2'), round_invalid_time_upwards = True),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('1.2'), round_invalid_time_upwards = True),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.2'))
       )
       
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap, round_invalid_time_upwards = False),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap, round_invalid_time_upwards = False),
         instant_before_neg_leap
       )
       
       with self.assertRaises(TimeUnmappableError):
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.1'), round_invalid_time_upwards = False)
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('0.1'), round_invalid_time_upwards = False)
       
       with self.assertRaises(TimeUnmappableError):
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('0.2'), round_invalid_time_upwards = False)
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('0.2'), round_invalid_time_upwards = False)
       
       with self.assertRaises(TimeUnmappableError):
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.0'), round_invalid_time_upwards = False)
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('1.0'), round_invalid_time_upwards = False)
       
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.1'), round_invalid_time_upwards = False),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('1.1'), round_invalid_time_upwards = False),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.1'))
       )
       self.assertEqual(
-        TimeInstant.from_utc_secs_since_epoch(utc_before_neg_leap + FixedPrec('1.2'), round_invalid_time_upwards = False),
+        TimeInstant.from_secs_since_epoch_utc(utc_before_neg_leap + FixedPrec('1.2'), round_invalid_time_upwards = False),
         instant_before_neg_leap + TimeDelta(FixedPrec('0.2'))
       )
   
@@ -411,10 +411,10 @@ class TestTimeClasses(unittest.TestCase):
         ('2018-12-31', FixedPrec(NOMINAL_SECS_PER_DAY), FixedPrec(2)),
       ]):
       
-      leap_normal_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2017, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
-      leap_normal_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
-      leap_big_pos_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2018, 7, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
-      leap_big_neg_midnight = TimeInstant.from_utc_secs_since_epoch(GregorianDate(2019, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_normal_pos_midnight = TimeInstant.from_secs_since_epoch_utc(GregorianDate(2017, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_normal_neg_midnight = TimeInstant.from_secs_since_epoch_utc(GregorianDate(2018, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_big_pos_midnight = TimeInstant.from_secs_since_epoch_utc(GregorianDate(2018, 7, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
+      leap_big_neg_midnight = TimeInstant.from_secs_since_epoch_utc(GregorianDate(2019, 1, 1).days_since_epoch * TimeInstant.NOMINAL_SECS_PER_DAY)
       
       def test_instant(time_delta, tai_tuple, utc_tuple):
         instant = current_leap + TimeDelta(FixedPrec(time_delta))
@@ -1144,8 +1144,8 @@ class TestTimeClasses(unittest.TestCase):
     test_tz((2024, 8,  27, 0,  30, 0,  False), 1, 240, 0, 3600, 'Test3')
   
   def test_monotonic_time_scale_tai(self):
-    self.assertEqual(TimeInstant(3).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI), 3)
-    self.assertEqual(TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TAI, 3).time, 3)
+    self.assertEqual(TimeInstant(3).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TAI), 3)
+    self.assertEqual(TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TAI, 3).time, 3)
     self.assertEqual(
       TimeInstant.from_date_tuple_tai(2024, 4, 28, 12, 0, 0, 0).to_date_tuple_mono(TimeInstant.TIME_SCALES.TAI),
       (2024, 4, 28, 12, 0, 0, 0)
@@ -1156,8 +1156,8 @@ class TestTimeClasses(unittest.TestCase):
     )
   
   def test_monotonic_time_scale_tt(self):
-    self.assertEqual(TimeInstant(3).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TT), 3 + FixedPrec('32.184'))
-    self.assertEqual(TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TT, 3).time, 3 - FixedPrec('32.184'))
+    self.assertEqual(TimeInstant(3).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TT), 3 + FixedPrec('32.184'))
+    self.assertEqual(TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TT, 3).time, 3 - FixedPrec('32.184'))
     self.assertEqual(
       TimeInstant.from_date_tuple_tai(2024, 4, 28, 12, 0, 0, 0).to_date_tuple_mono(TimeInstant.TIME_SCALES.TT),
       (2024, 4, 28, 12, 0, 32, FixedPrec('0.184'))
@@ -1191,15 +1191,15 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_monotonic_time_scale_tcb(self):
     def test_approx(time_scale, tai_tuple, ts_tuple_start, ts_tuple_end):
-      tcg_start = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
-      mono_secs = TimeInstant.from_date_tuple_tai(*tai_tuple).to_mono_secs_since_epoch(time_scale)
-      tcg_end = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      tcg_start = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_start).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
+      mono_secs = TimeInstant.from_date_tuple_tai(*tai_tuple).to_secs_since_epoch_mono(time_scale)
+      tcg_end = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_end).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
       self.assertTrue(
         tcg_start < mono_secs < tcg_end,
         f'{tcg_start} < {mono_secs} < {tcg_end}'
       )
-      mono_start = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
-      mono_end = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      mono_start = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_start).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
+      mono_end = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_end).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
       self.assertTrue(
         mono_start < tcg_start < mono_end,
         f'{mono_start} < {tcg_start} < {mono_end}'
@@ -1220,9 +1220,9 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_monotonic_time_scale_tcb_cycle(self):
     def test_cycle(instant, places = 12):
-      mono_secs_since_epoch = instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)
-      from_mono_secs = TimeInstant.from_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB, mono_secs_since_epoch)
-      self.assertAlmostEqual(instant.time, from_mono_secs.time, places, f'{instant.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)} {from_mono_secs.to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCB)}')
+      mono_secs_since_epoch = instant.to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB)
+      from_mono_secs = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB, mono_secs_since_epoch)
+      self.assertAlmostEqual(instant.time, from_mono_secs.time, places, f'{instant.to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB)} {from_mono_secs.to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB)}')
     
     med_instant = TimeInstant(FixedPrec(TimeInstant.from_date_tuple_tai(1977, 6, 1, 0, 0, 0, 0).time, max_prec = 19))
     far_instant_future = TimeInstant(FixedPrec(10 ** 50, max_prec = 19))
@@ -1233,15 +1233,15 @@ class TestTimeClasses(unittest.TestCase):
   
   def test_monotonic_time_scale_gal_and_uni(self):
     def test_approx(time_scale, tai_tuple, ts_tuple_start, ts_tuple_end):
-      tcg_start = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
-      mono_secs = TimeInstant.from_date_tuple_tai(*tai_tuple).to_mono_secs_since_epoch(time_scale)
-      tcg_end = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      tcg_start = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_start).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
+      mono_secs = TimeInstant.from_date_tuple_tai(*tai_tuple).to_secs_since_epoch_mono(time_scale)
+      tcg_end = TimeInstant.from_date_tuple_mono(TimeInstant.TIME_SCALES.TCG, *ts_tuple_end).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
       self.assertTrue(
         tcg_start < mono_secs < tcg_end,
         f'{tcg_start} < {mono_secs} < {tcg_end}'
       )
-      mono_start = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_start).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
-      mono_end = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_end).to_mono_secs_since_epoch(TimeInstant.TIME_SCALES.TCG)
+      mono_start = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_start).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
+      mono_end = TimeInstant.from_date_tuple_mono(time_scale, *ts_tuple_end).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCG)
       self.assertTrue(
         mono_start < tcg_start < mono_end,
         f'{mono_start} < {tcg_start} < {mono_end}'

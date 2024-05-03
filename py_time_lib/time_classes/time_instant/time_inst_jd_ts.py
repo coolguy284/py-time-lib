@@ -21,7 +21,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
     
     # basic functionality of TimeInstant created by this point so TimeInstant methods can be called
     
-    cls.UNIX_TIMESTAMP_ORIGIN_OFFSET: TimeStorageType = cls.from_date_tuple_utc(1970, 1, 1, 0, 0, 0, 0).to_utc_secs_since_epoch()[0]
+    cls.UNIX_TIMESTAMP_ORIGIN_OFFSET: TimeStorageType = cls.from_date_tuple_utc(1970, 1, 1, 0, 0, 0, 0).to_secs_since_epoch_utc()[0]
     cls.JULIAN_DATE_OFFSET: TimeStorageType = cls.from_date_tuple_tai(*cls.JULIAN_DATE_ORIGIN_TUPLE, date_cls = JulianDate).time
   
   # instance stuff
@@ -32,7 +32,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
   
   @classmethod
   def from_unix_timestamp(cls, unix_secs_since_epoch: TimeStorageType, second_fold: bool = False) -> Self:
-    return cls.from_utc_secs_since_epoch(unix_secs_since_epoch + cls.UNIX_TIMESTAMP_ORIGIN_OFFSET, second_fold)
+    return cls.from_secs_since_epoch_utc(unix_secs_since_epoch + cls.UNIX_TIMESTAMP_ORIGIN_OFFSET, second_fold)
   
   def to_unix_timestamp(self) -> UnixTimestampUTC:
     '''
@@ -40,7 +40,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
     After a positive leap second, the counter gets set back one second and second_fold
     becomes true for one second.
     '''
-    utc_secs_since_epoch, second_fold = self.to_utc_secs_since_epoch()
+    utc_secs_since_epoch, second_fold = self.to_secs_since_epoch_utc()
     unix_secs_since_epoch = utc_secs_since_epoch - self.UNIX_TIMESTAMP_ORIGIN_OFFSET
     return UnixTimestampUTC(unix_secs_since_epoch, second_fold)
   
@@ -71,7 +71,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
   
   @classmethod
   def from_julian_date_utc(cls, julian_date: TimeStorageType, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
-    return cls.from_utc_secs_since_epoch((julian_date * cls.NOMINAL_SECS_PER_DAY) + cls.JULIAN_DATE_OFFSET, second_fold, round_invalid_time_upwards = round_invalid_time_upwards)
+    return cls.from_secs_since_epoch_utc((julian_date * cls.NOMINAL_SECS_PER_DAY) + cls.JULIAN_DATE_OFFSET, second_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
   @classmethod
   def from_reduced_julian_date_utc(cls, reduced_julian_date: TimeStorageType, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
@@ -82,7 +82,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
     return cls.from_julian_date_utc(modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD, second_fold, round_invalid_time_upwards = round_invalid_time_upwards)
   
   def to_julian_date_utc(self) -> JulianDateUTC:
-    utc_secs_since_epoch, second_fold = self.to_utc_secs_since_epoch()
+    utc_secs_since_epoch, second_fold = self.to_secs_since_epoch_utc()
     return JulianDateUTC(
       (utc_secs_since_epoch - self.JULIAN_DATE_OFFSET) / self.NOMINAL_SECS_PER_DAY,
       second_fold
@@ -106,7 +106,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
   
   @classmethod
   def from_julian_date_mono(cls, time_scale: TimeInstMonotonic.TIME_SCALES, julian_date: TimeStorageType) -> Self:
-    return cls.from_mono_secs_since_epoch(time_scale, (julian_date * cls.NOMINAL_SECS_PER_DAY) + cls.JULIAN_DATE_OFFSET)
+    return cls.from_secs_since_epoch_mono(time_scale, (julian_date * cls.NOMINAL_SECS_PER_DAY) + cls.JULIAN_DATE_OFFSET)
   
   @classmethod
   def from_reduced_julian_date_mono(cls, time_scale: TimeInstMonotonic.TIME_SCALES, reduced_julian_date: TimeStorageType) -> Self:
@@ -117,7 +117,7 @@ class TimeInstantJulianDateAndUnixTimestamp(TimeInstMonotonic):
     return cls.from_julian_date_mono(time_scale, modified_julian_date - cls.MODIFIED_JULIAN_DATE_OFFSET_FROM_JD)
   
   def to_julian_date_mono(self, time_scale: TimeInstMonotonic.TIME_SCALES) -> TimeStorageType:
-    return (self.to_mono_secs_since_epoch(time_scale) - self.JULIAN_DATE_OFFSET) / self.NOMINAL_SECS_PER_DAY
+    return (self.to_secs_since_epoch_mono(time_scale) - self.JULIAN_DATE_OFFSET) / self.NOMINAL_SECS_PER_DAY
   
   def to_reduced_julian_date_mono(self, time_scale: TimeInstMonotonic.TIME_SCALES) -> TimeStorageType:
     return self.to_julian_date_mono(time_scale) + self.REDUCED_JULIAN_DATE_OFFSET_FROM_JD

@@ -75,7 +75,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   __slots__ = ()
   
   @classmethod
-  def from_mono_secs_since_epoch(cls, time_scale: TIME_SCALES, mono_secs_since_epoch: TimeStorageType) -> Self:
+  def from_secs_since_epoch_mono(cls, time_scale: TIME_SCALES, mono_secs_since_epoch: TimeStorageType) -> Self:
     'This function still uses the TimeInstant standard epoch of Jan 1, 1 BCE Proleptic Gregorian Calendar.'
     match time_scale:
       case cls.TIME_SCALES.TAI:
@@ -91,7 +91,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         delta = abs(mono_secs_since_epoch - cls.TT_EPOCH) * FixedPrec('0.01')
         low = mono_secs_since_epoch - delta - cls.TT_OFFSET_FROM_TAI
         high = mono_secs_since_epoch + delta + cls.TT_OFFSET_FROM_TAI
-        test = lambda x: cls(x).to_mono_secs_since_epoch(time_scale) <= mono_secs_since_epoch
+        test = lambda x: cls(x).to_secs_since_epoch_mono(time_scale) <= mono_secs_since_epoch
         assert test(low)
         assert not test(high)
         return cls(binary_search_float(test, low, high))
@@ -103,12 +103,12 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType,
     date_cls: type[JulGregBaseDate] = GregorianDate
   ) -> Self:
-    return cls.from_mono_secs_since_epoch(
+    return cls.from_secs_since_epoch_mono(
       time_scale,
       cls.date_tuple_to_epoch_instant(year, month, day, hour, minute, second, frac_second, date_cls = date_cls)
     )
   
-  def to_mono_secs_since_epoch(self, time_scale: TIME_SCALES) -> TimeStorageType:
+  def to_secs_since_epoch_mono(self, time_scale: TIME_SCALES) -> TimeStorageType:
     'This function still uses the TimeInstant standard epoch of Jan 1, 1 BCE Proleptic Gregorian Calendar.'
     match time_scale:
       case self.TIME_SCALES.TAI:
@@ -133,20 +133,20 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         return TCB
       
       case self.TIME_SCALES.GALACTIC_COORDINATE_TIME:
-        TCB = self.to_mono_secs_since_epoch(self.TIME_SCALES.TCB)
+        TCB = self.to_secs_since_epoch_mono(self.TIME_SCALES.TCB)
         GALACTIC_COORDINATE_TIME = (TCB - self.TT_EPOCH) / self.GALACTIC_COORDINATE_TIME_TO_TCB_FACTOR + self.TT_EPOCH
         return GALACTIC_COORDINATE_TIME
       
       case self.TIME_SCALES.UNIVERSE_COORDINATE_TIME:
-        TCB = self.to_mono_secs_since_epoch(self.TIME_SCALES.TCB)
+        TCB = self.to_secs_since_epoch_mono(self.TIME_SCALES.TCB)
         UNIVERSE_COORDINATE_TIME = (TCB - self.TT_EPOCH) / self.UNIVERSE_COORDINATE_TIME_TO_TCB_FACTOR + self.TT_EPOCH
         return UNIVERSE_COORDINATE_TIME
   
   def to_date_tuple_mono(self, time_scale: TIME_SCALES, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
-    return self.epoch_instant_to_date_tuple(self.to_mono_secs_since_epoch(time_scale), date_cls = date_cls)
+    return self.epoch_instant_to_date_tuple(self.to_secs_since_epoch_mono(time_scale), date_cls = date_cls)
   
   def get_date_object_mono[T: JulGregBaseDate](self, time_scale: TIME_SCALES, date_cls: type[T] = GregorianDate) -> T:
     return date_cls(*self.to_date_tuple_mono(time_scale, date_cls = date_cls)[:3])
   
   def get_mono_tai_offset(self, time_scale: TIME_SCALES) -> TimeStorageType:
-    return self.to_mono_secs_since_epoch(time_scale) - self.time
+    return self.to_secs_since_epoch_mono(time_scale) - self.time

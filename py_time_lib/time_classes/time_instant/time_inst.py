@@ -75,7 +75,7 @@ class TimeInstant(TimeInstantJulianDateAndUnixTimestamp, TimeInstantFormatString
     
     # adjust time forward to prevent erroring on the leap second
     if utc_info['positive_leap_second_occurring']:
-      self_adjusted = self.__class__.from_utc_secs_since_epoch(utc_info['utc_seconds_since_epoch'], True)
+      self_adjusted = self.__class__.from_secs_since_epoch_utc(utc_info['utc_seconds_since_epoch'], True)
     else:
       self_adjusted = self
     

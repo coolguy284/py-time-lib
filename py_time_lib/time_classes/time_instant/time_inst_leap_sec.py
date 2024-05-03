@@ -189,7 +189,7 @@ class TimeInstantLeapSec(TimeInstantOperators):
   __slots__ = ()
   
   @classmethod
-  def from_utc_secs_since_epoch(cls, utc_seconds_since_epoch: TimeStorageType, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
+  def from_secs_since_epoch_utc(cls, utc_seconds_since_epoch: TimeStorageType, second_fold: bool = False, round_invalid_time_upwards: bool = True) -> Self:
     if len(cls.UTC_TO_TAI_OFFSET_TABLE) == 0:
       return cls(utc_seconds_since_epoch - cls.UTC_INITIAL_OFFSET_FROM_TAI)
     else:
@@ -252,7 +252,7 @@ class TimeInstantLeapSec(TimeInstantOperators):
             'current_utc_tai_offset': tai_table_entry['utc_tai_delta'],
           }
   
-  def to_utc_secs_since_epoch(self) -> SecsSinceEpochUTC:
+  def to_secs_since_epoch_utc(self) -> SecsSinceEpochUTC:
     '''
     Returns a tuple of the form (utc_seconds_since_epoch, second_fold).
     After a positive leap second, the counter goes back one second,
