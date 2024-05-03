@@ -5,7 +5,7 @@ from .fixed_prec import FixedPrec
 from .time_classes.lib import TimeStorageType
 from .time_classes.time_instant.time_inst import TimeInstant
 from .constants import NOMINAL_SECS_PER_DAY
-from .named_tuples import UT1OffsetEntry
+from .named_tuples import UT1TAIOffsetEntry
 
 DEFAULT_HISTORICAL_URL = 'https://datacenter.iers.org/data/latestVersion/EOP_C01_IAU2000_1846-now.txt'
 DEFAULT_HISTORICAL_FILE_PATH = 'data/EOP_C01_IAU2000_1846-now.txt'
@@ -95,7 +95,7 @@ def eop_daily_get_file(
 _historic_file_line = re_compile(r'^\s*(-?\d+\.\d{3})(?:\s+(?:-?\d+\.\d{6})){2}\s+(-?\d+\.\d{7})(?:\s+(?:-?\d+\.\d{6})){4}\s+(-?\d+\.\d{7}).*$')
 _recent_file_line = re_compile(r'^(?:[0-9 ]{2}){3}\s+(-?\d+\.\d{2})(?:\s+[IP](?:\s+(?:-?\d+\.\d{6})){4}(?:\s+[IP]\s{0,1}(-?\d+\.\d{7})\s+(?:\d+\.\d{7}))?)?')
 
-def parse_historic_file(file_str: str) -> list[UT1OffsetEntry]:
+def parse_historic_file(file_str: str) -> list[UT1TAIOffsetEntry]:
   file_lines = [line for line in file_str.strip().splitlines() if not line.startswith('#')]
   
   ut1_offset_list = []
@@ -110,13 +110,13 @@ def parse_historic_file(file_str: str) -> list[UT1OffsetEntry]:
         
         tai_secs_since_epoch = TimeInstant.from_modified_julian_date_utc(mjd).time
         
-        ut1_offset_list.append(UT1OffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
+        ut1_offset_list.append(UT1TAIOffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
     else:
       raise ValueError(f'Historic file line invalid format: {line!r}')
   
   return ut1_offset_list
 
-def parse_recent_files(file_str: str) -> list[UT1OffsetEntry]:
+def parse_recent_files(file_str: str) -> list[UT1TAIOffsetEntry]:
   file_lines = file_str.strip().splitlines()
   
   ut1_offset_list = []
@@ -133,13 +133,13 @@ def parse_recent_files(file_str: str) -> list[UT1OffsetEntry]:
         tai_secs_since_epoch = instant.time
         ut1_minus_tai = instant.get_utc_tai_offset() + ut1_minus_utc
         
-        ut1_offset_list.append(UT1OffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
+        ut1_offset_list.append(UT1TAIOffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
     else:
       raise ValueError(f'Recent file line invalid format: {line!r}')
   
   return ut1_offset_list
 
-def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_str: str) -> list[UT1OffsetEntry]:
+def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_str: str) -> list[UT1TAIOffsetEntry]:
   historic_data = parse_historic_file(historic_file_str)
   recent_data = parse_recent_files(recent_file_str)
   daily_data = parse_recent_files(daily_file_str)
@@ -179,7 +179,7 @@ def get_ut1_offsets(
     daily_downloaded_time_file_path: str = DEFAULT_DAILY_DOWNLOADED_TIME_FILE_PATH,
     daily_data_file_path: str = DEFAULT_DAILY_FILE_PATH,
     daily_url: str = DEFAULT_DAILY_URL
-  ) -> list[UT1OffsetEntry]:
+  ) -> list[UT1TAIOffsetEntry]:
   return parse_ut1_offsets(
     eop_historic_get_file(
       min_redownload_age = historic_min_redownload_age,

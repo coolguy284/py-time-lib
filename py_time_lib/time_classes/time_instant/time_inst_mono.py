@@ -4,7 +4,7 @@ from typing import Self
 
 from ...lib_funcs import binary_search, binary_search_float
 from ...fixed_prec import FixedPrec
-from ...named_tuples import UT1OffsetEntry, DateTupleBasic
+from ...named_tuples import UT1TAIOffsetEntry, TAIUT1OffsetEntry, DateTupleBasic
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
@@ -53,10 +53,10 @@ class TimeInstMonotonic(TimeInstantTimeZones):
   MILKY_WAY_ESCAPE_VEL = FixedPrec(550_000, max_prec = 19)
   MILKY_WAY_CMB_REL_SPEED = FixedPrec(630_000, max_prec = 19)
   
-  UT1_OFFSETS: list[UT1OffsetEntry] = [
+  UT1_TAI_OFFSETS: list[UT1TAIOffsetEntry] = [
     # format:
     # (FixedPrec TAI seconds since epoch, FixedPrec UT1-TAI offset)
-    UT1OffsetEntry(FixedPrec(0), FixedPrec(-37))
+    UT1TAIOffsetEntry(FixedPrec(0), FixedPrec(-37))
   ]
   
   @classmethod
@@ -69,6 +69,9 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     cls.TT_EPOCH: TimeStorageType = cls.from_date_tuple_tai(*cls.TT_EPOCH_TAI_TUPLE).time
     cls.GALACTIC_COORDINATE_TIME_TO_TCB_FACTOR: FixedPrec = cls._time_dilation_factor(cls.SUN_SPEED_IN_MILKY_WAY) * cls._time_dilation_factor(cls.MILKY_WAY_ESCAPE_VEL)
     cls.UNIVERSE_COORDINATE_TIME_TO_TCB_FACTOR: FixedPrec = cls.GALACTIC_COORDINATE_TIME_TO_TCB_FACTOR * cls._time_dilation_factor(cls.MILKY_WAY_CMB_REL_SPEED)
+    cls.TAI_UT1_OFFSETS: TAIUT1OffsetEntry = []
+    for tai_secs_since_epoch, ut1_tai_offset in cls.UT1_TAI_OFFSETS:
+      cls.TAI_UT1_OFFSETS.append(TAIUT1OffsetEntry(tai_secs_since_epoch + ut1_tai_offset, -ut1_tai_offset))
   
   # instance stuff
   
@@ -97,10 +100,23 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         return cls(binary_search_float(test, low, high))
       
       case cls.TIME_SCALES.UT1:
-        if len(cls.UT1_OFFSETS) == 0:
+        if len(cls.UT1_TAI_OFFSETS) == 0:
           raise ValueError('Cannot convert UT1 to TAI as no UT1 offsets exist')
         else:
-          ...
+          if mono_secs_since_epoch < cls.TAI_UT1_OFFSETS[0].secs_since_epoch:
+            return mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[0].tai_minus_ut1
+          elif mono_secs_since_epoch > cls.TAI_UT1_OFFSETS[-1].secs_since_epoch:
+            return mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[-1].tai_minus_ut1
+          else:
+            start_index = binary_search(lambda x: mono_secs_since_epoch >= cls.TAI_UT1_OFFSETS[x].secs_since_epoch, 0, len(cls.TAI_UT1_OFFSETS))
+            
+            if cls.TAI_UT1_OFFSETS[start_index].secs_since_epoch == mono_secs_since_epoch:
+              return mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[start_index].tai_minus_ut1
+            else:
+              stop_index = start_index + 1
+              through_fraction = (mono_secs_since_epoch - cls.TAI_UT1_OFFSETS[start_index].secs_since_epoch) / (cls.TAI_UT1_OFFSETS[stop_index].secs_since_epoch - cls.TAI_UT1_OFFSETS[start_index].secs_since_epoch)
+              tai_minus_ut1 = cls.TAI_UT1_OFFSETS[start_index].tai_minus_ut1 + (cls.TAI_UT1_OFFSETS[stop_index].tai_minus_ut1 - cls.TAI_UT1_OFFSETS[start_index].tai_minus_ut1) * through_fraction
+              return mono_secs_since_epoch + tai_minus_ut1
   
   @classmethod
   def from_date_tuple_mono(
@@ -149,22 +165,22 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         return UNIVERSE_COORDINATE_TIME
       
       case self.TIME_SCALES.UT1:
-        if len(self.UT1_OFFSETS) == 0:
+        if len(self.UT1_TAI_OFFSETS) == 0:
           raise ValueError('Cannot convert TAI to UT1 as no UT1 offsets exist')
         else:
-          if self.time < self.UT1_OFFSETS[0].secs_since_epoch:
-            return self.time + self.UT1_OFFSETS[0].ut1_minus_tai
-          elif self.time > self.UT1_OFFSETS[-1].secs_since_epoch:
-            return self.time + self.UT1_OFFSETS[-1].ut1_minus_tai
+          if self.time < self.UT1_TAI_OFFSETS[0].secs_since_epoch:
+            return self.time + self.UT1_TAI_OFFSETS[0].ut1_minus_tai
+          elif self.time > self.UT1_TAI_OFFSETS[-1].secs_since_epoch:
+            return self.time + self.UT1_TAI_OFFSETS[-1].ut1_minus_tai
           else:
-            start_index = binary_search(lambda x: self.time >= self.UT1_OFFSETS[x].secs_since_epoch, 0, len(self.UT1_OFFSETS))
+            start_index = binary_search(lambda x: self.time >= self.UT1_TAI_OFFSETS[x].secs_since_epoch, 0, len(self.UT1_TAI_OFFSETS))
             
-            if self.UT1_OFFSETS[start_index].secs_since_epoch == self.time:
-              return self.time + self.UT1_OFFSETS[start_index].ut1_minus_tai
+            if self.UT1_TAI_OFFSETS[start_index].secs_since_epoch == self.time:
+              return self.time + self.UT1_TAI_OFFSETS[start_index].ut1_minus_tai
             else:
               stop_index = start_index + 1
-              through_fraction = (self.time - self.UT1_OFFSETS[start_index].secs_since_epoch) / (self.UT1_OFFSETS[stop_index].secs_since_epoch - self.UT1_OFFSETS[start_index].secs_since_epoch)
-              ut1_minus_tai = self.UT1_OFFSETS[start_index].ut1_minus_tai + (self.UT1_OFFSETS[stop_index].ut1_minus_tai - self.UT1_OFFSETS[start_index].ut1_minus_tai) * through_fraction
+              through_fraction = (self.time - self.UT1_TAI_OFFSETS[start_index].secs_since_epoch) / (self.UT1_TAI_OFFSETS[stop_index].secs_since_epoch - self.UT1_TAI_OFFSETS[start_index].secs_since_epoch)
+              ut1_minus_tai = self.UT1_TAI_OFFSETS[start_index].ut1_minus_tai + (self.UT1_TAI_OFFSETS[stop_index].ut1_minus_tai - self.UT1_TAI_OFFSETS[start_index].ut1_minus_tai) * through_fraction
               return self.time + ut1_minus_tai
   
   def to_date_tuple_mono(self, time_scale: TIME_SCALES, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:

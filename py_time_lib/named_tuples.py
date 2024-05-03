@@ -19,9 +19,13 @@ class LeapSecEntry(NamedTuple):
   time_in_day_secs: FixedPrec
   leap_sec_delta: FixedPrec
 
-class UT1OffsetEntry(NamedTuple):
+class UT1TAIOffsetEntry(NamedTuple):
   secs_since_epoch: FixedPrec
   ut1_minus_tai: FixedPrec
+
+class TAIUT1OffsetEntry(NamedTuple):
+  secs_since_epoch: FixedPrec
+  tai_minus_ut1: FixedPrec
 
 class SecsSinceEpochUTC(NamedTuple):
   secs_since_epoch: TimeStorageType

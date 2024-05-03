@@ -75,7 +75,7 @@ def update_ut1_offsets(
     daily_data_file_path: str = _DEFAULT_DAILY_FILE_PATH,
     daily_url: str = _DEFAULT_DAILY_URL
   ) -> None:
-  TimeInstant.UT1_OFFSETS[:] = _Ut1_get_ut1_offsets(
+  TimeInstant.UT1_TAI_OFFSETS[:] = _Ut1_get_ut1_offsets(
     historic_min_redownload_age,
     historic_downloaded_time_file_path,
     historic_data_file_path,

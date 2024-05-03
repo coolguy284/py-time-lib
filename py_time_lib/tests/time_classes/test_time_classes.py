@@ -1273,8 +1273,17 @@ class TestTimeClasses(unittest.TestCase):
       (1977, 1, 1, 0, 0, 33, FixedPrec('0.185'))
     )
   
-  def test_monotonic_time_scale_ut1():
-    ...
+  def test_monotonic_time_scale_ut1(self):
+    def test(tai_instant, ut1_instant):
+      self.assertEqual(TimeInstant(tai_instant).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1), ut1_instant)
+      self.assertEqual(TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1, ut1_instant), tai_instant)
+    
+    test(0, TimeInstant.UT1_TAI_OFFSETS[0].ut1_minus_tai)
+    test(63643017636, 63643017636 + FixedPrec('-36.2859339'))
+    test(63643060836, 63643060836 + FixedPrec('-36.28641715'))
+    test(63643104036, 63643104036 + FixedPrec('-36.2869004'))
+    future = TimeInstant.now().time + 2 * 365 * 86400
+    test(future, future + TimeInstant.UT1_TAI_OFFSETS[-1].ut1_minus_tai)
   
   def test_fixedprec_offset_to_str(self):
     def test(offset, offset_no_colon, offset_colon):
