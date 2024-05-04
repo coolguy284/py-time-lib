@@ -4,15 +4,17 @@ add leap smear support
 strptime support
 
 full tz support
-complete all ... and notimplementederrors
+complete all ..., notimplementederrors, TODO
   from_format_string_tai
   from_format_string_utc
   from_format_string_tz
   from_format_string_mono
+  from_format_string_solar
   test_from_format_string_tai
   test_from_format_string_utc
   test_from_format_string_tz
   test_from_format_string_mono
+  test_from_format_string_solar
 
 after ut1 create funcs for mean solar time that accept a longitude value (that can be out of bounds)
 true solar time funcs

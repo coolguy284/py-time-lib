@@ -1276,7 +1276,7 @@ class TestTimeClasses(unittest.TestCase):
   def test_monotonic_time_scale_ut1(self):
     def test(tai_instant, ut1_instant):
       self.assertEqual(TimeInstant(tai_instant).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1), ut1_instant)
-      self.assertEqual(TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1, ut1_instant), tai_instant)
+      self.assertEqual(TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1, ut1_instant).time, tai_instant)
     
     test(0, TimeInstant.UT1_TAI_OFFSETS[0].ut1_minus_tai)
     test(63643017636, 63643017636 + FixedPrec('-36.2859339'))
@@ -1284,6 +1284,17 @@ class TestTimeClasses(unittest.TestCase):
     test(63643104036, 63643104036 + FixedPrec('-36.2869004'))
     future = TimeInstant.now().time + 2 * 365 * 86400
     test(future, future + TimeInstant.UT1_TAI_OFFSETS[-1].ut1_minus_tai)
+  
+  def test_solar_time_scales(self):
+    longitude = 15
+    
+    def test(ut1_instant, solar_instant, true_solar):
+      self.assertEqual(TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1, ut1_instant).to_secs_since_epoch_solar(longitude, true_solar), solar_instant)
+      self.assertEqual(TimeInstant.from_secs_since_epoch_solar(longitude, true_solar, solar_instant).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1), ut1_instant)
+    
+    test(0, 3600, False)
+    
+    # TODO add true solar time
   
   def test_fixedprec_offset_to_str(self):
     def test(offset, offset_no_colon, offset_colon):
@@ -1357,6 +1368,21 @@ class TestTimeClasses(unittest.TestCase):
       'U:15 W:16'
     )
   
+  def test_to_format_string_solar(self):
+    longitude = 15
+    true_solar = False
+    
+    time_instant = TimeInstant.from_date_tuple_solar(longitude, true_solar, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant.to_format_string_solar(longitude, true_solar, 'a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
+      f'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:{TimeInstant.fixedprec_offset_to_str(time_instant.get_mono_tai_offset(TimeInstant.TIME_SCALES.UT1) + 3600 + 37)} Z:Mean Solar Time 15deg Longitude %:% str:test'
+    )
+    time_instant_2 = TimeInstant.from_date_tuple_solar(longitude, true_solar, 2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant_2.to_format_string_solar(longitude, true_solar, 'U:%U W:%W'),
+      'U:15 W:16'
+    )
+  
   def test_from_format_string_tai(self):
     ...
   
@@ -1367,6 +1393,9 @@ class TestTimeClasses(unittest.TestCase):
     ...
   
   def test_from_format_string_mono(self):
+    ...
+  
+  def test_from_format_string_solar(self):
     ...
   
   def test_generated_timezones(self):

@@ -32,14 +32,19 @@ if len(sys.argv) > 1:
       except KeyError:
         print(f'Timezone unknown: {tz_name}')
         exit()
+  if len(sys.argv) > 2:
+    longitude = FixedPrec(sys.argv[2])
+  else:
+    longitude = None
 else:
   tz_name = None
   tz = None
+  longitude = None
 
 pygame.init()
 
 width = 1280
-height = 780
+height = 820
 format_str_start = '%a %b %d %Y %I:%M:%S.%.9f %p'
 format_str_offset = '%:z'
 format_str = f'{format_str_start} {format_str_offset}'
@@ -82,9 +87,22 @@ def draw_text_centered(
     coords = pos
   surf.blit(font_rendered, coords)
 
-def get_format_string(now, time_scale, pad_end = True):
+def get_format_string_mono(now: TimeInstant, time_scale, pad_end = True):
   out_start = now.to_format_string_mono(time_scale, format_str_start)
   offset = now.to_format_string_mono(time_scale, format_str_offset)
+  if '.' in offset:
+    start, end = offset.split('.')
+    if pad_end:
+      offset = f'{start}.{end[:10]:0<10}'
+    else:
+      offset = f'{start}.{end[:10]}'
+  elif pad_end:
+    offset = f'{offset}.{'':0<10}'
+  return f'{out_start} {offset}'
+
+def get_format_string_solar(now: TimeInstant, longitude, pad_end = True):
+  out_start = now.to_format_string_solar(longitude, False, format_str_start)
+  offset = now.to_format_string_solar(longitude, False, format_str_offset)
   if '.' in offset:
     start, end = offset.split('.')
     if pad_end:
@@ -125,12 +143,14 @@ while loop:
     draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - x_center_offset, y_start + 0 * y_step))
   draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}', (width / 2 - x_center_offset, y_start + 1 * y_step))
   draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}', (width / 2 - x_center_offset, y_start + 2 * y_step))
-  draw_text_centered(screen, f'TT:  {get_format_string(now, TimeInstant.TIME_SCALES.TT, pad_end = False)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
-  draw_text_centered(screen, f'TCG: {get_format_string(now, TimeInstant.TIME_SCALES.TCG)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
-  draw_text_centered(screen, f'TCB: {get_format_string(now, TimeInstant.TIME_SCALES.TCB)}', (width / 2 - x_center_offset, y_start + 5 * y_step))
-  draw_text_centered(screen, f'GAL: {get_format_string(now, TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 6 * y_step))
-  draw_text_centered(screen, f'UNI: {get_format_string(now, TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 7 * y_step))
-  draw_text_centered(screen, f'UT1: {get_format_string(now, TimeInstant.TIME_SCALES.UT1)}', (width / 2 - x_center_offset, y_start + 8 * y_step))
+  draw_text_centered(screen, f'TT:  {get_format_string_mono(now, TimeInstant.TIME_SCALES.TT, pad_end = False)}', (width / 2 - x_center_offset, y_start + 3 * y_step))
+  draw_text_centered(screen, f'TCG: {get_format_string_mono(now, TimeInstant.TIME_SCALES.TCG)}', (width / 2 - x_center_offset, y_start + 4 * y_step))
+  draw_text_centered(screen, f'TCB: {get_format_string_mono(now, TimeInstant.TIME_SCALES.TCB)}', (width / 2 - x_center_offset, y_start + 5 * y_step))
+  draw_text_centered(screen, f'GAL: {get_format_string_mono(now, TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 6 * y_step))
+  draw_text_centered(screen, f'UNI: {get_format_string_mono(now, TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)}', (width / 2 - x_center_offset, y_start + 7 * y_step))
+  draw_text_centered(screen, f'UT1: {get_format_string_mono(now, TimeInstant.TIME_SCALES.UT1)}', (width / 2 - x_center_offset, y_start + 8 * y_step))
+  if longitude != None:
+    draw_text_centered(screen, f'SUN: {get_format_string_solar(now, longitude)}', (width / 2 - x_center_offset, y_start + 9 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)

@@ -8,9 +8,9 @@ from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.iso_weekdate import IsoWeekDate
 from ..time_zone import TimeZone
 from ..lib import TimeStorageType
-from .time_inst_mono import TimeInstMonotonic
+from .time_inst_solar import TimeInstantSolar
 
-class TimeInstantFormatString(TimeInstMonotonic):
+class TimeInstantFormatString(TimeInstantSolar):
   # static stuff
   
   FORMAT_STRING_MAX_DIGITS = 1000
@@ -214,8 +214,12 @@ class TimeInstantFormatString(TimeInstMonotonic):
     raise NotImplementedError()
   
   @classmethod
-  def from_format_string_mono(cls, time_scale: TimeInstMonotonic.TIME_SCALES, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+  def from_format_string_mono(cls, time_scale: TimeInstantSolar.TIME_SCALES, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     raise NotImplementedError()
+  
+  @classmethod
+  def from_format_string_solar(cls, longitude_deg: TimeStorageType, true_solar_time: bool, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate):
+    ...
   
   def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a TAI time string formatted in the strftime style.'
@@ -296,7 +300,7 @@ class TimeInstantFormatString(TimeInstMonotonic):
       'iso_week_date_day': iso_date.day,
     }, format_str, date_cls = date_cls)
   
-  def to_format_string_mono(self, time_scale: TimeInstMonotonic.TIME_SCALES, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+  def to_format_string_mono(self, time_scale: TimeInstantSolar.TIME_SCALES, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a monotonic-time-scale time string formatted in the strftime style.'
     
     date = self.get_date_object_mono(time_scale, date_cls = date_cls)
@@ -317,6 +321,32 @@ class TimeInstantFormatString(TimeInstMonotonic):
       'ordinal_day': ordinal_day,
       'tz_offset': -self.get_utc_tai_offset() + self.get_mono_tai_offset(time_scale),
       'tz_name': time_scale.name,
+      'iso_week_date_year': iso_date.year,
+      'iso_week_date_week': iso_date.week,
+      'iso_week_date_day': iso_date.day,
+    }, format_str, date_cls = date_cls)
+  
+  def to_format_string_solar(self, longitude_deg: TimeStorageType, true_solar_time: bool, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    'Returns a solar time string formatted in the strftime style.'
+    
+    date = self.get_date_object_solar(longitude_deg, true_solar_time, date_cls = date_cls)
+    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_solar(longitude_deg, true_solar_time, date_cls = date_cls)
+    day_of_week = date.day_of_week()
+    ordinal_day = date.ordinal_date()
+    iso_date = IsoWeekDate(date)
+    
+    return self.format_string_from_info({
+      'year': year,
+      'month': month,
+      'day': day,
+      'hour': hour,
+      'minute': minute,
+      'second': second,
+      'frac_second': frac_second,
+      'day_of_week': day_of_week,
+      'ordinal_day': ordinal_day,
+      'tz_offset': -self.get_utc_tai_offset() + self.get_solar_tai_offset(longitude_deg, true_solar_time),
+      'tz_name': f'Mean Solar Time {longitude_deg}deg Longitude',
       'iso_week_date_year': iso_date.year,
       'iso_week_date_week': iso_date.week,
       'iso_week_date_day': iso_date.day,

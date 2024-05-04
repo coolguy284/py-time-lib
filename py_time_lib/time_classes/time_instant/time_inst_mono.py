@@ -104,19 +104,19 @@ class TimeInstMonotonic(TimeInstantTimeZones):
           raise ValueError('Cannot convert UT1 to TAI as no UT1 offsets exist')
         else:
           if mono_secs_since_epoch < cls.TAI_UT1_OFFSETS[0].secs_since_epoch:
-            return mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[0].tai_minus_ut1
+            return cls(mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[0].tai_minus_ut1)
           elif mono_secs_since_epoch > cls.TAI_UT1_OFFSETS[-1].secs_since_epoch:
-            return mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[-1].tai_minus_ut1
+            return cls(mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[-1].tai_minus_ut1)
           else:
             start_index = binary_search(lambda x: mono_secs_since_epoch >= cls.TAI_UT1_OFFSETS[x].secs_since_epoch, 0, len(cls.TAI_UT1_OFFSETS))
             
             if cls.TAI_UT1_OFFSETS[start_index].secs_since_epoch == mono_secs_since_epoch:
-              return mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[start_index].tai_minus_ut1
+              return cls(mono_secs_since_epoch + cls.TAI_UT1_OFFSETS[start_index].tai_minus_ut1)
             else:
               stop_index = start_index + 1
               through_fraction = (mono_secs_since_epoch - cls.TAI_UT1_OFFSETS[start_index].secs_since_epoch) / (cls.TAI_UT1_OFFSETS[stop_index].secs_since_epoch - cls.TAI_UT1_OFFSETS[start_index].secs_since_epoch)
               tai_minus_ut1 = cls.TAI_UT1_OFFSETS[start_index].tai_minus_ut1 + (cls.TAI_UT1_OFFSETS[stop_index].tai_minus_ut1 - cls.TAI_UT1_OFFSETS[start_index].tai_minus_ut1) * through_fraction
-              return mono_secs_since_epoch + tai_minus_ut1
+              return cls(mono_secs_since_epoch + tai_minus_ut1)
   
   @classmethod
   def from_date_tuple_mono(
