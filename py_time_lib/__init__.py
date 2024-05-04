@@ -14,6 +14,7 @@ from .calendars.symmetry import SymmetryBase, Symmetry010, Symmetry010LeapMonth,
 from .time_classes.lib import TimeStorageType
 from .time_classes.time_delta import TimeDelta
 from .time_classes.time_instant.time_inst import TimeInstant
+from .time_classes.time_instant.time_inst_smear import LeapBasis, SmearType, LeapSmearSingle, LeapSmearOverrideEntry, LeapSmearPlan
 from .time_classes.time_zone import TimeZone
 from .named_tuples import MonthWeekDate
 from .named_tuples import LeapSecEntry, SecsSinceEpochUTC, SecsSinceEpochTZ, DateTupleBasic, DateTupleTZ, UnixTimestampUTC

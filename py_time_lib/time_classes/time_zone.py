@@ -6,7 +6,6 @@ from typing import Iterable
 from ..fixed_prec import FixedPrec
 from ..calendars.jul_greg_base import JulGregBaseDate
 from ..calendars.gregorian import GregorianDate
-from .lib import TimeStorageType
 from .time_instant import time_inst
 
 class TimeZone:

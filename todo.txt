@@ -3,8 +3,7 @@ test true leap second handling in windows
 add leap smear support
 strptime support
 
-full tz support
-complete all ..., notimplementederrors, TODO
+complete all ..., notimplementederrors
   from_format_string_tai
   from_format_string_utc
   from_format_string_tz
@@ -17,6 +16,7 @@ complete all ..., notimplementederrors, TODO
   test_from_format_string_solar
 
 low prio:
+full tz support
 verify that leap seconds and ut1 offsets are in temporal order
 add TDB timescale
 add format codes for jd

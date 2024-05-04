@@ -10,6 +10,7 @@ from enum import Enum
 from functools import cache
 import pygame
 from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases
+from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
 update_time_databases()
 
@@ -48,6 +49,16 @@ height = 800
 format_str_start = '%a %b %d %Y %I:%M:%S.%.9f %p'
 format_str_offset = '%:z'
 format_str = f'{format_str_start} {format_str_offset}'
+smear_plan = LeapSmearPlan(
+  LeapSmearSingle(
+    start_basis = LeapBasis.START,
+    secs_before_start_basis = 10,
+    end_basis = LeapBasis.END,
+    secs_after_end_basis = 0,
+    type = SmearType.COSINE
+  ),
+  ()
+)
 RunMode = Enum('RunMode', (
   'CURRENT',
   'LEAP_SEC_REPLAY',
@@ -60,8 +71,6 @@ screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 pygame.display.set_caption('GUI Time Display')
 refresh_rate = pygame.display.get_current_refresh_rate()
 clock = pygame.time.Clock()
-
-consolas = pygame.font.SysFont('Consolas', 35)
 
 @cache
 def get_font(font: str, size: int):
@@ -137,7 +146,7 @@ while loop:
   
   x_center_offset = 600
   y_start = 130
-  y_step = 60
+  y_step = 55
   
   if tz != None:
     draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - x_center_offset, y_start + 0 * y_step))
@@ -152,6 +161,9 @@ while loop:
   if longitude != None:
     draw_text_centered(screen, f'MST: {get_format_string_solar(now, longitude, False)}', (width / 2 - x_center_offset, y_start + 9 * y_step))
     draw_text_centered(screen, f'TST: {get_format_string_solar(now, longitude, True)}', (width / 2 - x_center_offset, y_start + 10 * y_step))
+  #draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 11 * y_step))
+  if tz != None:
+    pass#draw_text_centered(screen, f'STZ:  {now.to_format_string_smear_tz(smear_plan, tz, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 12 * y_step))
   
   pygame.display.flip()
   clock.tick(refresh_rate)
