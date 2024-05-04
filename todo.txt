@@ -15,7 +15,10 @@ complete all ..., notimplementederrors
   test_from_format_string_mono
   test_from_format_string_solar
 
+strftime/strptime for julgregbasedate
+
 low prio:
+ut1 offset should move with linear approximation before and after end of data
 full tz support
 verify that leap seconds and ut1 offsets are in temporal order
 add TDB timescale

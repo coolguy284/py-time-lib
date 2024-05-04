@@ -6,6 +6,7 @@ from py_time_lib.update_leap_seconds import *
 from py_time_lib.update_timezone_db import *
 from py_time_lib.update_timezone_db import _parse_tzdb_get_filtered_lines, _parse_tzdb_get_processed_lines, _parse_tzdb_get_result_dicts, _parse_tzdb_get_tz_dicts
 from py_time_lib.update_ut1 import *
+from py_time_lib.data_py.holidays import *
 
 update_time_databases()
 
