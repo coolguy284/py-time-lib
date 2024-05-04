@@ -1293,8 +1293,8 @@ class TestTimeClasses(unittest.TestCase):
       self.assertEqual(TimeInstant.from_secs_since_epoch_solar(longitude, true_solar, solar_instant).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UT1), ut1_instant)
     
     test(0, 3600, False)
-    
-    # TODO add true solar time
+    D = FixedPrec('6.24004077')
+    test(0, 3600 + (FixedPrec('-7.659') * D.sin() + FixedPrec('9.863') * (2 * D + FixedPrec('3.5932')).sin()) * 60, True)
   
   def test_fixedprec_offset_to_str(self):
     def test(offset, offset_no_colon, offset_colon):

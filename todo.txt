@@ -16,9 +16,6 @@ complete all ..., notimplementederrors, TODO
   test_from_format_string_mono
   test_from_format_string_solar
 
-after ut1 create funcs for mean solar time that accept a longitude value (that can be out of bounds)
-true solar time funcs
-
 low prio:
 verify that leap seconds and ut1 offsets are in temporal order
 add TDB timescale
