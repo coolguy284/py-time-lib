@@ -44,7 +44,7 @@ else:
 pygame.init()
 
 width = 1280
-height = 900
+height = 800
 format_str_start = '%a %b %d %Y %I:%M:%S.%.9f %p'
 format_str_offset = '%:z'
 format_str = f'{format_str_start} {format_str_offset}'
@@ -137,7 +137,7 @@ while loop:
   
   x_center_offset = 600
   y_start = 130
-  y_step = 70
+  y_step = 60
   
   if tz != None:
     draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}', (width / 2 - x_center_offset, y_start + 0 * y_step))
