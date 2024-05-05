@@ -42,7 +42,7 @@ def update_leap_seconds(log_downloads: bool = _DEFAULT_LOG_DOWNLOADS, file_path:
   TimeInstant.UTC_INITIAL_OFFSET_FROM_TAI = _leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
   TimeInstant.LEAP_SECONDS = _leap_seconds.LEAP_SECONDS
   TimeInstant._init_class_vars()
-  for smear_plan in _active_smear_plans:
+  for smear_plan in _active_smear_plans.values():
     smear_plan._generate_tables()
 
 def update_timezone_data(

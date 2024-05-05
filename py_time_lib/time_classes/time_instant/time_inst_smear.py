@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from numbers import Integral
 from typing import NamedTuple, Self
-from weakref import WeakSet
+from weakref import WeakValueDictionary
 
 from ...lib_funcs import binary_search, binary_search_float
 from ...calendars.date_delta import DateDelta
@@ -128,9 +128,9 @@ class LeapSmearPlan():
   
   def __post_init__(self):
     self._generate_tables()
-    _active_smear_plans.add(self)
+    _active_smear_plans[id(self)] = self
 
-_active_smear_plans: WeakSet[LeapSmearPlan] = WeakSet()
+_active_smear_plans: WeakValueDictionary[int, LeapSmearPlan] = WeakValueDictionary()
 
 class TimeInstantLeapSmear(TimeInstMonotonic):
   # static stuff
