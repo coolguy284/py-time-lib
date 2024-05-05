@@ -63,17 +63,26 @@ class TimeInstantLeapSec(TimeInstantOperators):
     
     current_utc_tai_offset = cls.UTC_INITIAL_OFFSET_FROM_TAI
     
-    cls.TAI_TO_UTC_OFFSET_TABLE: dict[str, FixedPrec | bool | None] = [
+    cls.TAI_TO_UTC_OFFSET_TABLE: list[dict[str, FixedPrec | bool | None]] = [
       # format:
-      # { start_instant: FixedPrec (TAI), positive_leap_second_occurring, utc_tai_delta | utc_epoch_secs, leap_utc_delta }
+      # {
+      #   'start_instant': FixedPrec (TAI),
+      #   'positive_leap_second_occurring': bool,
+      #   'utc_tai_delta | utc_epoch_secs': bool | FixedPrec,
+      #   'leap_utc_delta': FixedPrec,
+      # }
       # applies when time is after or equal to this time instant
       # if a positive leap second is occurring, the fixed utc epoch seconds value is given
       # otherwise, the utc-tai delta is given
     ]
     
-    cls.UTC_TO_TAI_OFFSET_TABLE = [
+    cls.UTC_TO_TAI_OFFSET_TABLE: list[dict[str, FixedPrec | tuple[FixedPrec, ...]]] = [
       # format:
-      # { start_instant: FixedPrec (UTC), utc_tai_delta: tuple(0 or more elems), leap_utc_delta }
+      # {
+      #   'start_instant': FixedPrec (UTC),
+      #   'utc_tai_delta': tuple(0 or more FixedPrecs),
+      #   'leap_utc_delta': FixedPrec,
+      # }
     ]
     
     for leap_entry in leap_secs:

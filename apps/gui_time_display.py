@@ -124,6 +124,9 @@ def get_format_string_solar(now: TimeInstant, longitude, true_solar, pad_end = T
 
 loop = True
 
+if run_mode == RunMode.LEAP_SEC_REPLAY:
+  prgm_start_secs = TimeInstant.now().time
+
 while loop:
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
@@ -137,15 +140,15 @@ while loop:
     now = TimeInstant(
       (
         TimeInstant.now().time -
-        TimeInstant.from_date_tuple_utc(2024, 4, 28, 15, 28, 0, 0).time
-      ) * 1 +
-      TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 60, FixedPrec('0.994')).time
+        prgm_start_secs
+      ) * 0.1 +
+      TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
     )
   
   draw_text_centered(screen, 'Current Time', (width / 2, 50), centered = True, size = 43)
   
   x_center_offset = 600
-  y_start = 130
+  y_start = 100
   y_step = 55
   
   if tz != None:
@@ -161,7 +164,7 @@ while loop:
   if longitude != None:
     draw_text_centered(screen, f'MST: {get_format_string_solar(now, longitude, False)}', (width / 2 - x_center_offset, y_start + 9 * y_step))
     draw_text_centered(screen, f'TST: {get_format_string_solar(now, longitude, True)}', (width / 2 - x_center_offset, y_start + 10 * y_step))
-  #draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 11 * y_step))
+  draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 11 * y_step))
   if tz != None:
     pass#draw_text_centered(screen, f'STZ:  {now.to_format_string_smear_tz(smear_plan, tz, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 12 * y_step))
   

@@ -2,6 +2,7 @@ from .time_classes.time_instant.time_inst import TimeInstant
 from .time_classes.time_zone import TimeZone
 from .time_classes.lib import TimeStorageType
 from .update_leap_seconds import get_leap_sec_data
+from .time_classes.time_instant.time_inst_smear import _active_smear_plans
 
 from .data_py import leap_seconds as _leap_seconds
 from .update_leap_seconds import DEFAULT_LOG_DOWNLOADS as _DEFAULT_LOG_DOWNLOADS
@@ -41,6 +42,8 @@ def update_leap_seconds(log_downloads: bool = _DEFAULT_LOG_DOWNLOADS, file_path:
   TimeInstant.UTC_INITIAL_OFFSET_FROM_TAI = _leap_seconds.UTC_INITIAL_OFFSET_FROM_TAI
   TimeInstant.LEAP_SECONDS = _leap_seconds.LEAP_SECONDS
   TimeInstant._init_class_vars()
+  for smear_plan in _active_smear_plans:
+    smear_plan._generate_tables()
 
 def update_timezone_data(
     log_downloads: bool = _DEFAULT_LOG_DOWNLOADS,

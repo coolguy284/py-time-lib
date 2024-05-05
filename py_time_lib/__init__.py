@@ -14,12 +14,15 @@ from .calendars.symmetry import SymmetryBase, Symmetry010, Symmetry010LeapMonth,
 from .time_classes.lib import TimeStorageType
 from .time_classes.time_delta import TimeDelta
 from .time_classes.time_instant.time_inst import TimeInstant
-from .time_classes.time_instant.time_inst_smear import LeapBasis, SmearType, LeapSmearSingle, LeapSmearOverrideEntry, LeapSmearPlan
+from .time_classes.time_instant.time_inst_smear import LeapBasis, SmearType
+from .time_classes.time_instant.time_inst_smear import LeapSmearSingle, LeapSmearOverrideEntry, TAIToUTCSmearEntry, UTCSmearToTAIEntry, LeapSmearPlan
 from .time_classes.time_zone import TimeZone
 from .named_tuples import MonthWeekDate
 from .named_tuples import LeapSecEntry, SecsSinceEpochUTC, SecsSinceEpochTZ, DateTupleBasic, DateTupleTZ, UnixTimestampUTC
 from .update_dbs import TIMEZONES, update_leap_seconds, update_timezone_data, update_time_databases
 
 from .calendars.date_base import _init_module_vars as _DateBase_init_module_vars
+from .time_classes.time_instant.time_inst_smear import _init_module_vars as _TimeInstSmear_init_module_vars
 
 _DateBase_init_module_vars()
+_TimeInstSmear_init_module_vars()

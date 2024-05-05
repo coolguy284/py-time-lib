@@ -1,6 +1,9 @@
+remove import without from and from . import module
 test true leap second handling in windows
 
-add leap smear support
+continue adding leap smear support
+add bump smear type
+add leap smear tz support
 strptime support
 
 complete all ..., notimplementederrors
