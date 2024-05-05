@@ -156,6 +156,9 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       second = int(second + second_addl)
     return DateTupleTZ(*date, hour, minute, second, frac_second, dst_second_fold)
   
+  def get_date_object_tz[T: JulGregBaseDate](self, time_zone: TimeZone, date_cls: type[T] = GregorianDate) -> T:
+    return date_cls(*self.to_date_tuple_tz(time_zone, date_cls = date_cls)[:3])
+  
   def get_current_tz_offset(self, time_zone: TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
     secs_since_epoch, _ = self.to_secs_since_epoch_utc()
     initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_offset['utc_offset']
@@ -177,6 +180,3 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       offset_abbr = time_zone.initial_offset['abbreviation']
     
     return offset, offset_abbr
-  
-  def get_date_object_tz[T: JulGregBaseDate](self, time_zone: TimeZone, date_cls: type[T] = GregorianDate) -> T:
-    return date_cls(*self.to_date_tuple_tz(time_zone, date_cls = date_cls)[:3])

@@ -39,6 +39,9 @@ class FixedPrec(Real):
         return cls(0, cls.FLOAT_ADDED_PREC)
       else:
         prec = floor(log10(abs(value)))
+        scale_div = cls.RADIX ** prec
+        if scale_div == 0:
+          return cls(0, cls.FLOAT_ADDED_PREC)
         value /= cls.RADIX ** prec
         value *= cls.RADIX ** cls.FLOAT_ADDED_PREC
         return cls(int(value), -prec + cls.FLOAT_ADDED_PREC)

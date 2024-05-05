@@ -194,13 +194,17 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
               state = cls._format_string_state.START
           # invalid format specifier
           else:
-            raise ValueError(f'Invalid format string sequence %.{char}')
+            raise ValueError(f'Invalid format string sequence %.{frac_size}{char}')
     
     return result
   
   # static stuff
   
   __slots__ = ()
+  
+  @classmethod
+  def from_format_string(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+    raise NotImplementedError()
   
   @classmethod
   def from_format_string_tai(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
@@ -220,7 +224,15 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   
   @classmethod
   def from_format_string_solar(cls, longitude_deg: TimeStorageType, true_solar_time: bool, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate):
-    ...
+    raise NotImplementedError()
+  
+  @classmethod
+  def from_format_string_smear_utc(cls, smear_plan: LeapSmearPlan, format_str: str, time_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    raise NotImplementedError()
+  
+  @classmethod
+  def from_format_string_smear_tz(cls, smear_plan: LeapSmearPlan, time_zone: TimeZone, format_str: str, time_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    raise NotImplementedError()
   
   def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a TAI time string formatted in the strftime style.'
@@ -362,7 +374,11 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     ordinal_day = date.ordinal_date()
     iso_date = IsoWeekDate(date)
     
-    tz_offset = -self.get_utc_tai_offset() + self.get_smear_utc_tai_offset(smear_plan)
+    if true_utc_offset:
+      tz_offset = -self.get_utc_tai_offset() + self.get_smear_utc_tai_offset(smear_plan)
+    else:
+      tz_offset = 0
+    
     return self.format_string_from_info({
       'year': year,
       'month': month,
