@@ -400,13 +400,31 @@ class FixedPrec(Real):
     
     if other == 1:
       return self
-    elif self == 1:
+    elif self == 1 or self == 0:
       return self
     else:
       if self < 1:
-        return binary_search_float(lambda x: x ** other <= self, self.__class__(0, self.place, self.max_prec), 1)
+        return 1 / (1 / self)._nthroot(other)
       else:
-        return binary_search_float(lambda x: x ** other <= self, 1, self)
+        # https://en.wikipedia.org/wiki/Nth_root
+        guess = 2
+        epsilon = self.smallest_representable() * 2
+        old_guess = None
+        keep_iterating = True
+        
+        while keep_iterating:
+          guess = (other - 1) / other * guess + self / other / guess ** (other - 1)
+          
+          if old_guess == None:
+            keep_iterating = True
+            old_guess = guess
+          elif abs(guess - old_guess) < epsilon:
+            keep_iterating = False
+          else:
+            keep_iterating = True
+            old_guess = guess
+        
+        return guess
   
   def __pow__(self, other) -> Self:
     try:

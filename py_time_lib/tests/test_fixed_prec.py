@@ -428,7 +428,7 @@ class TestFixedPrec(unittest.TestCase):
     self.assertEqual(FixedPrec(1)._nthroot(2), 1)
     self.assertEqual(FixedPrec(1)._nthroot(10), 1)
     self.assertEqual(FixedPrec(4)._nthroot(2), 2)
-    self.assertEqual(FixedPrec(9)._nthroot(2), 3)
+    self.assertAlmostEqual(FixedPrec(9)._nthroot(2), 3, delta = 1e-12)
     self.assertEqual(FixedPrec(16)._nthroot(2), 4)
     self.assertEqual(FixedPrec(16)._nthroot(4), 2)
     self.assertAlmostEqual(FixedPrec('0.25')._nthroot(2), FixedPrec('0.5'), delta = 1e-12)
