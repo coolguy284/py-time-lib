@@ -121,7 +121,7 @@ def almost_linear_func_inverse_deriv[T: Real](func: Callable[[T], T], output: T,
   abs_delta = abs(delta)
   past_abs_delta = abs_delta
   
-  while abs_delta > epsilon and (steps < 100 or abs_delta < past_abs_delta):
+  while abs_delta > epsilon and (steps < 10 or abs_delta < past_abs_delta):
     delta = current_output - output
     
     deriv_guess = guess + deriv_epsilon
