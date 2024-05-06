@@ -3,8 +3,6 @@ from math import floor, log10
 from numbers import Integral, Real
 from typing import Self
 
-from .lib_funcs import binary_search_float
-
 class FixedPrec(Real):
   # static stuff
   
@@ -18,6 +16,8 @@ class FixedPrec(Real):
   # https://en.wikipedia.org/wiki/E_(mathematical_constant)
   E_STR = '2.7182818284590452353602874713526624977572'
   E_MAX_PREC = len(E_STR) - 2
+  EXPONENT_BASE_LOWER_LIMIT_TRIGGER = 2
+  EXPONENT_LOWER_LIMIT = -200
   
   _int_regex = re.compile(r'^(-?\d+)$')
   _float_regex = re.compile(r'^(-?)(\d+)\.(\d+)$')
@@ -438,7 +438,7 @@ class FixedPrec(Real):
     other = other.reduce_to_lowest_place()
     
     if other < 0:
-      if abs(self) > 2 and other < -200:
+      if abs(self) > self.EXPONENT_BASE_LOWER_LIMIT_TRIGGER and other < self.EXPONENT_LOWER_LIMIT:
         return FixedPrec(0, 0, max_prec = max(self.max_prec, other.max_prec))
       else:
         return 1 / (self ** -other)
@@ -653,7 +653,26 @@ class FixedPrec(Real):
     return FixedPrec(self.E_STR, max_prec = self.max_prec).reduce_to_max_prec()
   
   def exp(self) -> Self:
-    return self.e() ** self
+    # 1 + x + x^2/2! + x^3/3! + ...
+    
+    if self < self.EXPONENT_LOWER_LIMIT:
+      return FixedPrec(0, 0, max_prec = self.max_prec)
+    elif self < 0:
+      return 1 / (-self).exp()
+    elif self > 1:
+      integral, fraction = divmod(self, 1)
+      return self.e() ** int(integral) * fraction.exp()
+    elif self == 0:
+      return FixedPrec(1, max_prec = self.max_prec)
+    else:
+      x_prod = self
+      total_sum = 1
+      k = 1
+      while x_prod > 0:
+        total_sum += x_prod
+        x_prod *= self / (k + 1)
+        k += 1
+      return total_sum
   
   def sin(self) -> Self:
     # x - x^3/3! + x^5/5! + ...
