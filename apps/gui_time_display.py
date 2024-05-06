@@ -164,7 +164,7 @@ while loop:
   if longitude != None:
     draw_text_centered(screen, f'MST: {get_format_string_solar(now, longitude, False)}', (width / 2 - x_center_offset, y_start + 9 * y_step))
     draw_text_centered(screen, f'TST: {get_format_string_solar(now, longitude, True)}', (width / 2 - x_center_offset, y_start + 10 * y_step))
-  #draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 11 * y_step))
+  draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 11 * y_step))
   if tz != None:
     pass#draw_text_centered(screen, f'STZ:  {now.to_format_string_smear_tz(smear_plan, tz, format_str, true_utc_offset = True)}', (width / 2 - x_center_offset, y_start + 12 * y_step))
   
