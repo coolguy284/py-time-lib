@@ -108,7 +108,7 @@ def parse_historic_file(file_str: str) -> list[UT1TAIOffsetEntry]:
         mjd = FixedPrec(match[1])
         ut1_minus_tai = FixedPrec(match[2])
         
-        tai_secs_since_epoch = TimeInstant.from_modified_julian_date_utc(mjd).time
+        tai_secs_since_epoch = TimeInstant.from_modified_julian_date_utc(mjd, second_fold = True).time
         
         ut1_offset_list.append(UT1TAIOffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
     else:
@@ -128,7 +128,7 @@ def parse_recent_files(file_str: str) -> list[UT1TAIOffsetEntry]:
         mjd = FixedPrec(match[1])
         ut1_minus_utc = FixedPrec(match[2])
         
-        instant = TimeInstant.from_modified_julian_date_utc(mjd)
+        instant = TimeInstant.from_modified_julian_date_utc(mjd, second_fold = True)
         
         tai_secs_since_epoch = instant.time
         ut1_minus_tai = instant.get_utc_tai_offset() + ut1_minus_utc

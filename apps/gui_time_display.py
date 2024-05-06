@@ -63,7 +63,7 @@ RunMode = Enum('RunMode', (
   'CURRENT',
   'LEAP_SEC_REPLAY',
 ))
-run_mode = RunMode.CURRENT
+run_mode = RunMode.LEAP_SEC_REPLAY
 
 # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -147,7 +147,7 @@ while loop:
         TimeInstant.now().time -
         prgm_start_secs
       ) * 1 +
-      TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
+      TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 55, 0).time
     )
   
   draw_text_centered(screen, 'Current Time', (width / 2, 50), centered = True, size = 43)
