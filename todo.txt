@@ -1,4 +1,3 @@
-.6z support for offset to a given precision
 make current tz offset smear and non smear func return a namedtuple
 reconcile utc_smear and smear_utc, same for tz
 remove import without from and from . import module

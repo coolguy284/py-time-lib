@@ -1,4 +1,5 @@
 from enum import Enum
+from numbers import Integral
 from re import compile as re_compile
 from typing import Self
 
@@ -21,25 +22,39 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   _str_offset_to_fixedprec_any = re_compile(r'([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?')
   
   @classmethod
-  def fixedprec_offset_to_str(cls, offset_secs: TimeStorageType, minute_colon: bool = False) -> str:
+  def fixedprec_offset_to_str(cls, offset_secs: TimeStorageType, minute_colon: bool = False, precision: Integral | None = None) -> str:
     offset_secs = FixedPrec.from_basic(offset_secs)
     offset_sign = '+' if offset_secs >= 0 else '-'
     offset_hrs, remainder = divmod(abs(offset_secs), cls.NOMINAL_SECS_PER_HOUR)
     offset_mins, remainder = divmod(remainder, cls.NOMINAL_SECS_PER_MIN)
     offset_secs_trunc, offset_frac_secs = divmod(remainder, 1)
     
-    if offset_frac_secs != 0:
-      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{str(offset_frac_secs.reduce_to_lowest_place()).split('.')[1]}'
-    elif offset_secs_trunc != 0:
-      return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
-    elif offset_mins != 0 or offset_hrs != 0:
-      if minute_colon:
+    if precision != None:
+      if precision == 0:
+        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
+      else:
+        frac_sec_split = str(offset_frac_secs.reduce_to_lowest_place()).split('.')
+        if len(frac_sec_split) > 1:
+          frac_sec_str = frac_sec_split[1][:precision]
+        else:
+          frac_sec_str = ''
+        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{frac_sec_str:0<{precision}}'
+    elif minute_colon:
+      if offset_frac_secs != 0:
+        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{str(offset_frac_secs.reduce_to_lowest_place()).split('.')[1]}'
+      elif offset_secs_trunc != 0:
+        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
+      elif offset_mins != 0 or offset_hrs != 0:
         return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}'
       else:
-        return f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
-    else:
-      if minute_colon:
         return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}'
+    else:
+      if offset_frac_secs != 0:
+        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{str(offset_frac_secs.reduce_to_lowest_place()).split('.')[1]}'
+      elif offset_secs_trunc != 0:
+        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
+      elif offset_mins != 0 or offset_hrs != 0:
+        return f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
       else:
         return 'Z'
   
@@ -192,6 +207,13 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
               raise ValueError(f'Format string sequence %.{frac_size}f percision too large')
             else:
               result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
+              state = cls._format_string_state.START
+          elif char == 'z':
+            frac_size = int(frac_size)
+            if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
+              raise ValueError(f'Format string sequence %.{frac_size}z percision too large')
+            else:
+              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = True, precision = frac_size)
               state = cls._format_string_state.START
           # invalid format specifier
           else:

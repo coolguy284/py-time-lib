@@ -8,5 +8,5 @@
 | Monotonic        | From/To                   | From/To    | From/To     | To Only       |
 | Solar (Mean)     | From/To                   | From/To    | -           | To Only       |
 | Solar (True)     | From/To                   | From/To    | -           | To Only       |
-| Smeared UTC      | -                         | -          | -           | -             |
-| Smeared Timezone | -                         | -          | -           | -             |
+| Smeared UTC      | From/To                   | From/To    | -           | To Only       |
+| Smeared Timezone | From/To                   | From/To    | -           | To Only       |
