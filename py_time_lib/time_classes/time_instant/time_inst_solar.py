@@ -1,7 +1,7 @@
 from numbers import Integral
 from typing import Self
 
-from ...lib_funcs import binary_search_float
+from ...lib_funcs import almost_linear_func_inverse
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ...fixed_prec import FixedPrec
@@ -24,13 +24,14 @@ class TimeInstantSolar(TimeInstMonotonic):
   def from_secs_since_epoch_solar(cls, longitude_deg: TimeStorageType, true_solar_time: bool, secs_since_epoch_solar: TimeStorageType) -> Self:
     if true_solar_time:
       # https://en.wikipedia.org/wiki/Equation_of_time
-      delta = FixedPrec(17 * cls.NOMINAL_SECS_PER_MIN)
-      low = secs_since_epoch_solar - delta
-      high = secs_since_epoch_solar + delta
-      test = lambda x: cls.from_secs_since_epoch_solar(longitude_deg, False, x).to_secs_since_epoch_solar(longitude_deg, True) <= secs_since_epoch_solar
-      assert test(low)
-      assert not test(high)
-      return cls.from_secs_since_epoch_solar(longitude_deg, False, binary_search_float(test, low, high))
+      return cls.from_secs_since_epoch_solar(
+        longitude_deg,
+        False,
+        almost_linear_func_inverse(
+          lambda x: cls.from_secs_since_epoch_solar(longitude_deg, False, x).to_secs_since_epoch_solar(longitude_deg, True),
+          secs_since_epoch_solar
+        )
+      )
     else:
       return cls.from_secs_since_epoch_mono(
         cls.TIME_SCALES.UT1,

@@ -2,7 +2,7 @@ from enum import Enum
 from numbers import Integral
 from typing import Self
 
-from ...lib_funcs import binary_search, binary_search_float
+from ...lib_funcs import binary_search, almost_linear_func_inverse
 from ...fixed_prec import FixedPrec
 from ...named_tuples import UT1TAIOffsetEntry, TAIUT1OffsetEntry, DateTupleBasic
 from ...calendars.jul_greg_base import JulGregBaseDate
@@ -91,13 +91,8 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         return cls((mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI - cls.TT_EPOCH) * cls.TCG_TO_TT_FACTOR + cls.TT_EPOCH)
       
       case _ if time_scale == cls.TIME_SCALES.TCB or time_scale == cls.TIME_SCALES.GALACTIC_COORDINATE_TIME or time_scale == cls.TIME_SCALES.UNIVERSE_COORDINATE_TIME:
-        delta = abs(mono_secs_since_epoch - cls.TT_EPOCH) * FixedPrec('0.01')
-        low = mono_secs_since_epoch - delta - cls.TT_OFFSET_FROM_TAI
-        high = mono_secs_since_epoch + delta + cls.TT_OFFSET_FROM_TAI
-        test = lambda x: cls(x).to_secs_since_epoch_mono(time_scale) <= mono_secs_since_epoch
-        assert test(low)
-        assert not test(high)
-        return cls(binary_search_float(test, low, high))
+        test = lambda x: cls(x).to_secs_since_epoch_mono(time_scale)
+        return cls(almost_linear_func_inverse(test, mono_secs_since_epoch))
       
       case cls.TIME_SCALES.UT1:
         if len(cls.UT1_TAI_OFFSETS) == 0:

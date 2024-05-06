@@ -5,7 +5,8 @@ from os.path import exists
 from typing import Callable, Sequence
 from urllib.request import urlopen
 
-MAX_BINARY_SEARCH_STEPS = 5_000
+MAX_BINARY_SEARCH_STEPS = 500
+MAX_LINEAR_INVERSE_STEPS = 500
 
 def binary_search[T: Integral](func: Callable[[T], bool], min_inclusive: T = 0, max_exclusive: T = 100) -> T:
   'Finds the largest integer value x so that func(x) is True, in interval [min, max), using a binary search.'
@@ -47,7 +48,7 @@ def binary_search_float[T: Real](func: Callable[[T], bool], min_inclusive: T = 0
     steps += 1
     
     if steps > MAX_BINARY_SEARCH_STEPS:
-      raise RuntimeError('Max binary search float steps reached')
+      raise RuntimeError('Binary search float max steps reached')
   
   return low_enough
 
@@ -68,6 +69,39 @@ def binary_search_array_split[T](array: Sequence[T], func: Callable[[T], bool]) 
     largest_true_index = binary_search(lambda x: func(array[x]), 0, len(array))
     
     return array[:largest_true_index + 1], array[largest_true_index + 1:]
+
+def almost_linear_func_inverse[T: Real](func: Callable[[T], T], output: T, epsilon: Real = 0, min_val: T | None = None, max_val: T | None = None) -> T:
+  guess = output
+  
+  if max_val != None:
+    if guess > max_val:
+      guess = max_val
+  
+  if min_val != None:
+    if guess < min_val:
+      guess = min_val
+  
+  steps = 0
+  
+  while abs((current_output := func(guess)) - output) > epsilon:
+    delta = current_output - output
+    
+    guess -= delta
+    
+    if max_val != None:
+      if guess > max_val:
+        guess = max_val
+    
+    if min_val != None:
+      if guess < min_val:
+        guess = min_val
+    
+    steps += 1
+    
+    if steps > MAX_LINEAR_INVERSE_STEPS:
+      raise RuntimeError('Linear inverse max steps reached')
+  
+  return guess
 
 def fancy_format(obj, indent = 2, _start_indent = 0) -> None:
   "An alternative to python's pprint that formats massive data in an easier to understand format, more akin to JSON indentation."
