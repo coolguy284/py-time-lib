@@ -1,21 +1,26 @@
-from pathlib import Path
-import os, sys
+# https://stackoverflow.com/questions/28379664/iife-in-python-common-convention/76936985#76936985
+@lambda func: func()
+def fix_import_path():
+  from pathlib import Path
+  from os.path import realpath
+  from sys import path as sys_path
 
-# https://stackoverflow.com/questions/60593604/importerror-attempted-relative-import-with-no-known-parent-package
-# https://stackoverflow.com/questions/5137497/find-the-current-directory-and-files-directory
-parent_dir = Path(os.path.realpath(__file__)).parent.parent
-sys.path.append(str(parent_dir))
+  # https://stackoverflow.com/questions/60593604/importerror-attempted-relative-import-with-no-known-parent-package
+  # https://stackoverflow.com/questions/5137497/find-the-current-directory-and-files-directory
+  parent_dir = Path(realpath(__file__)).parent.parent
+  sys_path.append(str(parent_dir))
 
 from enum import Enum
 from functools import cache
+from sys import argv as sys_argv
 import pygame
-from py_time_lib import TimeInstant, TimeZone, FixedPrec, TIMEZONES, update_time_databases
+from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
 update_time_databases()
 
-if len(sys.argv) > 1:
-  tz_name = sys.argv[1]
+if len(sys_argv) > 1:
+  tz_name = sys_argv[1]
   if tz_name == 'None':
     tz_name = None
     tz = None
@@ -33,8 +38,8 @@ if len(sys.argv) > 1:
       except KeyError:
         print(f'Timezone unknown: {tz_name}')
         exit()
-  if len(sys.argv) > 2:
-    longitude = FixedPrec(sys.argv[2])
+  if len(sys_argv) > 2:
+    longitude = FixedPrec(sys_argv[2])
   else:
     longitude = None
 else:

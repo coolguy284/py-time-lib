@@ -1,8 +1,8 @@
-import re
 from abc import abstractmethod
 from datetime import date as datetime_date_cls
 from math import ceil, floor
 from numbers import Integral
+from re import compile as re_compile
 from typing import Self
 
 from ..lib_funcs import binary_search
@@ -28,7 +28,7 @@ class JulGregBaseDate(DateBase):
   MONTH_NAMES_SHORT = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ]
-  _date_iso_string_regex = re.compile(r'^(-?\d+)-(\d{1,2})-(\d{1,2})$')
+  _date_iso_string_regex = re_compile(r'^(-?\d+)-(\d{1,2})-(\d{1,2})$')
   _calendar_month_row_inside_len = 22
   _empty_calendar_month_row = f'|{' ' * _calendar_month_row_inside_len}|'
   

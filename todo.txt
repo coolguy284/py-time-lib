@@ -1,5 +1,3 @@
-reconcile utc_smear and smear_utc, same for tz
-remove import without from and from . import module
 add TDB timescale
 test true leap second handling in windows
 
@@ -78,5 +76,6 @@ add default high detail tostring for tai and utc
 timedelta/timeinstant from datetime/timedelta when doing math operations
 datebase/datedelta from/to datetime.date when doing math operations
 timeinstant: have _auto_reset_class_vars reset all other vars like julian date and TimeInstant static vars, or remove it to not reset the nominal vars
+reconcile utc_smear and smear_utc, same for tz
 tests:
   date: monthly/yearly calendar generation funcs

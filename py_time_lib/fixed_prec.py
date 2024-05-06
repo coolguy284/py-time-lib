@@ -1,6 +1,6 @@
-import re
 from math import floor, log10
 from numbers import Integral, Real
+from re import compile as re_compile
 from typing import Self
 
 class FixedPrec(Real):
@@ -19,8 +19,8 @@ class FixedPrec(Real):
   EXPONENT_BASE_LOWER_LIMIT_TRIGGER = 2
   EXPONENT_LOWER_LIMIT = -200
   
-  _int_regex = re.compile(r'^(-?\d+)$')
-  _float_regex = re.compile(r'^(-?)(\d+)\.(\d+)$')
+  _int_regex = re_compile(r'^(-?\d+)$')
+  _float_regex = re_compile(r'^(-?)(\d+)\.(\d+)$')
   
   # instance stuff
   __slots__ = 'value', 'place', 'max_prec'

@@ -1,9 +1,9 @@
+from unittest import TestCase
 import datetime
-import unittest
 
 from ... import DateDelta, GregorianDate, IsoWeekDate
 
-class TestCalendarDateBase(unittest.TestCase):
+class TestCalendarDateBase(TestCase):
   def test_date_delta_str(self):
     self.assertEqual(str(DateDelta(1000)), '1000 days')
     self.assertEqual(str(DateDelta(-1000)), '-1000 days')

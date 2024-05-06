@@ -1,8 +1,8 @@
-import unittest
+from unittest import TestCase
 
 from .. import binary_search, binary_search_array_split, binary_search_float, FixedPrec
 
-class TestLibFuncs(unittest.TestCase):
+class TestLibFuncs(TestCase):
   def test_binary_search(self):
     array = [0, 1, 8, 13, 26, 33, 44, 55, 66, 77, 145, 1001]
     self.assertEqual(binary_search(lambda x: array[x] <= -1, 0, len(array)), array.index(0))

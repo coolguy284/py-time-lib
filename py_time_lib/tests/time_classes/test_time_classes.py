@@ -1,13 +1,13 @@
 from math import trunc
 from time import time_ns, struct_time
+from unittest import TestCase
 import datetime
-import unittest
 
 from ... import FixedPrec, GregorianDate, TimeDelta, TimeZone, TimeInstant, TimeUnmappableError, LeapSmearPlan, LeapSmearSingle, LeapBasis, SmearType
 from ...data_py.leap_seconds import NOMINAL_SECS_PER_DAY
 from ... import TIMEZONES
 
-class TestTimeClasses(unittest.TestCase):
+class TestTimeClasses(TestCase):
   def __init__(self, *args):
     super().__init__(*args)
     self.maxDiff = None

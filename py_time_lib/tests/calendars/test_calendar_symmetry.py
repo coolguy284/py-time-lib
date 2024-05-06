@@ -1,9 +1,9 @@
-import unittest
+from unittest import TestCase
 
 from ...calendars.gregorian import GregorianDate
 from ...calendars.symmetry import Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
 
-class TestCalendarSymmetry(unittest.TestCase):
+class TestCalendarSymmetry(TestCase):
   def test_epoch(self):
     epoch = GregorianDate(1, 1, 1)
     self.assertEqual(epoch.day_of_week(), 1)

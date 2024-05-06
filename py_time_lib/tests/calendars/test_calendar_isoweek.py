@@ -1,8 +1,8 @@
-import unittest
+from unittest import TestCase
 
 from ... import IsoWeekDate
 
-class TestCalendarIsoWeek(unittest.TestCase):
+class TestCalendarIsoWeek(TestCase):
   def test_instantiate(self):
     IsoWeekDate(0)
   

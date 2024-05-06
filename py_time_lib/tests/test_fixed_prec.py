@@ -1,9 +1,9 @@
 from math import floor, ceil, trunc, sin
-import unittest
+from unittest import TestCase
 
 from .. import FixedPrec
 
-class TestFixedPrec(unittest.TestCase):
+class TestFixedPrec(TestCase):
   def test_repr(self):
     self.assertEqual(repr(FixedPrec(0, -3)), 'FixedPrec(0)')
     self.assertEqual(repr(FixedPrec(0, 0)), 'FixedPrec(0)')

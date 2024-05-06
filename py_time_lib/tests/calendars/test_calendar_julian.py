@@ -1,10 +1,12 @@
-import random, unittest
+from unittest import TestCase
+
+import random
 
 from ... import JulianDate
 
 cls = JulianDate
 
-class TestCalendarJulian(unittest.TestCase):
+class TestCalendarJulian(TestCase):
   def test_leap_year_2020(self):
     self.assertEqual(cls.is_leap(2020), True)
   

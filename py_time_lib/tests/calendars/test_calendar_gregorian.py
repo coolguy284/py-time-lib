@@ -1,10 +1,11 @@
-import random, unittest, datetime
+from unittest import TestCase
+import random, datetime
 
 from ... import GregorianDate
 
 cls = GregorianDate
 
-class TestCalendarGregorian(unittest.TestCase):
+class TestCalendarGregorian(TestCase):
   def test_leap_year_2020(self):
     self.assertEqual(cls.is_leap(2020), True)
   

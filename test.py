@@ -1,4 +1,4 @@
-import unittest
+from unittest import main as unittest_main
 
 from py_time_lib import update_time_databases
 
@@ -20,5 +20,5 @@ if 'unittest.util' in __import__('sys').modules:
   # Show full diff in self.assertEqual.
   __import__('sys').modules['unittest.util']._MAX_LENGTH = 999999999
 
-unittest.main()
-#unittest.main(argv = ['test.py', '--durations=0'])
+unittest_main()
+#unittest_main(argv = ['test.py', '--durations=0'])
