@@ -227,6 +227,10 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     raise NotImplementedError()
   
   @classmethod
+  def from_format_string_smear(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+    raise NotImplementedError()
+  
+  @classmethod
   def from_format_string_smear_utc(cls, smear_plan: LeapSmearPlan, format_str: str, time_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     raise NotImplementedError()
   

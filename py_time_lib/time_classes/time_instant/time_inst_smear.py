@@ -122,15 +122,18 @@ class LeapSmearPlan():
     for i in range(len(TimeInstant.TAI_TO_UTC_OFFSET_TABLE)):
       leap_entry = TimeInstant.TAI_TO_UTC_OFFSET_TABLE[i]
       
-      if leap_entry['leap_utc_delta'] >= 0:
+      if leap_entry['leap_utc_delta'] <= 0:
         # positive leap second
         if leap_entry['positive_leap_second_occurring']:
           add_entry = True
+        else:
+          add_entry = False
       else:
         # negative leap second
         add_entry = True
       
       if add_entry:
+        #print('youm', leap_entry['start_instant'], leap_entry['leap_utc_delta'], leap_entry['positive_leap_second_occurring'])
         if leap_entry['start_instant'] in self.smear_overrides:
           smear_profile = self.smear_overrides[leap_entry['start_instant']]
         else:
@@ -138,10 +141,13 @@ class LeapSmearPlan():
         
         if smear_profile.start_basis == LeapBasis.START:
           smear_start_tai = leap_entry['start_instant'] - smear_profile.secs_before_start_basis
+          if leap_entry['start_instant'] == 63650448036:
+            pass#print('el')
+            #print('branch 2', leap_entry['start_instant'], smear_profile.secs_before_start_basis, smear_start_tai)
         else:
           smear_start_tai = leap_entry['start_instant'] - leap_entry['leap_utc_delta'] - smear_profile.secs_before_start_basis
         
-        if smear_profile.end_basis == LeapBasis.END:
+        if smear_profile.end_basis == LeapBasis.START:
           smear_end_tai = leap_entry['start_instant'] + smear_profile.secs_after_end_basis
         else:
           smear_end_tai = leap_entry['start_instant'] - leap_entry['leap_utc_delta'] + smear_profile.secs_after_end_basis
@@ -149,8 +155,15 @@ class LeapSmearPlan():
         tai_length = smear_end_tai - smear_start_tai
         smear_length = tai_length + leap_entry['leap_utc_delta']
         
-        start_utc_tai_offset = leap_entry['utc_epoch_secs'] - leap_entry['start_instant']
+        if leap_entry['positive_leap_second_occurring']:
+          start_utc_tai_offset = leap_entry['utc_epoch_secs'] - leap_entry['start_instant']
+        else:
+          start_utc_tai_offset = leap_entry['utc_tai_delta']
+        
         end_utc_tai_offset = start_utc_tai_offset + leap_entry['leap_utc_delta']
+        
+        if leap_entry['start_instant'] == 63650448036:
+          pass#print(self.tai_to_utc_smear_table[-2:])
         
         self.tai_to_utc_smear_table.append(TAIToUTCSmearEntry(SmearTableEntryMode.SMEAR, smear_start_tai, smear_start_tai + start_utc_tai_offset, {
           'smear_type': smear_profile.type,
@@ -162,6 +175,11 @@ class LeapSmearPlan():
           'smear_tai_offset': end_utc_tai_offset,
         }))
         
+        if leap_entry['start_instant'] == 63650448036:
+          pass#print(self.tai_to_utc_smear_table[-2:])
+          #globals()['ev'] = self.tai_to_utc_smear_table[-2]
+          #print(globals()['ev'])
+        
         self.utc_smear_to_tai_table.append(UTCSmearToTAIEntry(SmearTableEntryMode.SMEAR, smear_start_tai, smear_start_tai + start_utc_tai_offset, {
           'smear_type': smear_profile.type,
           'smear_length': smear_length,
@@ -171,6 +189,12 @@ class LeapSmearPlan():
         self.utc_smear_to_tai_table.append(UTCSmearToTAIEntry(SmearTableEntryMode.FIXED_OFFSET, smear_end_tai, smear_end_tai + end_utc_tai_offset, {
           'tai_smear_offset': -end_utc_tai_offset,
         }))
+    
+    #print('elective')
+    #print('\n'.join([repr(s) for s in self.tai_to_utc_smear_table[-7:]]))
+    #print('elective2')
+    #print(globals()['ev'])
+    #print('indexof', self.tai_to_utc_smear_table.index(globals()['ev']), len(self.tai_to_utc_smear_table))
   
   def __post_init__(self):
     self._generate_tables()
@@ -199,7 +223,7 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
           return tai_time_in_smear * smear_length / tai_length
         
         case SmearType.COSINE:
-          return binary_search_float(lambda x: TimeInstantLeapSmear.from_cosine_smear(smear_length, leap_extra_secs, x) <= tai_time_in_smear, 0, FixedPrec.from_basic(smear_length))
+          return binary_search_float(lambda x: TimeInstantLeapSmear.from_smear(SmearType.COSINE, smear_length, leap_extra_secs, x) <= tai_time_in_smear, 0, FixedPrec.from_basic(smear_length))
   
   @staticmethod
   def from_smear(smear_type: SmearType, smear_length: TimeStorageType, leap_extra_secs: TimeStorageType, smear_time_in_smear: TimeStorageType) -> FixedPrec:
@@ -242,7 +266,7 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
         if smear_entry.mode == SmearTableEntryMode.FIXED_OFFSET:
           return secs_since_epoch + smear_entry.data['tai_smear_offset']
         else:
-          return cls(cls.from_smear(smear_entry['smear_type'], smear_entry['smear_length'], smear_entry['leap_extra_secs'], secs_since_epoch - smear_entry.smear_secs_since_epoch) + smear_entry.tai_secs_since_epoch)
+          return cls(cls.from_smear(smear_entry.data['smear_type'], smear_entry.data['smear_length'], smear_entry.data['leap_extra_secs'], secs_since_epoch - smear_entry.smear_secs_since_epoch) + smear_entry.tai_secs_since_epoch)
   
   @classmethod
   def from_date_tuple_smear_utc(
@@ -257,6 +281,8 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
     )
   
   def to_secs_since_epoch_smear_utc(self, smear_plan: LeapSmearPlan) -> TimeStorageType:
+    #print(smear_plan.utc_smear_tai_initial_offset)
+    #print('\n'.join([repr(s) for s in smear_plan.tai_to_utc_smear_table[-4:]]))
     if len(smear_plan.tai_to_utc_smear_table) == 0:
       return self.time + smear_plan.utc_smear_tai_initial_offset
     else:
@@ -268,7 +294,7 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
         if smear_entry.mode == SmearTableEntryMode.FIXED_OFFSET:
           return self.time + smear_entry.data['smear_tai_offset']
         else:
-          return self.to_smear(smear_entry['smear_type'], smear_entry['smear_length'], smear_entry['leap_extra_secs'], self.time - smear_entry.tai_secs_since_epoch) + smear_entry.smear_secs_since_epoch
+          return self.to_smear(smear_entry.data['smear_type'], smear_entry.data['smear_length'], smear_entry.data['leap_extra_secs'], self.time - smear_entry.tai_secs_since_epoch) + smear_entry.smear_secs_since_epoch
   
   def to_date_tuple_smear_utc(self, smear_plan: LeapSmearPlan, date_cls: type[JulGregBaseDate] = GregorianDate) -> DateTupleBasic:
     return self.epoch_instant_to_date_tuple(self.to_secs_since_epoch_smear_utc(smear_plan), date_cls = date_cls)
