@@ -231,7 +231,8 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
             tai_time_in_smear,
             epsilon = tai_time_in_smear.smallest_representable() * 1_000_000,
             min_val = 0,
-            max_val = smear_length
+            max_val = smear_length,
+            deriv_epsilon = tai_time_in_smear.smallest_representable() * 10
           )
   
   @staticmethod

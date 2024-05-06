@@ -116,7 +116,12 @@ def almost_linear_func_inverse_deriv[T: Real](func: Callable[[T], T], output: T,
   
   steps = 0
   
-  while abs((current_output := func(guess)) - output) > epsilon:
+  current_output = func(guess)
+  delta = current_output - output
+  abs_delta = abs(delta)
+  past_abs_delta = abs_delta
+  
+  while abs_delta > epsilon and (steps < 100 or abs_delta < past_abs_delta):
     delta = current_output - output
     
     deriv_guess = guess + deriv_epsilon
@@ -145,6 +150,11 @@ def almost_linear_func_inverse_deriv[T: Real](func: Callable[[T], T], output: T,
     
     if steps > MAX_LINEAR_INVERSE_STEPS:
       raise RuntimeError('Linear inverse max steps reached')
+    
+    current_output = func(guess)
+    delta = current_output - output
+    past_abs_delta = abs_delta
+    abs_delta = abs(delta)
   
   return guess
 

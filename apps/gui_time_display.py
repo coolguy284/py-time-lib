@@ -52,9 +52,9 @@ format_str = f'{format_str_start} {format_str_offset}'
 smear_plan = LeapSmearPlan(
   LeapSmearSingle(
     start_basis = LeapBasis.START,
-    secs_before_start_basis = 5,
+    secs_before_start_basis = 10,
     end_basis = LeapBasis.END,
-    secs_after_end_basis = 5,
+    secs_after_end_basis = 30,
     type = SmearType.BUMP
   ),
   ()
