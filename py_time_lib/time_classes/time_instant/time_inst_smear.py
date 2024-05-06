@@ -4,7 +4,7 @@ from numbers import Integral
 from typing import NamedTuple, Self
 from weakref import WeakValueDictionary
 
-from ...lib_funcs import binary_search, almost_linear_func_inverse
+from ...lib_funcs import binary_search, almost_linear_func_inverse_deriv
 from ...calendars.date_delta import DateDelta
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
@@ -224,18 +224,12 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
         case SmearType.LINEAR:
           return tai_time_in_smear * smear_length / tai_length
         
-        case SmearType.COSINE:
-          return almost_linear_func_inverse(
-            lambda x: TimeInstantLeapSmear.from_smear(SmearType.COSINE, smear_length, leap_extra_secs, x),
+        case _ if smear_type == SmearType.COSINE or smear_type == SmearType.BUMP:
+          tai_time_in_smear = FixedPrec.from_basic(tai_time_in_smear)
+          return almost_linear_func_inverse_deriv(
+            lambda x: TimeInstantLeapSmear.from_smear(smear_type, smear_length, leap_extra_secs, x),
             tai_time_in_smear,
-            min_val = 0,
-            max_val = smear_length
-          )
-        
-        case SmearType.BUMP:
-          return almost_linear_func_inverse(
-            lambda x: TimeInstantLeapSmear.from_smear(SmearType.BUMP, smear_length, leap_extra_secs, x),
-            tai_time_in_smear,
+            epsilon = tai_time_in_smear.smallest_representable() * 1_000_000,
             min_val = 0,
             max_val = smear_length
           )

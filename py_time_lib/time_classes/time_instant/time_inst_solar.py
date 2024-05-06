@@ -1,7 +1,7 @@
 from numbers import Integral
 from typing import Self
 
-from ...lib_funcs import almost_linear_func_inverse
+from ...lib_funcs import almost_linear_func_inverse_deriv
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ...fixed_prec import FixedPrec
@@ -23,13 +23,15 @@ class TimeInstantSolar(TimeInstMonotonic):
   @classmethod
   def from_secs_since_epoch_solar(cls, longitude_deg: TimeStorageType, true_solar_time: bool, secs_since_epoch_solar: TimeStorageType) -> Self:
     if true_solar_time:
+      secs_since_epoch_solar = FixedPrec.from_basic(secs_since_epoch_solar)
       # https://en.wikipedia.org/wiki/Equation_of_time
       return cls.from_secs_since_epoch_solar(
         longitude_deg,
         False,
-        almost_linear_func_inverse(
+        almost_linear_func_inverse_deriv(
           lambda x: cls.from_secs_since_epoch_solar(longitude_deg, False, x).to_secs_since_epoch_solar(longitude_deg, True),
-          secs_since_epoch_solar
+          secs_since_epoch_solar,
+          epsilon = secs_since_epoch_solar.smallest_representable() * 2
         )
       )
     else:

@@ -2,7 +2,7 @@ from enum import Enum
 from numbers import Integral
 from typing import Self
 
-from ...lib_funcs import binary_search, almost_linear_func_inverse
+from ...lib_funcs import binary_search, almost_linear_func_inverse_deriv
 from ...fixed_prec import FixedPrec
 from ...named_tuples import UT1TAIOffsetEntry, TAIUT1OffsetEntry, DateTupleBasic
 from ...calendars.jul_greg_base import JulGregBaseDate
@@ -91,8 +91,9 @@ class TimeInstMonotonic(TimeInstantTimeZones):
         return cls((mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI - cls.TT_EPOCH) * cls.TCG_TO_TT_FACTOR + cls.TT_EPOCH)
       
       case _ if time_scale == cls.TIME_SCALES.TCB or time_scale == cls.TIME_SCALES.GALACTIC_COORDINATE_TIME or time_scale == cls.TIME_SCALES.UNIVERSE_COORDINATE_TIME:
+        mono_secs_since_epoch = FixedPrec.from_basic(mono_secs_since_epoch)
         test = lambda x: cls(x).to_secs_since_epoch_mono(time_scale)
-        return cls(almost_linear_func_inverse(test, mono_secs_since_epoch))
+        return cls(almost_linear_func_inverse_deriv(test, mono_secs_since_epoch, epsilon = mono_secs_since_epoch.smallest_representable() * 2))
       
       case cls.TIME_SCALES.UT1:
         if len(cls.UT1_TAI_OFFSETS) == 0:

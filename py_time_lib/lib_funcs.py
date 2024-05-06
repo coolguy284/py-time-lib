@@ -103,6 +103,51 @@ def almost_linear_func_inverse[T: Real](func: Callable[[T], T], output: T, epsil
   
   return guess
 
+def almost_linear_func_inverse_deriv[T: Real](func: Callable[[T], T], output: T, epsilon: Real = 0, min_val: T | None = None, max_val: T | None = None, deriv_epsilon: Real = 1e-6) -> T:
+  guess = output
+  
+  if max_val != None:
+    if guess > max_val:
+      guess = max_val
+  
+  if min_val != None:
+    if guess < min_val:
+      guess = min_val
+  
+  steps = 0
+  
+  while abs((current_output := func(guess)) - output) > epsilon:
+    delta = current_output - output
+    
+    deriv_guess = guess + deriv_epsilon
+    deriv_flip = False
+    
+    if max_val != None:
+      if deriv_guess > max_val:
+        deriv_guess = guess - deriv_epsilon
+        deriv_flip = True
+    
+    deriv = (func(deriv_guess) - current_output) / deriv_epsilon
+    if deriv_flip:
+      deriv *= -1
+    
+    guess -= delta / deriv
+    
+    if max_val != None:
+      if guess > max_val:
+        guess = max_val
+    
+    if min_val != None:
+      if guess < min_val:
+        guess = min_val
+    
+    steps += 1
+    
+    if steps > MAX_LINEAR_INVERSE_STEPS:
+      raise RuntimeError('Linear inverse max steps reached')
+  
+  return guess
+
 def fancy_format(obj, indent = 2, _start_indent = 0) -> None:
   "An alternative to python's pprint that formats massive data in an easier to understand format, more akin to JSON indentation."
   base_indent = ' ' * _start_indent
