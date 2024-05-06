@@ -9,7 +9,7 @@ sys.path.append(str(parent_dir))
 from enum import Enum
 from functools import cache
 import pygame
-from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases
+from py_time_lib import TimeInstant, TimeZone, FixedPrec, TIMEZONES, update_time_databases
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
 update_time_databases()
@@ -52,10 +52,10 @@ format_str = f'{format_str_start} {format_str_offset}'
 smear_plan = LeapSmearPlan(
   LeapSmearSingle(
     start_basis = LeapBasis.START,
-    secs_before_start_basis = 10,
+    secs_before_start_basis = 5,
     end_basis = LeapBasis.END,
-    secs_after_end_basis = 30,
-    type = SmearType.COSINE
+    secs_after_end_basis = 5,
+    type = SmearType.LINEAR
   ),
   ()
 )
@@ -127,6 +127,11 @@ def get_format_string_smear_utc(now: TimeInstant, smear_plan, pad_end = True):
   offset = now.to_format_string_smear_utc(smear_plan, format_str_offset, true_utc_offset = True)
   return f'{out_start} {format_offset(offset, pad_end)}'
 
+def get_format_string_smear_tz(now: TimeInstant, smear_plan, tz: TimeZone, pad_end = True):
+  out_start = now.to_format_string_smear_tz(smear_plan, tz, format_str_start, true_utc_offset = True)
+  offset = now.to_format_string_smear_tz(smear_plan, tz, format_str_offset, true_utc_offset = True)
+  return f'{out_start} {format_offset(offset, pad_end)}'
+
 loop = True
 
 if run_mode == RunMode.LEAP_SEC_REPLAY:
@@ -147,13 +152,13 @@ while loop:
         TimeInstant.now().time -
         prgm_start_secs
       ) * 1 +
-      TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 55, 0).time
+      TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
     )
   
   draw_text_centered(screen, 'Current Time', (width / 2, 50), centered = True, size = 43)
   
   x_center_offset = 600
-  y_start = 100
+  y_start = 80
   y_step = 55
   
   if tz != None:
@@ -161,7 +166,7 @@ while loop:
   draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}',                                          (width / 2 - x_center_offset, y_start + 1 * y_step))
   draw_text_centered(screen, f'SUT: {get_format_string_smear_utc(now, smear_plan)}',                                  (width / 2 - x_center_offset, y_start + 2 * y_step))
   if tz != None:
-    pass#draw_text_centered(screen, f'STZ:  {get_format_string_smear_tz(now, smear_plan, tz)}',                            (width / 2 - x_center_offset, y_start + 3 * y_step))
+    draw_text_centered(screen, f'STZ: {get_format_string_smear_tz(now, smear_plan, tz)}',                            (width / 2 - x_center_offset, y_start + 3 * y_step))
   draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}',                                          (width / 2 - x_center_offset, y_start + 4 * y_step))
   draw_text_centered(screen, f'TT:  {get_format_string_mono(now, TimeInstant.TIME_SCALES.TT, pad_end = False)}',      (width / 2 - x_center_offset, y_start + 5 * y_step))
   draw_text_centered(screen, f'TCG: {get_format_string_mono(now, TimeInstant.TIME_SCALES.TCG)}',                      (width / 2 - x_center_offset, y_start + 6 * y_step))

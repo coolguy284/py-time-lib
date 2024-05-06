@@ -404,10 +404,10 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     'Returns a solar time string formatted in the strftime style.'
     
     date = self.get_date_object_smear_tz(smear_plan, time_zone, date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)
+    year, month, day, hour, minute, second, frac_second, _ = self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)
     day_of_week = date.day_of_week()
     ordinal_day = date.ordinal_date()
-    tz_offset, tz_offset_abbr = self.get_current_tz_offset_smear(time_zone, true_utc_offset = true_utc_offset, date_cls = date_cls)
+    tz_offset, tz_offset_abbr = self.get_current_tz_offset_smear(smear_plan, time_zone, true_utc_offset = true_utc_offset, date_cls = date_cls)
     iso_date = IsoWeekDate(date)
     
     return self.format_string_from_info({

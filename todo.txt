@@ -1,9 +1,12 @@
-use pseudo newtons method assuming deriv is 1 in place of all binary search guesses of function value
+make current tz offset smear and non smear func return a namedtuple
+reconcile utc_smear and smear_utc, same for tz
 remove import without from and from . import module
+add TDB timescale
 test true leap second handling in windows
 
 add leap smear tz support
 strptime support
+option to cache parsed tz, leapsecs in pickle file
 
 complete all ..., notimplementederrors
   from_format_string_tai
@@ -17,13 +20,11 @@ complete all ..., notimplementederrors
   test_from_format_string_mono
   test_from_format_string_solar
 
-strftime/strptime for julgregbasedate
-
 low prio:
+strftime/strptime for julgregbasedate
 ut1 offset should move with linear approximation before and after end of data
 full tz support
 verify that leap seconds and ut1 offsets are in temporal order
-add TDB timescale
 add format codes for jd
 fixedprec round when reducing precision not flooring
   and increase place value of assertAlmostEquals
@@ -32,7 +33,6 @@ add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for ti
 fixedprec default max prec configurable
 add var to store if leap sec array and timezones list is updated to match file, if so and file not expired, don't run parser; add force reparse option to reparse anyway, and force refresh to download data again anyway
 add auto update every 30days async function that can be used in gui update app
-option to cache parsed tz, leapsecs in pickle file
 timeinstant: fix low precision error on from_secs_since_epoch_mono
 change get utc tai offset to return a timestoragetype?
 add test for dst in tzdb zones where summer/dst is in january
@@ -69,6 +69,7 @@ tests:
   timeinstant: proper tests for timezone leapsecond, dst support
   timeinstant: test for fixed offset timezone support of pos/neg leap seconds
   timezone: test for tz name not just abbreviation
+  timeinstant: test for smeared tz support
 
 prob not doing:
 datedelta from/to timedelta

@@ -10,7 +10,7 @@ from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ...fixed_prec import FixedPrec
 from ..lib import TimeStorageType
-from ...named_tuples import DateTupleBasic, DateTupleTZ
+from ...named_tuples import DateTupleBasic, DateTupleTZ, SecsSinceEpochSmearTZ
 from .time_inst_mono import TimeInstMonotonic
 from ..time_zone import TimeZone
 
@@ -335,28 +335,87 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
   # > time zone
   
   @classmethod
-  def from_secs_since_epoch_smear_tz(cls, smear_plan: LeapSmearPlan, time_zone: TimeZone, secs_since_epoch: TimeStorageType) -> Self:
-    raise NotImplementedError()
+  def from_secs_since_epoch_smear_tz(
+    cls,
+    smear_plan: LeapSmearPlan,
+    time_zone: TimeZone,
+    tz_secs_since_epoch: TimeStorageType,
+    dst_second_fold: bool = False,
+    round_invalid_dst_time_upwards: bool = True,
+    date_cls: type[JulGregBaseDate] = GregorianDate
+  ) -> Self:
+    secs_since_epoch = cls._from_secs_since_epoch_tz_get_secs_raw(
+      time_zone = time_zone,
+      tz_secs_since_epoch = tz_secs_since_epoch,
+      dst_second_fold = dst_second_fold,
+      round_invalid_dst_time_upwards = round_invalid_dst_time_upwards,
+      date_cls = date_cls
+    )
+    return cls.from_secs_since_epoch_smear_utc(smear_plan, secs_since_epoch)
   
   @classmethod
   def from_date_tuple_smear_tz(
     cls,
-    smear_plan: LeapSmearPlan, time_zone: TimeZone,
+    smear_plan: LeapSmearPlan,
+    time_zone: TimeZone,
     year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType,
     dst_second_fold: bool = False,
     round_invalid_dst_time_upwards: bool = True,
     date_cls: type[JulGregBaseDate] = GregorianDate
   ) -> Self:
-    raise NotImplementedError()
+    'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) using smeared UTC into a TimeInstant.'
+    
+    time = cls.date_tuple_to_epoch_instant(
+      year, month, day, hour, minute, second, frac_second,
+      date_cls = date_cls
+    )
+    
+    return cls.from_secs_since_epoch_smear_tz(
+      smear_plan,
+      time_zone,
+      time,
+      dst_second_fold = dst_second_fold,
+      round_invalid_dst_time_upwards = round_invalid_dst_time_upwards,
+      date_cls = date_cls
+    )
   
-  def to_secs_since_epoch_smear_tz(self, smear_plan: LeapSmearPlan, time_zone: TimeZone) -> TimeStorageType:
-    raise NotImplementedError()
+  def to_secs_since_epoch_smear_tz(
+      self,
+      smear_plan: LeapSmearPlan,
+      time_zone: TimeZone,
+      date_cls: type[JulGregBaseDate]
+    ) -> SecsSinceEpochSmearTZ:
+    'Returns a tuple of the form (secs_since_epoch, dst_second_fold, leap_second_fold) using smeared UTC.'
+    
+    secs_since_epoch = self.to_secs_since_epoch_smear_utc(smear_plan)
+    tz_secs_since_epoch, dst_second_fold = self._to_secs_since_epoch_tz_using_secs_raw(time_zone, date_cls, secs_since_epoch)
+    
+    return SecsSinceEpochSmearTZ(tz_secs_since_epoch, dst_second_fold)
   
-  def to_date_tuple_smear_tz(self, smear_plan: LeapSmearPlan, time_zone: TimeZone) -> DateTupleTZ:
-    raise NotImplementedError()
+  def to_date_tuple_smear_tz(
+      self,
+      smear_plan: LeapSmearPlan,
+      time_zone: TimeZone,
+      date_cls: type[JulGregBaseDate] = GregorianDate
+    ) -> DateTupleTZ:
+    'Returns a date tuple in a timezone using smeared UTC.'
+    tz_secs_since_epoch, dst_second_fold = self.to_secs_since_epoch_smear_tz(smear_plan, time_zone, date_cls = date_cls)
+    date_tup = self.epoch_instant_to_date_tuple(tz_secs_since_epoch, date_cls = date_cls)
+    return DateTupleTZ(*date_tup, dst_second_fold)
   
   def get_date_object_smear_tz[T: JulGregBaseDate](self, smear_plan: LeapSmearPlan, time_zone: TimeZone, date_cls: type[T] = GregorianDate) -> T:
-    raise NotImplementedError()
+    return date_cls(*self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)[:3])
   
   def get_current_tz_offset_smear(self, smear_plan: LeapSmearPlan, time_zone: TimeZone, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
-    raise NotImplementedError()
+    secs_since_epoch = self.to_secs_since_epoch_smear_utc(smear_plan)
+    
+    tz_offset, abbr = self._get_current_tz_offset_using_secs_raw(
+      time_zone,
+      date_cls,
+      secs_since_epoch
+    )
+    
+    if true_utc_offset:
+      tz_offset += -self.get_utc_tai_offset() + self.get_smear_utc_tai_offset(smear_plan)
+    
+    return tz_offset, abbr

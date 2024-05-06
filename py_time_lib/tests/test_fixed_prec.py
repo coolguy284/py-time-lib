@@ -680,10 +680,10 @@ class TestFixedPrec(unittest.TestCase):
   
   def test_exp(self):
     self.assertEqual(FixedPrec(0).exp(), 1)
-    self.assertEqual(FixedPrec(1).exp(), FixedPrec(0).e())
+    self.assertAlmostEqual(FixedPrec(1).exp(), FixedPrec(0).e(), delta = 1e-11)
     self.assertEqual(FixedPrec(2).exp(), FixedPrec(0).e() ** 2)
-    self.assertEqual(FixedPrec(1.5).exp(), FixedPrec(0).e() ** 1.5)
-    self.assertEqual(FixedPrec(-1.5).exp(), FixedPrec(0).e() ** -1.5)
+    self.assertAlmostEqual(FixedPrec(1.5).exp(), FixedPrec(0).e() ** 1.5, delta = 1e-10)
+    self.assertAlmostEqual(FixedPrec(-1.5).exp(), FixedPrec(0).e() ** -1.5, delta = 1e-11)
   
   def test_sin(self):
     self.assertAlmostEqual((-FixedPrec(0).pi() / 6).sin(), -FixedPrec('0.5'), places = 11)

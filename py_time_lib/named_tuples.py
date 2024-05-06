@@ -36,6 +36,10 @@ class SecsSinceEpochTZ(NamedTuple):
   dst_second_fold: bool
   leap_second_fold: bool
 
+class SecsSinceEpochSmearTZ(NamedTuple):
+  secs_since_epoch: TimeStorageType
+  dst_second_fold: bool
+
 class DateTupleBasic(NamedTuple):
   year: Integral
   month: Integral

@@ -1384,6 +1384,53 @@ class TestTimeClasses(unittest.TestCase):
       'U:15 W:16'
     )
   
+  def test_to_format_string_smear_utc(self):
+    smear_plan = LeapSmearPlan(
+      LeapSmearSingle(
+        start_basis = LeapBasis.START,
+        secs_before_start_basis = 5,
+        end_basis = LeapBasis.END,
+        secs_after_end_basis = 5,
+        type = SmearType.LINEAR
+      ),
+      {}
+    )
+    
+    time_instant = TimeInstant.from_date_tuple_smear_utc(smear_plan, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant.to_format_string_smear_utc(smear_plan, 'a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
+      f'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:Z Z:Universal Time Coordinated (Smeared) %:% str:test'
+    )
+    time_instant_2 = TimeInstant.from_date_tuple_smear_utc(smear_plan, 2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant_2.to_format_string_smear_utc(smear_plan, 'U:%U W:%W'),
+      'U:15 W:16'
+    )
+  
+  def test_to_format_string_smear_tz(self):
+    smear_plan = LeapSmearPlan(
+      LeapSmearSingle(
+        start_basis = LeapBasis.START,
+        secs_before_start_basis = 5,
+        end_basis = LeapBasis.END,
+        secs_after_end_basis = 5,
+        type = SmearType.LINEAR
+      ),
+      {}
+    )
+    tz = TimeZone(3_600)
+    
+    time_instant = TimeInstant.from_date_tuple_smear_tz(smear_plan, tz, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant.to_format_string_smear_tz(smear_plan, tz, 'a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I J:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
+      f'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 J:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+0100 Z:NULL (Smeared) %:% str:test'
+    )
+    time_instant_2 = TimeInstant.from_date_tuple_smear_tz(smear_plan, tz, 2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
+    self.assertEqual(
+      time_instant_2.to_format_string_smear_tz(smear_plan, tz, 'U:%U W:%W'),
+      'U:15 W:16'
+    )
+  
   def test_from_format_string_tai(self):
     ...
   
@@ -1397,6 +1444,18 @@ class TestTimeClasses(unittest.TestCase):
     ...
   
   def test_from_format_string_solar(self):
+    ...
+  
+  def test_from_format_string_smear_utc(self):
+    ...
+  
+  def test_from_format_string_smear_tz(self):
+    ...
+  
+  def test_from_format_string_generic(self):
+    ...
+  
+  def test_from_format_string_smear_generic(self):
     ...
   
   def test_generated_timezones(self):
