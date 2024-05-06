@@ -10,7 +10,7 @@ from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ...fixed_prec import FixedPrec
 from ..lib import TimeStorageType
-from ...named_tuples import DateTupleBasic, DateTupleTZ, SecsSinceEpochSmearTZ
+from ...named_tuples import DateTupleBasic, DateTupleTZ, SecsSinceEpochSmearTZ, CurrentTZOffset
 from .time_inst_mono import TimeInstMonotonic
 from ..time_zone import TimeZone
 
@@ -406,7 +406,7 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
   def get_date_object_smear_tz[T: JulGregBaseDate](self, smear_plan: LeapSmearPlan, time_zone: TimeZone, date_cls: type[T] = GregorianDate) -> T:
     return date_cls(*self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)[:3])
   
-  def get_current_tz_offset_smear(self, smear_plan: LeapSmearPlan, time_zone: TimeZone, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
+  def get_current_tz_offset_smear(self, smear_plan: LeapSmearPlan, time_zone: TimeZone, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> CurrentTZOffset:
     secs_since_epoch = self.to_secs_since_epoch_smear_utc(smear_plan)
     
     tz_offset, abbr = self._get_current_tz_offset_using_secs_raw(
@@ -418,4 +418,4 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
     if true_utc_offset:
       tz_offset += -self.get_utc_tai_offset() + self.get_smear_utc_tai_offset(smear_plan)
     
-    return tz_offset, abbr
+    return CurrentTZOffset(tz_offset, abbr)

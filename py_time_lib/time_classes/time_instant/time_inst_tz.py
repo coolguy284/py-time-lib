@@ -3,12 +3,11 @@ from typing import Self
 
 from ...lib_funcs import binary_search
 from ...exceptions import TimeUnmappableError
-from ...fixed_prec import FixedPrec
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.gregorian import GregorianDate
 from ..lib import TimeStorageType
 from ..time_zone import TimeZone
-from ...named_tuples import SecsSinceEpochTZ, DateTupleTZ
+from ...named_tuples import SecsSinceEpochTZ, DateTupleTZ, CurrentTZOffset
 from .time_inst_date_tup import TimeInstantDateTuple
 
 class TimeInstantTimeZones(TimeInstantDateTuple):
@@ -201,7 +200,7 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
       cls,
       time_zone: TimeZone, date_cls: type[JulGregBaseDate],
       secs_since_epoch: TimeStorageType
-    ) -> tuple[FixedPrec, str | None]:
+    ) -> CurrentTZOffset:
     initial_tz_secs_since_epoch = secs_since_epoch + time_zone.initial_offset['utc_offset']
     offset = time_zone.initial_offset['utc_offset']
     
@@ -220,9 +219,9 @@ class TimeInstantTimeZones(TimeInstantDateTuple):
     else:
       offset_abbr = time_zone.initial_offset['abbreviation']
     
-    return offset, offset_abbr
+    return CurrentTZOffset(offset, offset_abbr)
   
-  def get_current_tz_offset(self, time_zone: TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> tuple[FixedPrec, str | None]:
+  def get_current_tz_offset(self, time_zone: TimeZone, date_cls: type[JulGregBaseDate] = GregorianDate) -> CurrentTZOffset:
     secs_since_epoch, _ = self.to_secs_since_epoch_utc()
     
     return self._get_current_tz_offset_using_secs_raw(

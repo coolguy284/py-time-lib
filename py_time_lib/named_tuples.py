@@ -59,6 +59,10 @@ class DateTupleTZ(NamedTuple):
   frac_second: TimeStorageType
   dst_second_fold: bool
 
+class CurrentTZOffset(NamedTuple):
+  offset: FixedPrec
+  abbreviation: str | None
+
 class UnixTimestampUTC(NamedTuple):
   unix_secs_since_epoch: TimeStorageType
   leap_second_fold: bool
