@@ -10,6 +10,7 @@ from ..time_zone import TimeZone
 from ..lib import TimeStorageType
 from .time_inst_solar import TimeInstantSolar
 from .time_inst_smear import LeapSmearPlan, TimeInstantLeapSmear
+from ...named_tuples import DateTupleBasic
 
 class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   # static stuff
@@ -238,69 +239,15 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   def from_format_string_smear_tz(cls, smear_plan: LeapSmearPlan, time_zone: TimeZone, format_str: str, time_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     raise NotImplementedError()
   
-  def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
-    'Returns a TAI time string formatted in the strftime style.'
-    
-    date = self.get_date_object_tai(date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_tai(date_cls = date_cls)
+  @classmethod
+  def _to_format_string_final_processing(cls, format_str: str, date_cls: type[JulGregBaseDate], date_tup: DateTupleBasic, tz_offset: TimeStorageType, tz_name: str) -> str:
+    year, month, day, hour, minute, second, frac_second = date_tup
+    date = date_cls(year, month, day)
     day_of_week = date.day_of_week()
     ordinal_day = date.ordinal_date()
     iso_date = IsoWeekDate(date)
     
-    return self.format_string_from_info({
-      'year': year,
-      'month': month,
-      'day': day,
-      'hour': hour,
-      'minute': minute,
-      'second': second,
-      'frac_second': frac_second,
-      'day_of_week': day_of_week,
-      'ordinal_day': ordinal_day,
-      'tz_offset': -self.get_utc_tai_offset(),
-      'tz_name': 'Time Atomic International',
-      'iso_week_date_year': iso_date.year,
-      'iso_week_date_week': iso_date.week,
-      'iso_week_date_day': iso_date.day,
-    }, format_str, date_cls = date_cls)
-  
-  def to_format_string_utc(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
-    'Returns a UTC time string formatted in the strftime style.'
-    
-    date = self.get_date_object_utc(date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_utc(date_cls = date_cls)
-    day_of_week = date.day_of_week()
-    ordinal_day = date.ordinal_date()
-    iso_date = IsoWeekDate(date)
-    
-    return self.format_string_from_info({
-      'year': year,
-      'month': month,
-      'day': day,
-      'hour': hour,
-      'minute': minute,
-      'second': second,
-      'frac_second': frac_second,
-      'day_of_week': day_of_week,
-      'ordinal_day': ordinal_day,
-      'tz_offset': 0,
-      'tz_name': 'Universal Time Coordinated',
-      'iso_week_date_year': iso_date.year,
-      'iso_week_date_week': iso_date.week,
-      'iso_week_date_day': iso_date.day,
-    }, format_str, date_cls = date_cls)
-  
-  def to_format_string_tz(self, time_zone: TimeZone, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
-    'Returns a timezone time string formatted in the strftime style.'
-    
-    date = self.get_date_object_tz(time_zone, date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second, _ = self.to_date_tuple_tz(time_zone, date_cls = date_cls)
-    day_of_week = date.day_of_week()
-    ordinal_day = date.ordinal_date()
-    tz_offset, tz_offset_abbr = self.get_current_tz_offset(time_zone, date_cls = date_cls)
-    iso_date = IsoWeekDate(date)
-    
-    return self.format_string_from_info({
+    return cls.format_string_from_info({
       'year': year,
       'month': month,
       'day': day,
@@ -311,118 +258,94 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
       'day_of_week': day_of_week,
       'ordinal_day': ordinal_day,
       'tz_offset': tz_offset,
-      'tz_name': 'NULL' if tz_offset_abbr == None else tz_offset_abbr,
+      'tz_name': tz_name,
       'iso_week_date_year': iso_date.year,
       'iso_week_date_week': iso_date.week,
       'iso_week_date_day': iso_date.day,
     }, format_str, date_cls = date_cls)
+  
+  def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    'Returns a TAI time string formatted in the strftime style.'
+    
+    return self._to_format_string_final_processing(
+      format_str = format_str,
+      date_cls = date_cls,
+      date_tup = self.to_date_tuple_tai(date_cls = date_cls),
+      tz_offset = -self.get_utc_tai_offset(),
+      tz_name = 'Time Atomic International'
+    )
+  
+  def to_format_string_utc(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    'Returns a UTC time string formatted in the strftime style.'
+    
+    return self._to_format_string_final_processing(
+      format_str = format_str,
+      date_cls = date_cls,
+      date_tup = self.to_date_tuple_utc(date_cls = date_cls),
+      tz_offset = 0,
+      tz_name = 'Universal Time Coordinated'
+    )
+  
+  def to_format_string_tz(self, time_zone: TimeZone, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
+    'Returns a timezone time string formatted in the strftime style.'
+    
+    tz_offset, tz_offset_abbr = self.get_current_tz_offset(time_zone, date_cls = date_cls)
+    
+    return self._to_format_string_final_processing(
+      format_str = format_str,
+      date_cls = date_cls,
+      date_tup = self.to_date_tuple_tz(time_zone, date_cls = date_cls)[:7],
+      tz_offset = tz_offset,
+      tz_name = 'NULL' if tz_offset_abbr == None else tz_offset_abbr
+    )
   
   def to_format_string_mono(self, time_scale: TimeInstantSolar.TIME_SCALES, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a monotonic-time-scale time string formatted in the strftime style.'
     
-    date = self.get_date_object_mono(time_scale, date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_mono(time_scale, date_cls = date_cls)
-    day_of_week = date.day_of_week()
-    ordinal_day = date.ordinal_date()
-    iso_date = IsoWeekDate(date)
-    
-    return self.format_string_from_info({
-      'year': year,
-      'month': month,
-      'day': day,
-      'hour': hour,
-      'minute': minute,
-      'second': second,
-      'frac_second': frac_second,
-      'day_of_week': day_of_week,
-      'ordinal_day': ordinal_day,
-      'tz_offset': -self.get_utc_tai_offset() + self.get_mono_tai_offset(time_scale),
-      'tz_name': time_scale.name,
-      'iso_week_date_year': iso_date.year,
-      'iso_week_date_week': iso_date.week,
-      'iso_week_date_day': iso_date.day,
-    }, format_str, date_cls = date_cls)
+    return self._to_format_string_final_processing(
+      format_str = format_str,
+      date_cls = date_cls,
+      date_tup = self.to_date_tuple_mono(time_scale, date_cls = date_cls),
+      tz_offset = -self.get_utc_tai_offset() + self.get_mono_tai_offset(time_scale),
+      tz_name = time_scale.name
+    )
   
   def to_format_string_solar(self, longitude_deg: TimeStorageType, true_solar_time: bool, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a solar time string formatted in the strftime style.'
     
-    date = self.get_date_object_solar(longitude_deg, true_solar_time, date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_solar(longitude_deg, true_solar_time, date_cls = date_cls)
-    day_of_week = date.day_of_week()
-    ordinal_day = date.ordinal_date()
-    iso_date = IsoWeekDate(date)
-    
-    return self.format_string_from_info({
-      'year': year,
-      'month': month,
-      'day': day,
-      'hour': hour,
-      'minute': minute,
-      'second': second,
-      'frac_second': frac_second,
-      'day_of_week': day_of_week,
-      'ordinal_day': ordinal_day,
-      'tz_offset': -self.get_utc_tai_offset() + self.get_solar_tai_offset(longitude_deg, true_solar_time),
-      'tz_name': f'Mean Solar Time {longitude_deg}deg Longitude',
-      'iso_week_date_year': iso_date.year,
-      'iso_week_date_week': iso_date.week,
-      'iso_week_date_day': iso_date.day,
-    }, format_str, date_cls = date_cls)
+    return self._to_format_string_final_processing(
+      format_str = format_str,
+      date_cls = date_cls,
+      date_tup = self.to_date_tuple_solar(longitude_deg, true_solar_time, date_cls = date_cls),
+      tz_offset = -self.get_utc_tai_offset() + self.get_solar_tai_offset(longitude_deg, true_solar_time),
+      tz_name = f'Mean Solar Time {longitude_deg}deg Longitude'
+    )
   
   def to_format_string_smear_utc(self, smear_plan: LeapSmearPlan, format_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
-    'Returns a solar time string formatted in the strftime style.'
-    
-    date = self.get_date_object_smear_utc(smear_plan, date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second = self.to_date_tuple_smear_utc(smear_plan, date_cls = date_cls)
-    day_of_week = date.day_of_week()
-    ordinal_day = date.ordinal_date()
-    iso_date = IsoWeekDate(date)
+    'Returns a smeared UTC time string formatted in the strftime style.'
     
     if true_utc_offset:
       tz_offset = -self.get_utc_tai_offset() + self.get_smear_utc_tai_offset(smear_plan)
     else:
       tz_offset = 0
     
-    return self.format_string_from_info({
-      'year': year,
-      'month': month,
-      'day': day,
-      'hour': hour,
-      'minute': minute,
-      'second': second,
-      'frac_second': frac_second,
-      'day_of_week': day_of_week,
-      'ordinal_day': ordinal_day,
-      'tz_offset': tz_offset,
-      'tz_name': f'Universal Time Coordinated (Smeared)',
-      'iso_week_date_year': iso_date.year,
-      'iso_week_date_week': iso_date.week,
-      'iso_week_date_day': iso_date.day,
-    }, format_str, date_cls = date_cls)
+    return self._to_format_string_final_processing(
+      format_str = format_str,
+      date_cls = date_cls,
+      date_tup = self.to_date_tuple_smear_utc(smear_plan, date_cls = date_cls),
+      tz_offset = tz_offset,
+      tz_name = 'Universal Time Coordinated (Smeared)'
+    )
   
   def to_format_string_smear_tz(self, smear_plan: LeapSmearPlan, time_zone: TimeZone, format_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
-    'Returns a solar time string formatted in the strftime style.'
+    'Returns a smeared UTC timezone string formatted in the strftime style.'
     
-    date = self.get_date_object_smear_tz(smear_plan, time_zone, date_cls = date_cls)
-    year, month, day, hour, minute, second, frac_second, _ = self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)
-    day_of_week = date.day_of_week()
-    ordinal_day = date.ordinal_date()
     tz_offset, tz_offset_abbr = self.get_current_tz_offset_smear(smear_plan, time_zone, true_utc_offset = true_utc_offset, date_cls = date_cls)
-    iso_date = IsoWeekDate(date)
     
-    return self.format_string_from_info({
-      'year': year,
-      'month': month,
-      'day': day,
-      'hour': hour,
-      'minute': minute,
-      'second': second,
-      'frac_second': frac_second,
-      'day_of_week': day_of_week,
-      'ordinal_day': ordinal_day,
-      'tz_offset': tz_offset,
-      'tz_name': f'{'NULL' if tz_offset_abbr == None else tz_offset_abbr} (Smeared)',
-      'iso_week_date_year': iso_date.year,
-      'iso_week_date_week': iso_date.week,
-      'iso_week_date_day': iso_date.day,
-    }, format_str, date_cls = date_cls)
+    return self._to_format_string_final_processing(
+      format_str = format_str,
+      date_cls = date_cls,
+      date_tup = self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)[:7],
+      tz_offset = tz_offset,
+      tz_name = f'{'NULL' if tz_offset_abbr == None else tz_offset_abbr} (Smeared)'
+    )
