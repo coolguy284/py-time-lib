@@ -1,5 +1,8 @@
-import code, datetime, pprint, os, sys, time
+from code import interact
+from datetime import date, timedelta
 from enum import Enum
+from os import makedirs
+from sys import argv as sys_argv
 
 from py_time_lib import *
 from py_time_lib.update_leap_seconds import *
@@ -28,15 +31,15 @@ RunModes = Enum('RunModes', (
 
 mode = RunModes.HELP
 
-if len(sys.argv) > 1:
-  run_mode = sys.argv[1]
+if len(sys_argv) > 1:
+  run_mode = sys_argv[1]
   try:
     mode = RunModes[run_mode]
   except KeyError:
     raise SystemExit(f'Unrecognized run mode {run_mode}')
 
 def create_main_data_dir():
-  os.makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
+  makedirs(file_relative_path_to_abs('../main_data'), exist_ok = True)
 
 def save_tzdb_stage_1_dump():
   create_main_data_dir()
@@ -132,8 +135,8 @@ if mode == RunModes.TEST_BASIC_DATE:
   print()
 elif mode == RunModes.TEST_ISO_WEEK:
   def print_date_info(year):
-    prev_date = (datetime.date(year, 12, 31) + datetime.timedelta(days = 1)).isocalendar()
-    next_date = (datetime.date(year, 1, 1) - datetime.timedelta(days = 1)).isocalendar()
+    prev_date = (date(year, 12, 31) + timedelta(days = 1)).isocalendar()
+    next_date = (date(year, 1, 1) - timedelta(days = 1)).isocalendar()
     print([prev_date, next_date])
   for i in range(2020, 2030):
     print_date_info(i)
@@ -222,9 +225,11 @@ elif mode == RunModes.HELP:
   for mode in RunModes.__members__:
     print(mode)
 elif mode == RunModes.REPL:
-  if len(sys.argv) >= 3:
+  from datetime import datetime
+  import pprint, time
+  if len(sys_argv) >= 3:
     # string arg passed in
-    print(eval(sys.argv[2]))
+    print(eval(sys_argv[2]))
   else:
     # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
-    code.interact(local = globals())
+    interact(local = globals())

@@ -1,7 +1,7 @@
+from datetime import datetime, timedelta, timezone, UTC
 from math import trunc
 from time import time_ns, struct_time
 from unittest import TestCase
-import datetime
 
 from ... import FixedPrec, GregorianDate, TimeDelta, TimeZone, TimeInstant, TimeUnmappableError, LeapSmearPlan, LeapSmearSingle, LeapBasis, SmearType
 from ...data_py.leap_seconds import NOMINAL_SECS_PER_DAY
@@ -723,16 +723,16 @@ class TestTimeClasses(TestCase):
   def test_now(self):
     now = TimeInstant.now()
     current_unix_time_ns = time_ns()
-    current_datetime = datetime.datetime.now(datetime.UTC)
+    current_datetime = datetime.now(UTC)
     
     now_unix_time_ns = now.to_unix_timestamp()[0] * FixedPrec('1000000000')
     # checks if 3 milliseconds off
     self.assertTrue(abs(now_unix_time_ns - current_unix_time_ns) <= 3_000_000, f'{now_unix_time_ns} {current_unix_time_ns}')
     
     now_date_tuple = now.to_date_tuple_utc()
-    now_datetime = datetime.datetime(*now_date_tuple[:6], int(now_date_tuple[6] * 1_000_000), datetime.UTC)
+    now_datetime = datetime(*now_date_tuple[:6], int(now_date_tuple[6] * 1_000_000), UTC)
     
-    self.assertTrue(abs(now_datetime - current_datetime) <= datetime.timedelta(microseconds = 1015), abs(now_datetime - current_datetime))
+    self.assertTrue(abs(now_datetime - current_datetime) <= timedelta(microseconds = 1015), abs(now_datetime - current_datetime))
   
   def test_hash_timedelta(self):
     self.assertEqual(hash(TimeDelta(3)), hash(('TimeDelta', FixedPrec(3))))
@@ -743,34 +743,34 @@ class TestTimeClasses(TestCase):
     self.assertEqual(hash(TimeInstant(3)), hash(('TimeInstant', 3)))
   
   def test_to_timedelta(self):
-    self.assertEqual(TimeDelta(FixedPrec('3.5')).to_datetime_timedelta(), datetime.timedelta(seconds = 3, milliseconds = 500))
+    self.assertEqual(TimeDelta(FixedPrec('3.5')).to_datetime_timedelta(), timedelta(seconds = 3, milliseconds = 500))
   
   def test_to_datetime_basic(self):
     self.assertEqual(
       TimeInstant.from_date_tuple_utc(2024, 4, 19, 13, 1, 1, 0).to_datetime(),
-      datetime.datetime(2024, 4, 19, 13, 1, 1, 0, datetime.UTC)
+      datetime(2024, 4, 19, 13, 1, 1, 0, UTC)
     )
     self.assertEqual(
-      TimeInstant.from_datetime(datetime.datetime(2024, 4, 19, 13, 1, 1, 0, datetime.UTC)).to_date_tuple_utc(),
+      TimeInstant.from_datetime(datetime(2024, 4, 19, 13, 1, 1, 0, UTC)).to_date_tuple_utc(),
       (2024, 4, 19, 13, 1, 1, 0)
     )
     self.assertEqual(
       TimeInstant.from_date_tuple_utc(2024, 4, 19, 13, 1, 1, FixedPrec('0.5')).to_datetime(),
-      datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, datetime.UTC)
+      datetime(2024, 4, 19, 13, 1, 1, 500_000, UTC)
     )
     self.assertEqual(
-      TimeInstant.from_datetime(datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, datetime.UTC)).to_date_tuple_utc(),
+      TimeInstant.from_datetime(datetime(2024, 4, 19, 13, 1, 1, 500_000, UTC)).to_date_tuple_utc(),
       (2024, 4, 19, 13, 1, 1, FixedPrec('0.5'))
     )
     self.assertEqual(
-      TimeInstant(datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, datetime.UTC)).to_date_tuple_utc(),
+      TimeInstant(datetime(2024, 4, 19, 13, 1, 1, 500_000, UTC)).to_date_tuple_utc(),
       (2024, 4, 19, 13, 1, 1, FixedPrec('0.5'))
     )
 
-    utc_plus_1 = datetime.timezone(datetime.timedelta(hours = 1))
+    utc_plus_1 = timezone(timedelta(hours = 1))
     
     self.assertEqual(
-      TimeInstant.from_datetime(datetime.datetime(2024, 4, 19, 13, 1, 1, 500_000, utc_plus_1)).to_date_tuple_utc(),
+      TimeInstant.from_datetime(datetime(2024, 4, 19, 13, 1, 1, 500_000, utc_plus_1)).to_date_tuple_utc(),
       (2024, 4, 19, 12, 1, 1, FixedPrec('0.5'))
     )
   
@@ -787,23 +787,23 @@ class TestTimeClasses(TestCase):
     t7 = t1 + TimeDelta('2.0')
     t8 = t1 + TimeDelta('2.1')
     
-    self.assertEqual(t0.to_datetime(), datetime.datetime(2016, 12, 31, 23, 59, 59, 900_000, datetime.UTC))
-    self.assertEqual(t1.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
-    self.assertEqual(t2.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
-    self.assertEqual(t3.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
-    self.assertEqual(t4.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  0,       datetime.UTC))
-    self.assertEqual(t5.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  100_000, datetime.UTC))
-    self.assertEqual(t6.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  0,  900_000, datetime.UTC))
-    self.assertEqual(t7.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  1,  0,       datetime.UTC))
-    self.assertEqual(t8.to_datetime(), datetime.datetime(2017, 1,  1,  0,  0,  1,  100_000, datetime.UTC))
+    self.assertEqual(t0.to_datetime(), datetime(2016, 12, 31, 23, 59, 59, 900_000, UTC))
+    self.assertEqual(t1.to_datetime(), datetime(2017, 1,  1,  0,  0,  0,  0,       UTC))
+    self.assertEqual(t2.to_datetime(), datetime(2017, 1,  1,  0,  0,  0,  0,       UTC))
+    self.assertEqual(t3.to_datetime(), datetime(2017, 1,  1,  0,  0,  0,  0,       UTC))
+    self.assertEqual(t4.to_datetime(), datetime(2017, 1,  1,  0,  0,  0,  0,       UTC))
+    self.assertEqual(t5.to_datetime(), datetime(2017, 1,  1,  0,  0,  0,  100_000, UTC))
+    self.assertEqual(t6.to_datetime(), datetime(2017, 1,  1,  0,  0,  0,  900_000, UTC))
+    self.assertEqual(t7.to_datetime(), datetime(2017, 1,  1,  0,  0,  1,  0,       UTC))
+    self.assertEqual(t8.to_datetime(), datetime(2017, 1,  1,  0,  0,  1,  100_000, UTC))
   
   def test_from_timedelta(self):
-    self.assertEqual(TimeDelta.from_datetime_timedelta(datetime.timedelta(seconds = 1, microseconds = 13)), TimeDelta(FixedPrec('1.000013')))
-    self.assertEqual(TimeDelta.from_datetime_timedelta(datetime.timedelta(seconds = 0, microseconds = 0)), TimeDelta(FixedPrec(0)))
-    self.assertEqual(TimeDelta.from_datetime_timedelta(datetime.timedelta(seconds = -2, microseconds = -15)), TimeDelta(FixedPrec('-2.000015')))
-    self.assertEqual(TimeDelta(datetime.timedelta(seconds = 1, microseconds = 13)), TimeDelta(FixedPrec('1.000013')))
-    self.assertEqual(TimeDelta(datetime.timedelta(seconds = 0, microseconds = 0)), TimeDelta(FixedPrec(0)))
-    self.assertEqual(TimeDelta(datetime.timedelta(seconds = -2, microseconds = -15)), TimeDelta(FixedPrec('-2.000015')))
+    self.assertEqual(TimeDelta.from_datetime_timedelta(timedelta(seconds = 1, microseconds = 13)), TimeDelta(FixedPrec('1.000013')))
+    self.assertEqual(TimeDelta.from_datetime_timedelta(timedelta(seconds = 0, microseconds = 0)), TimeDelta(FixedPrec(0)))
+    self.assertEqual(TimeDelta.from_datetime_timedelta(timedelta(seconds = -2, microseconds = -15)), TimeDelta(FixedPrec('-2.000015')))
+    self.assertEqual(TimeDelta(timedelta(seconds = 1, microseconds = 13)), TimeDelta(FixedPrec('1.000013')))
+    self.assertEqual(TimeDelta(timedelta(seconds = 0, microseconds = 0)), TimeDelta(FixedPrec(0)))
+    self.assertEqual(TimeDelta(timedelta(seconds = -2, microseconds = -15)), TimeDelta(FixedPrec('-2.000015')))
   
   def test_no_attributes(self):
     with self.assertRaises(AttributeError):

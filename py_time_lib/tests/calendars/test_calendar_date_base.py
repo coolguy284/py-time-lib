@@ -1,5 +1,5 @@
+from datetime import date as datetime_date
 from unittest import TestCase
-import datetime
 
 from ... import DateDelta, GregorianDate, IsoWeekDate
 
@@ -91,15 +91,15 @@ class TestCalendarDateBase(TestCase):
   
   def test_from_to_date(self):
     def test(date_tup):
-      datetime_date = datetime.date(*date_tup)
+      datetime_date_obj = datetime_date(*date_tup)
       greg_date = GregorianDate(*date_tup)
       iso_date = IsoWeekDate(greg_date)
-      self.assertEqual(greg_date.to_datetime_date(), datetime_date)
-      self.assertEqual(GregorianDate.from_datetime_date(datetime_date), greg_date)
-      self.assertEqual(GregorianDate(datetime_date), greg_date)
-      self.assertEqual(iso_date.to_datetime_date(), datetime_date)
-      self.assertEqual(IsoWeekDate.from_datetime_date(datetime_date), iso_date)
-      self.assertEqual(IsoWeekDate(datetime_date), iso_date)
+      self.assertEqual(greg_date.to_datetime_date(), datetime_date_obj)
+      self.assertEqual(GregorianDate.from_datetime_date(datetime_date_obj), greg_date)
+      self.assertEqual(GregorianDate(datetime_date_obj), greg_date)
+      self.assertEqual(iso_date.to_datetime_date(), datetime_date_obj)
+      self.assertEqual(IsoWeekDate.from_datetime_date(datetime_date_obj), iso_date)
+      self.assertEqual(IsoWeekDate(datetime_date_obj), iso_date)
     
     test((2024, 4, 24))
     test((2100, 2, 28))

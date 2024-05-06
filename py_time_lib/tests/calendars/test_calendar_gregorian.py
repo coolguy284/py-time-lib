@@ -1,5 +1,6 @@
+from datetime import date as datetime_date
+from random import randint, seed
 from unittest import TestCase
-import random, datetime
 
 from ... import GregorianDate
 
@@ -50,17 +51,17 @@ class TestCalendarGregorian(TestCase):
       _ = cls(2023, 2, 29)
   
   def test_date_to_days_since_epoch(self):
-    random.seed(42)
+    seed(42)
     
     for _ in range(1000):
-      year = random.randint(-1000000, 1000000)
+      year = randint(-1000000, 1000000)
       self.assertEqual(cls.days_in_year(year), cls.date_to_days_since_epoch(year + 1, 1, 1) - cls.date_to_days_since_epoch(year, 1, 1))
   
   def test_days_since_epoch_to_date(self):
-    random.seed(42)
+    seed(42)
     
     for _ in range(1000):
-      days = random.randint(-1000000000000, 1000000000000)
+      days = randint(-1000000000000, 1000000000000)
       self.assertEqual(days, cls.date_to_days_since_epoch(*cls.days_since_epoch_to_date(days)), f'{days}, {cls.days_since_epoch_to_date(days)}')
   
   def test_date_to_days_overflow(self):
@@ -130,9 +131,9 @@ class TestCalendarGregorian(TestCase):
     def test(day_since_epoch):
       year, month, day = cls.days_since_epoch_to_date(day_since_epoch)
       date = cls(year, month, day)
-      datetime_date = datetime.date(year, month, day)
-      self.assertEqual(date.iso_day_of_week(), datetime_date.isoweekday())
-      self.assertEqual(date.to_iso_week_tuple(), datetime_date.isocalendar())
+      datetime_date_obj = datetime_date(year, month, day)
+      self.assertEqual(date.iso_day_of_week(), datetime_date_obj.isoweekday())
+      self.assertEqual(date.to_iso_week_tuple(), datetime_date_obj.isocalendar())
     
     for day_since_epoch in range(start_day, start_day + 366 * 7):
       test(day_since_epoch)

@@ -1,6 +1,5 @@
+from random import randint, seed
 from unittest import TestCase
-
-import random
 
 from ... import JulianDate
 
@@ -51,17 +50,17 @@ class TestCalendarJulian(TestCase):
       _ = cls(2023, 2, 29)
   
   def test_date_to_days_since_epoch(self):
-    random.seed(42)
+    seed(42)
     
     for _ in range(1000):
-      year = random.randint(-1000000, 1000000)
+      year = randint(-1000000, 1000000)
       self.assertEqual(cls.days_in_year(year), cls.date_to_days_since_epoch(year + 1, 1, 1) - cls.date_to_days_since_epoch(year, 1, 1))
   
   def test_days_since_epoch_to_date(self):
-    random.seed(42)
+    seed(42)
     
     for _ in range(1000):
-      days = random.randint(-1000000000000, 1000000000000)
+      days = randint(-1000000000000, 1000000000000)
       self.assertEqual(days, cls.date_to_days_since_epoch(*cls.days_since_epoch_to_date(days)), f'{days}, {cls.days_since_epoch_to_date(days)}')
   
   def test_date_to_days_overflow(self):
