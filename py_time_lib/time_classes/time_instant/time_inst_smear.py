@@ -224,7 +224,19 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
         case SmearType.LINEAR:
           return tai_time_in_smear * smear_length / tai_length
         
-        case _ if smear_type == SmearType.COSINE or smear_type == SmearType.BUMP:
+        case SmearType.COSINE:
+          tai_time_in_smear = FixedPrec.from_basic(tai_time_in_smear)
+          epsilon = tai_time_in_smear.smallest_representable() * 2
+          return almost_linear_func_inverse_deriv(
+            lambda x: TimeInstantLeapSmear.from_smear(smear_type, smear_length, leap_extra_secs, x),
+            tai_time_in_smear,
+            epsilon = epsilon,
+            min_val = 0,
+            max_val = smear_length,
+            deriv_epsilon = tai_time_in_smear.smallest_representable() * 10
+          )
+        
+        case SmearType.BUMP:
           tai_time_in_smear = FixedPrec.from_basic(tai_time_in_smear)
           epsilon = tai_time_in_smear.smallest_representable() * 2
           if smear_length * 0.1 < tai_time_in_smear < smear_length * 0.9:

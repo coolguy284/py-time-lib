@@ -55,7 +55,7 @@ smear_plan = LeapSmearPlan(
     secs_before_start_basis = 10,
     end_basis = LeapBasis.END,
     secs_after_end_basis = 30,
-    type = SmearType.BUMP
+    type = SmearType.COSINE
   ),
   ()
 )
@@ -63,7 +63,7 @@ RunMode = Enum('RunMode', (
   'CURRENT',
   'LEAP_SEC_REPLAY',
 ))
-run_mode = RunMode.LEAP_SEC_REPLAY
+run_mode = RunMode.CURRENT
 
 # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
