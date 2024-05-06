@@ -141,9 +141,6 @@ class LeapSmearPlan():
         
         if smear_profile.start_basis == LeapBasis.START:
           smear_start_tai = leap_entry['start_instant'] - smear_profile.secs_before_start_basis
-          if leap_entry['start_instant'] == 63650448036:
-            pass#print('el')
-            #print('branch 2', leap_entry['start_instant'], smear_profile.secs_before_start_basis, smear_start_tai)
         else:
           smear_start_tai = leap_entry['start_instant'] - leap_entry['leap_utc_delta'] - smear_profile.secs_before_start_basis
         
@@ -152,26 +149,34 @@ class LeapSmearPlan():
         else:
           smear_end_tai = leap_entry['start_instant'] - leap_entry['leap_utc_delta'] + smear_profile.secs_after_end_basis
         
+        if not leap_entry['positive_leap_second_occurring']:
+          # for negative leap second, leap_entry['start_instant'] is more like end instant
+          smear_start_tai += leap_entry['leap_utc_delta']
+          smear_end_tai += leap_entry['leap_utc_delta']
+        
         tai_length = smear_end_tai - smear_start_tai
         smear_length = tai_length + leap_entry['leap_utc_delta']
         
         if leap_entry['positive_leap_second_occurring']:
           start_utc_tai_offset = leap_entry['utc_epoch_secs'] - leap_entry['start_instant']
+          end_utc_tai_offset = start_utc_tai_offset + leap_entry['leap_utc_delta']
         else:
-          start_utc_tai_offset = leap_entry['utc_tai_delta']
+          end_utc_tai_offset = leap_entry['utc_tai_delta']
+          start_utc_tai_offset = end_utc_tai_offset - leap_entry['leap_utc_delta']
         
-        end_utc_tai_offset = start_utc_tai_offset + leap_entry['leap_utc_delta']
+        smear_start_utc = smear_start_tai + start_utc_tai_offset
+        smear_end_utc = smear_end_tai + end_utc_tai_offset
         
         if leap_entry['start_instant'] == 63650448036:
           pass#print(self.tai_to_utc_smear_table[-2:])
         
-        self.tai_to_utc_smear_table.append(TAIToUTCSmearEntry(SmearTableEntryMode.SMEAR, smear_start_tai, smear_start_tai + start_utc_tai_offset, {
+        self.tai_to_utc_smear_table.append(TAIToUTCSmearEntry(SmearTableEntryMode.SMEAR, smear_start_tai, smear_start_utc, {
           'smear_type': smear_profile.type,
           'smear_length': smear_length,
           'leap_extra_secs': -leap_entry['leap_utc_delta'],
         }))
         
-        self.tai_to_utc_smear_table.append(TAIToUTCSmearEntry(SmearTableEntryMode.FIXED_OFFSET, smear_end_tai, smear_end_tai + end_utc_tai_offset, {
+        self.tai_to_utc_smear_table.append(TAIToUTCSmearEntry(SmearTableEntryMode.FIXED_OFFSET, smear_end_tai, smear_end_utc, {
           'smear_tai_offset': end_utc_tai_offset,
         }))
         
@@ -180,13 +185,13 @@ class LeapSmearPlan():
           #globals()['ev'] = self.tai_to_utc_smear_table[-2]
           #print(globals()['ev'])
         
-        self.utc_smear_to_tai_table.append(UTCSmearToTAIEntry(SmearTableEntryMode.SMEAR, smear_start_tai, smear_start_tai + start_utc_tai_offset, {
+        self.utc_smear_to_tai_table.append(UTCSmearToTAIEntry(SmearTableEntryMode.SMEAR, smear_start_tai, smear_start_utc, {
           'smear_type': smear_profile.type,
           'smear_length': smear_length,
           'leap_extra_secs': -leap_entry['leap_utc_delta'],
         }))
         
-        self.utc_smear_to_tai_table.append(UTCSmearToTAIEntry(SmearTableEntryMode.FIXED_OFFSET, smear_end_tai, smear_end_tai + end_utc_tai_offset, {
+        self.utc_smear_to_tai_table.append(UTCSmearToTAIEntry(SmearTableEntryMode.FIXED_OFFSET, smear_end_tai, smear_end_utc, {
           'tai_smear_offset': -end_utc_tai_offset,
         }))
     
