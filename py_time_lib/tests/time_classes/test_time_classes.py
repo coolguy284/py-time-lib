@@ -1437,15 +1437,12 @@ class TestTimeClasses(unittest.TestCase):
       
       def test(delta, utc_tuple, smear_utc_tuple, offset):
         instant = current_instant + TimeDelta(delta)
-        #print('s')
-        #print(utc_tuple, smear_utc_tuple, instant.to_date_tuple_utc())
-        #print('s2')
         utc_tuple = *utc_tuple[:6], FixedPrec(utc_tuple[6])
         smear_utc_tuple = *smear_utc_tuple[:6], FixedPrec(smear_utc_tuple[6])
         inst_from_utc = TimeInstant.from_date_tuple_utc(*utc_tuple)
         inst_from_utc_smear = TimeInstant.from_date_tuple_smear_utc(smear_plan, *smear_utc_tuple)
-        #self.assertEqual(instant, inst_from_utc)
-        #self.assertEqual(instant, inst_from_utc_smear)
+        self.assertAlmostEqual(instant.time, inst_from_utc.time, 5)
+        self.assertAlmostEqual(instant.time, inst_from_utc_smear.time, 5)
         self.assertEqual(instant.to_date_tuple_utc(), utc_tuple)
         smear_utc_output = instant.to_date_tuple_smear_utc(smear_plan)
         self.assertEqual((*smear_utc_output[:6], six_digit_trunc(smear_utc_output[6])), smear_utc_tuple)
