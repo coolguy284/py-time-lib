@@ -5,6 +5,8 @@ from os.path import exists
 from typing import Callable, Sequence
 from urllib.request import urlopen
 
+MAX_BINARY_SEARCH_STEPS = 5_000
+
 def binary_search[T: Integral](func: Callable[[T], bool], min_inclusive: T = 0, max_exclusive: T = 100) -> T:
   'Finds the largest integer value x so that func(x) is True, in interval [min, max), using a binary search.'
   
@@ -28,6 +30,7 @@ def binary_search_float[T: Real](func: Callable[[T], bool], min_inclusive: T = 0
   too_high = max_exclusive
   past_low_enough = None
   past_too_high = None
+  steps = 0
   
   while abs(too_high - low_enough) > epsilon and (low_enough != past_low_enough or too_high != past_too_high):
     past_low_enough = low_enough
@@ -40,6 +43,11 @@ def binary_search_float[T: Real](func: Callable[[T], bool], min_inclusive: T = 0
     else:
       # could be valid
       low_enough = guess
+    
+    steps += 1
+    
+    if steps > MAX_BINARY_SEARCH_STEPS:
+      raise RuntimeError('Max binary search float steps reached')
   
   return low_enough
 
