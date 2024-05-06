@@ -55,7 +55,7 @@ smear_plan = LeapSmearPlan(
     secs_before_start_basis = 5,
     end_basis = LeapBasis.END,
     secs_after_end_basis = 5,
-    type = SmearType.BUMP
+    type = SmearType.COSINE
   ),
   ()
 )

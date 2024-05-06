@@ -7,6 +7,7 @@ from py_time_lib.update_timezone_db import *
 from py_time_lib.update_timezone_db import _parse_tzdb_get_filtered_lines, _parse_tzdb_get_processed_lines, _parse_tzdb_get_result_dicts, _parse_tzdb_get_tz_dicts
 from py_time_lib.update_ut1 import *
 from py_time_lib.data_py.holidays import *
+from py_time_lib.data_py.leap_smear_profiles import *
 
 update_time_databases()
 
@@ -18,6 +19,7 @@ RunModes = Enum('RunModes', (
   'TEST_TZDB',
   'TEST_TIME_SCALES',
   'TEST_UT1',
+  'TEST_SMEAR_TIME',
   'GENERATE_TZDB_DUMP',
   'GENERATE_UT1_DUMP',
   'HELP',
@@ -169,6 +171,36 @@ elif mode == RunModes.TEST_TIME_SCALES:
   print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB) - 32.184, (t3b.tcb - t1b.tcb).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
 elif mode == RunModes.TEST_UT1:
   print(get_ut1_offsets())
+elif mode == RunModes.TEST_SMEAR_TIME:
+  from timeit import timeit
+  func = lambda: TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 59, 0).to_secs_since_epoch_smear_utc(smear_plan)
+  smear_plan = NOON_TO_NOON
+  t1 = timeit(func, number = 1000) / 1000
+  print(t1)
+  smear_plan = LeapSmearPlan(
+    LeapSmearSingle(
+      start_basis = LeapBasis.START,
+      secs_before_start_basis = 5,
+      end_basis = LeapBasis.END,
+      secs_after_end_basis = 5,
+      type = SmearType.COSINE
+    ),
+    ()
+  )
+  t2 = timeit(func, number = 1000) / 1000
+  print(t2, t2 / t1)
+  smear_plan = LeapSmearPlan(
+    LeapSmearSingle(
+      start_basis = LeapBasis.START,
+      secs_before_start_basis = 5,
+      end_basis = LeapBasis.END,
+      secs_after_end_basis = 5,
+      type = SmearType.BUMP
+    ),
+    ()
+  )
+  t3 = timeit(func, number = 30) / 30
+  print(t3, t3 / t2)
 elif mode == RunModes.GENERATE_TZDB_DUMP:
   print('TZDB Stage 1 Dump...')
   save_tzdb_stage_1_dump()

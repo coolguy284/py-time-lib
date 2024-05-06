@@ -86,7 +86,7 @@ class LeapSmearPlan():
   def date_to_tai_start(date: GregorianDate) -> FixedPrec:
     'Returns the start time of the leap second that occured at the end of date.'
     day_after_leap = date + DateDelta(1)
-    window_end_tai = TimeInstMonotonic.from_date_tuple_utc(*day_after_leap.to_date_tuple(), 0, 0, 0, 0).time
+    window_end_tai = TimeInstant.from_date_tuple_utc(*day_after_leap.to_date_tuple(), 0, 0, 0, 0).time
     leap_table_index = binary_search(
       lambda x: TimeInstant.TAI_TO_UTC_OFFSET_TABLE[x]['start_instant'] <= window_end_tai,
       0, len(TimeInstant.TAI_TO_UTC_OFFSET_TABLE)
