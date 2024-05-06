@@ -462,6 +462,9 @@ class TestFixedPrec(unittest.TestCase):
     with self.assertRaises(ValueError):
       FixedPrec(-4) ** FixedPrec('-1.5')
     
+    # pow complex cases
+    self.assertAlmostEqual(float(FixedPrec(2) ** (FixedPrec(1) / 3)) ** 3, 2, 9)
+    
     # pow type coercion & rpow
     
     self.assertEqual(FixedPrec(4) ** -1.5, FixedPrec('0.125'))

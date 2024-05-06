@@ -27,7 +27,7 @@ LeapBasis = Enum('LeapBasis', (
 SmearType = Enum('SmearType', (
   'LINEAR',
   'COSINE',
-  #'BUMP',
+  'BUMP',
 ))
 
 @dataclass(frozen = True)
@@ -196,6 +196,19 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
   # static stuff
   
   @staticmethod
+  def _bump_pos(num: FixedPrec) -> FixedPrec:
+    'Function is 0 when num <= 0, and rises smoothly when num > 0.'
+    if num <= 0:
+      return FixedPrec(0)
+    else:
+      return (-1 / num).exp()
+  
+  @staticmethod
+  def _bump_0_to_1(num: FixedPrec) -> FixedPrec:
+    'Function is 0 when num <= 0, 1 when num >= 1, and rises smoothly in the middle.'
+    return TimeInstantLeapSmear._bump_pos(num) / (TimeInstantLeapSmear._bump_pos(num) + TimeInstantLeapSmear._bump_pos(1 - num))
+  
+  @staticmethod
   def to_smear(smear_type: SmearType, smear_length: TimeStorageType, leap_extra_secs: TimeStorageType, tai_time_in_smear: TimeStorageType) -> FixedPrec:
     tai_time_in_smear = FixedPrec.from_basic(tai_time_in_smear)
     tai_length = smear_length + leap_extra_secs
@@ -213,7 +226,16 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
           return tai_time_in_smear * smear_length / tai_length
         
         case SmearType.COSINE:
-          return binary_search_float(lambda x: TimeInstantLeapSmear.from_smear(SmearType.COSINE, smear_length, leap_extra_secs, x) <= tai_time_in_smear, 0, FixedPrec.from_basic(smear_length))
+          return binary_search_float(
+            lambda x: TimeInstantLeapSmear.from_smear(SmearType.COSINE, smear_length, leap_extra_secs, x) <= tai_time_in_smear,
+            0, FixedPrec.from_basic(smear_length)
+          )
+        
+        case SmearType.BUMP:
+          return binary_search_float(
+            lambda x: TimeInstantLeapSmear.from_smear(SmearType.BUMP, smear_length, leap_extra_secs, x) <= tai_time_in_smear,
+            0, FixedPrec.from_basic(smear_length)
+          )
   
   @staticmethod
   def from_smear(smear_type: SmearType, smear_length: TimeStorageType, leap_extra_secs: TimeStorageType, smear_time_in_smear: TimeStorageType) -> FixedPrec:
@@ -236,6 +258,9 @@ class TimeInstantLeapSmear(TimeInstMonotonic):
           # https://googleblog.blogspot.com/2011/09/time-technology-and-leaping-seconds.html
           half_leap_time = leap_extra_secs / 2
           return half_leap_time - half_leap_time * (smear_time_in_smear.pi() * smear_time_in_smear / smear_length).cos() + smear_time_in_smear
+        
+        case SmearType.BUMP:
+          return leap_extra_secs * TimeInstantLeapSmear._bump_0_to_1(smear_time_in_smear / smear_length) + smear_time_in_smear
   
   # instance stuff
   

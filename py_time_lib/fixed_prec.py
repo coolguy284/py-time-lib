@@ -438,11 +438,13 @@ class FixedPrec(Real):
           factor *= factor
         return result
     else:
+      # other is fractional
       integral, fractional = divmod(other, 1)
       result = self ** integral
       self_root = self
       while fractional % 1 != 0:
         fractional *= self.RADIX
+        fractional %= self.RADIX
         self_root = self_root._nthroot(self.RADIX)
         frac_power = int(fractional // 1)
         result *= self_root ** frac_power
@@ -647,6 +649,9 @@ class FixedPrec(Real):
   @property
   def imag(self) -> Self:
     return self.__class__(0)
+  
+  def smallest_representable(self):
+    return FixedPrec(1, self.max_prec, max_prec = self.max_prec)
   
   def pi(self):
     if self.max_prec > self.PI_MAX_PREC:

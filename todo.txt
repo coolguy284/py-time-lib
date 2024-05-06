@@ -2,8 +2,6 @@ use pseudo newtons method assuming deriv is 1 in place of all binary search gues
 remove import without from and from . import module
 test true leap second handling in windows
 
-continue adding leap smear support
-add bump smear type
 add leap smear tz support
 strptime support
 

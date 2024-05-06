@@ -190,5 +190,9 @@ elif mode == RunModes.HELP:
   for mode in RunModes.__members__:
     print(mode)
 elif mode == RunModes.REPL:
-  # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
-  code.interact(local = globals())
+  if len(sys.argv) >= 3:
+    # string arg passed in
+    print(eval(sys.argv[2]))
+  else:
+    # https://stackoverflow.com/questions/5597836/embed-create-an-interactive-python-shell-inside-a-python-program/5597918#5597918
+    code.interact(local = globals())
