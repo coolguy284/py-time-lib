@@ -7,7 +7,7 @@ def fix_import_path():
 
   # https://stackoverflow.com/questions/60593604/importerror-attempted-relative-import-with-no-known-parent-package
   # https://stackoverflow.com/questions/5137497/find-the-current-directory-and-files-directory
-  parent_dir = Path(realpath(__file__)).parent.parent
+  parent_dir = Path(realpath(__file__)).parent.parent.parent
   sys_path.append(str(parent_dir))
 
 from enum import Enum
@@ -99,7 +99,7 @@ def main():
   # https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
   pygame.display.set_caption('GUI Time Display')
   refresh_rate = pygame.display.get_current_refresh_rate()
-  clock = pygame.time.Clock()
+  clock = pygame.Clock()
 
   loop = True
 
