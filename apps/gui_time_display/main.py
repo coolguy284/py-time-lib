@@ -17,6 +17,7 @@ from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
 from draw_lib import draw_text_centered
+from advanced_clock import AdvancedClock
 
 def main():
   update_time_databases()
@@ -76,7 +77,7 @@ def main():
   # https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
   pygame.display.set_caption('GUI Time Display')
   refresh_rate = pygame.display.get_current_refresh_rate()
-  clock = pygame.Clock()
+  clock = AdvancedClock()
 
   loop = True
 
@@ -101,10 +102,11 @@ def main():
         TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
       )
     
-    draw_text_centered(screen, 'Current Time', (width / 2, 50), centered = True, size = 43)
+    draw_text_centered(screen, 'Current Time', (width / 2, 45), horz_align = 0.5, size = 43)
+    draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (width - 70, 45), horz_align = 1.0, size = 30)
     
     x_center_offset = 600
-    y_start = 80
+    y_start = 100
     y_step = 55
     
     if tz != None:
