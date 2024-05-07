@@ -1,0 +1,9 @@
+class AdvancedClock:
+  def tick(self, framerate: int) -> None:
+    ...
+  
+  async def async_tick(self, framerate: int) -> None:
+    ...
+  
+  def get_fps(self) -> float:
+    ...

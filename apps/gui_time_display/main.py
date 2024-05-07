@@ -11,35 +11,12 @@ def fix_import_path():
   sys_path.append(str(parent_dir))
 
 from enum import Enum
-from functools import cache
 from sys import argv as sys_argv
 import pygame
 from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
-@cache
-def get_font(font: str, size: int):
-  return pygame.font.SysFont(font, size)
-
-def draw_text_centered(
-    surf: pygame.Surface,
-    text: str,
-    pos: tuple[int, int],
-    centered: bool = False,
-    font: str = 'Consolas',
-    size: int = 35,
-    color: tuple[int, int, int] = (255, 255, 255)
-  ) -> None:
-  font = get_font(font, size)
-  font_rendered = font.render(text, True, color)
-  if centered:
-    coords = (
-      pos[0] - font_rendered.get_width() / 2,
-      pos[1] - font_rendered.get_height() / 2
-    )
-  else:
-    coords = pos
-  surf.blit(font_rendered, coords)
+from draw_lib import draw_text_centered
 
 def main():
   update_time_databases()
