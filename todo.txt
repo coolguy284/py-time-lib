@@ -1,3 +1,5 @@
+timedelta division by itself
+.f format string support for fixedprec
 add TDB timescale
 test true leap second handling in windows
 
