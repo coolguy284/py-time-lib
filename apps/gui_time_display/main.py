@@ -103,7 +103,7 @@ def main():
       )
     
     draw_text_centered(screen, 'Current Time', (width / 2, 45), horz_align = 0.5, size = 43)
-    draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (width - 70, 45), horz_align = 1.0, size = 30)
+    draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (70, 45), size = 30)
     
     x_center_offset = 600
     y_start = 100
