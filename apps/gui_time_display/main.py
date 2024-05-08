@@ -19,7 +19,7 @@ from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 from draw_lib import draw_text_centered
 from advanced_clock import AdvancedClock
 
-def main():
+async def main():
   update_time_databases()
 
   if len(sys_argv) > 1:
@@ -127,9 +127,10 @@ def main():
       draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, format_str_cap_offset)}',                               (width / 2 - x_center_offset, y_start + 12 * y_step))
     
     pygame.display.flip()
-    clock.tick(refresh_rate)
+    await clock.tick_async(refresh_rate)
   
   pygame.quit()
 
 if __name__ == '__main__':
-  main()
+  from asyncio import run
+  run(main())

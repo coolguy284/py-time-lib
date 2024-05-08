@@ -1,5 +1,6 @@
 from asyncio import sleep as asyncio_sleep
-from time import perf_counter_ns, sleep as time_sleep
+from time import perf_counter_ns
+from pygame.time import wait
 
 from sample_averager import SampleAverager
 
@@ -39,10 +40,11 @@ class AdvancedClock:
   
   def tick(self, framerate: int) -> None:
     remaining_frame_time = self._tick_internal(framerate)
-    time_sleep(remaining_frame_time)
+    #time_sleep(remaining_frame_time)
+    wait(int(remaining_frame_time * 1000))
     self._perf_counter_loop_start = perf_counter_ns()
   
-  async def async_tick(self, framerate: int) -> None:
+  async def tick_async(self, framerate: int) -> None:
     remaining_frame_time = self._tick_internal(framerate)
     await asyncio_sleep(remaining_frame_time)
     self._perf_counter_loop_start = perf_counter_ns()
