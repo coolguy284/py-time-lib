@@ -201,3 +201,6 @@ class TimeZone:
       current_offset = later_offset_entry['utc_offset']
     
     return offset_times
+
+# top-level export for pickle support
+OffsetDayMode = TimeZone.OffsetDayMode

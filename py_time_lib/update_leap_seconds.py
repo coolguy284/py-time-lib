@@ -106,7 +106,7 @@ def get_leap_sec_data(log_downloads: bool = DEFAULT_LOG_DOWNLOADS, file_path: st
     create_new_file = True
   else:
     leap_secs_data = parse_leap_sec_file(leap_secs_file_str)
-    if current_timestamp > leap_secs_data['expiry']:
+    if current_timestamp >= leap_secs_data['expiry']:
       # stored file is past expiry, replace it with new file
       create_new_file = True
   

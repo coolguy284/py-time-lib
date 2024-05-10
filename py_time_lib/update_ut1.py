@@ -113,6 +113,16 @@ def parse_historic_file(file_str: str) -> list[UT1TAIOffsetEntry]:
         ut1_offset_list.append(UT1TAIOffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
     else:
       raise ValueError(f'Historic file line invalid format: {line!r}')
+    
+    # ut1_minus_tai_error_str = line[95:105].strip()
+    # # ignore invalid values
+    # if ut1_minus_tai_error_str != '99.9900000':
+    #   mjd = FixedPrec(line[0:12].strip())
+    #   ut1_minus_tai = FixedPrec(line[33:48].strip())
+    #   
+    #   tai_secs_since_epoch = TimeInstant.from_modified_julian_date_utc(mjd, second_fold = True).time
+    #   
+    #   ut1_offset_list.append(UT1TAIOffsetEntry(tai_secs_since_epoch, ut1_minus_tai))
   
   return ut1_offset_list
 
