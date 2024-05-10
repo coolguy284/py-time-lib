@@ -1,3 +1,5 @@
+from asyncio import sleep as asyncio_sleep
+
 from .time_classes.time_instant.time_inst import TimeInstant
 from .time_classes.time_zone import TimeZone
 from .time_classes.lib import TimeStorageType
@@ -145,3 +147,64 @@ def update_time_databases(
     daily_data_file_path = ut1_daily_data_file_path,
     daily_url = ut1_daily_url
   )
+
+async def update_time_databases_loop(
+    log_downloads: bool = _DEFAULT_LOG_DOWNLOADS,
+    
+    leapsec_file_path: str = _DEFAULT_LEAP_FILE_PATH,
+    leapsec_url: str = _DEFAULT_LEAP_FILE_URL,
+    
+    tzdb_update_check_time: TimeStorageType | None = _DEFAULT_TZDB_UPDATE_CHECK_TIME,
+    tzdb_url: str = _DEFAULT_TZDB_URL,
+    tzdb_version_url: str = _DEFAULT_TZDB_VERSION_URL,
+    tzdb_file_path: str = _DEFAULT_TZDB_PATH,
+    tzdb_downloaded_time_file_path: str = _DEFAULT_TZDB_DOWNLOADED_TIME_PATH,
+    
+    ut1_historic_min_redownload_age: TimeStorageType | None = _DEFAULT_HISTORICAL_UPDATE_TIME,
+    ut1_historic_downloaded_time_file_path: str = _DEFAULT_HISTORICAL_DOWNLOADED_TIME_FILE_PATH,
+    ut1_historic_data_file_path: str = _DEFAULT_HISTORICAL_FILE_PATH,
+    ut1_historic_url: str = _DEFAULT_HISTORICAL_URL,
+    ut1_recent_min_redownload_age: TimeStorageType | None = _DEFAULT_RECENT_UPDATE_TIME,
+    ut1_recent_downloaded_time_file_path: str = _DEFAULT_RECENT_DOWNLOADED_TIME_FILE_PATH,
+    ut1_recent_data_file_path: str = _DEFAULT_RECENT_FILE_PATH,
+    ut1_recent_url: str = _DEFAULT_RECENT_URL,
+    ut1_daily_min_redownload_age: TimeStorageType | None = _DEFAULT_DAILY_UPDATE_TIME,
+    ut1_daily_downloaded_time_file_path: str = _DEFAULT_DAILY_DOWNLOADED_TIME_FILE_PATH,
+    ut1_daily_data_file_path: str = _DEFAULT_DAILY_FILE_PATH,
+    ut1_daily_url: str = _DEFAULT_DAILY_URL
+  ) -> None:
+  update_intervals = [time for time in [
+    tzdb_update_check_time,
+    ut1_historic_min_redownload_age,
+    ut1_recent_min_redownload_age,
+    ut1_daily_min_redownload_age
+  ] if time != None]
+  
+  if len(update_intervals) > 0:
+    update_interval = float(min(update_intervals))
+    
+    while True:
+      await asyncio_sleep(update_interval)
+      
+      update_time_databases(
+        log_downloads = log_downloads,
+        leapsec_file_path = leapsec_file_path,
+        leapsec_url = leapsec_url,
+        tzdb_update_check_time = tzdb_update_check_time,
+        tzdb_url = tzdb_url,
+        tzdb_version_url = tzdb_version_url,
+        tzdb_file_path = tzdb_file_path,
+        tzdb_downloaded_time_file_path = tzdb_downloaded_time_file_path,
+        ut1_historic_min_redownload_age = ut1_historic_min_redownload_age,
+        ut1_historic_downloaded_time_file_path = ut1_historic_downloaded_time_file_path,
+        ut1_historic_data_file_path = ut1_historic_data_file_path,
+        ut1_historic_url = ut1_historic_url,
+        ut1_recent_min_redownload_age = ut1_recent_min_redownload_age,
+        ut1_recent_downloaded_time_file_path = ut1_recent_downloaded_time_file_path,
+        ut1_recent_data_file_path = ut1_recent_data_file_path,
+        ut1_recent_url = ut1_recent_url,
+        ut1_daily_min_redownload_age = ut1_daily_min_redownload_age,
+        ut1_daily_downloaded_time_file_path = ut1_daily_downloaded_time_file_path,
+        ut1_daily_data_file_path = ut1_daily_data_file_path,
+        ut1_daily_url = ut1_daily_url
+      )

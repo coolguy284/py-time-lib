@@ -19,6 +19,7 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
+updatedbparams object to simplify function argument
 strftime/strptime for julgregbasedate
 ut1 offset should move with linear approximation before and after end of data
 full tz support
@@ -30,7 +31,6 @@ astropy test in main into actual test case
 add a bunch of funcs like setdate get/set/increment taiyear/utchour, etc. for timeinstant and date classes as well (all return a new instance since immutable); or make replace function like datetime
 fixedprec default max prec configurable
 add var to store if leap sec array and timezones list is updated to match file, if so and file not expired, don't run parser; add force reparse option to reparse anyway, and force refresh to download data again anyway
-add auto update every 30days async function that can be used in gui update app
 timeinstant: fix low precision error on from_secs_since_epoch_mono
 change get utc tai offset to return a timestoragetype?
 add test for dst in tzdb zones where summer/dst is in january

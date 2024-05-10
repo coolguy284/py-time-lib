@@ -10,10 +10,11 @@ def fix_import_path():
   parent_dir = Path(realpath(__file__)).parent.parent.parent
   sys_path.append(str(parent_dir))
 
+from asyncio import TaskGroup, run
 from enum import Enum
 from sys import argv as sys_argv
 import pygame
-from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases
+from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases, update_time_databases_loop
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
 from draw_lib import draw_text_centered
@@ -131,6 +132,11 @@ async def main():
   
   pygame.quit()
 
+async def runner():
+  async with TaskGroup() as tg:
+    main_task = tg.create_task(main())
+    update_time_db_task = tg.create_task(update_time_databases_loop())
+    main_task.add_done_callback(lambda _: update_time_db_task.cancel())
+
 if __name__ == '__main__':
-  from asyncio import run
-  run(main())
+  run(runner())
