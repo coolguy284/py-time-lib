@@ -18,6 +18,7 @@ class FixedPrec(Real):
   E_MAX_PREC = len(E_STR) - 2
   EXPONENT_BASE_LOWER_LIMIT_TRIGGER = 2
   EXPONENT_LOWER_LIMIT = -200
+  F_STRING_MAX_PREC = 5000
   
   _int_regex = re_compile(r'^(-?\d+)$')
   _float_regex = re_compile(r'^(-?)(\d+)\.(\d+)$')
@@ -109,16 +110,101 @@ class FixedPrec(Real):
         pos_string = f'{pos_string:0>{self.place + 1}}'
         return f'{'-' if negative else ''}{pos_string[:-self.place]}.{pos_string[-self.place:]}'
   
+  _format_string_regex = re_compile(r'(?:(?P<fill>.)?(?P<align>[<>=^]))?(?P<sign>[ +-])?(?P<pos_zero>z)?(?P<hash>#)?(?P<zero>0)?(?P<width>\d+)?(?P<grouping_option>[_,])?(?:\.(?P<precision>\d+))?(?P<type>eEfFgGn%)?')
+  
   def __format__(self, format_spec: str) -> str:
     if format_spec == '':
       return str(self)
-    elif format_spec == '+':
-      if self.value >= 0:
-        return f'+{self!s}'
+    
+    if match := self._format_string_regex.match(format_spec):
+      if match['type'] == '%':
+        return f'{self * 100:{format_spec[:-1]}f}%'
+      elif match['type'] == 'E' or match['type'] == 'F' or match['type'] == 'G':
+        return f'{self:{format_spec[:-1]}{format_spec[-1].lower()}}'.upper()
       else:
-        return str(self)
+        if match['type'] == 'f' or match['type'] == 'g' or match['type'] == 'n' or match['type'] == None:
+          if self.value == 0:
+            if self.place <= 0:
+              sign = '+'
+              integer = '0'
+              fraction = ''
+              suffix = ''
+            else:
+              sign = '+'
+              integer = '0'
+              fraction = '0' * self.place
+              suffix = ''
+          else:
+            if self.place <= 0:
+              sign = '-' if self.value < 0 else '+'
+              integer = str(abs(self.value)) + '0' * -self.place
+              fraction = ''
+              suffix = ''
+            else:
+              sign = '-' if self.value < 0 else '+'
+              pos_string = str(abs(self.value))
+              integer = pos_string[:-self.place]
+              if integer == '':
+                integer = '0'
+              fraction = f'{pos_string[-self.place:]:0>{self.place}}'
+              suffix = ''
+        else:
+          # 'e' format code
+          if self.value == 0:
+            sign = '+'
+            integer = '0'
+            fraction = ''
+            suffix = f'e{-self.place:+}'
+          else:
+            value_str = str(abs(self.value))
+            sign = '-' if self.value < 0 else '+'
+            integer = value_str[0]
+            fraction = value_str[1:]
+            suffix = f'e{-self.place + len(value_str) - 1:+}'
+        
+        if match['type'] == 'n' or match['grouping_option'] != None:
+          group_char = match['grouping_option'] if match['grouping_option'] != None else ','
+          orig_integer = integer
+          
+          i = 0
+          integer = ''
+          
+          for char in reversed(orig_integer):
+            if i % 3 == 0 and i != 0:
+              integer += group_char + char
+            else:
+              integer += char
+            i += 1
+        
+        if match['sign'] == '-' or match['sign'] == None:
+          if sign == '+':
+            sign = ''
+        elif match['sign'] == ' ':
+          if sign == '+':
+            sign = ' '
+        else:
+          # + format code
+          pass
+        
+        if match['precision'] == None:
+          if self.place > 0:
+            return f'{sign}{integer}.{fraction}{suffix}'
+          else:
+            return f'{sign}{integer}{suffix}'
+        else:
+          precision = int(match['precision'])
+          if precision > self.F_STRING_MAX_PREC:
+            raise ValueError(f'Format string precision {match['precision']} too high')
+          else:
+            if precision == 0:
+              if match['hash'] != None:
+                return f'{sign}{integer}.{suffix}'
+              else:
+                return f'{sign}{integer}{suffix}'
+            else:
+              return f'{sign}{integer}.{fraction[:precision]:0<{precision}}{suffix}'
     else:
-      return NotImplemented
+      raise ValueError(f'Format specifier {format_spec!r} unknown')
   
   def to_data_tuple(self) -> tuple[str, Integral, Integral, Integral]:
     return (self.__class__.__name__, self.value, self.place, self.max_prec)

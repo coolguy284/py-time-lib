@@ -1,9 +1,11 @@
+redo fixedprec formatting to use new formatting
 timedelta division by itself
-.f format string support for fixedprec
 add TDB timescale
+write __new to prevent double creations of objects
+print statement code to root out double func calls; do deterministic profiling
+strptime support
 test true leap second handling in windows
 
-strptime support
 option to cache parsed tz, leapsecs in pickle file
 
 complete all ..., notimplementederrors
@@ -19,6 +21,7 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
+flip sign of self.place on fixedprec
 updatedbparams object to simplify function argument
 strftime/strptime for julgregbasedate
 ut1 offset should move with linear approximation before and after end of data
@@ -68,6 +71,7 @@ tests:
   timeinstant: test for fixed offset timezone support of pos/neg leap seconds
   timezone: test for tz name not just abbreviation
   timeinstant: test for smeared tz support
+  fixedprec: format strings
 
 prob not doing:
 datedelta from/to timedelta

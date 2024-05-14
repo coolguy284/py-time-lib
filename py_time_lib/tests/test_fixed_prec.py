@@ -41,6 +41,10 @@ class TestFixedPrec(TestCase):
     self.assertEqual(f'{FixedPrec(1, 0)}', '1')
     self.assertEqual(f'{FixedPrec(0, 0)}', '0')
     self.assertEqual(f'{FixedPrec(-1, 0)}', '-1')
+    self.assertEqual(f'{FixedPrec('52.0')}', '52.0')
+    self.assertEqual(f'{FixedPrec('0.01')}', '0.01')
+    self.assertEqual(f'{FixedPrec('1234')}', '1234')
+    #self.assertEqual(f'{FixedPrec('123.4567'):0>10+.2f}')
   
   def test_neg(self):
     self.assertEqual(str(-FixedPrec(1, 0)), '-1')
