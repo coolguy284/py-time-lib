@@ -197,7 +197,17 @@ class FixedPrec(Real):
           if precision > self.F_STRING_MAX_PREC:
             raise ValueError(f'Format string precision {match['precision']} too high')
           else:
-            fraction = f'{fraction[:precision]:0<{precision}}'
+            if len(fraction) < precision:
+              fraction = f'{fraction:0<{precision}}'
+            elif len(fraction) == precision:
+              pass
+            else:
+              # len(fraction) > 0 here
+              if precision == 0:
+                fraction = ''
+              else:
+                fraction_overprecision = len(fraction) - precision
+                fraction = str(round(int(fraction), -fraction_overprecision) // 10 ** fraction_overprecision)
             
             if precision == 0:
               if match['hash'] != None:
@@ -324,6 +334,14 @@ class FixedPrec(Real):
         return self.__class__(-(-self.value // self.RADIX ** (self.place - ndigits)), ndigits, max_prec = self.max_prec)
       else:
         return self.__class__(self.value // self.RADIX ** (self.place - ndigits), ndigits, max_prec = self.max_prec)
+  
+  def round_to_precision_increasable(self, ndigits: Integral = 0):
+    if self.place < ndigits:
+      return self.__class__(self.value * self.RADIX ** (ndigits - self.place), ndigits, max_prec = self.max_prec)
+    elif self.place == ndigits:
+      return self
+    else:
+      return round(self, ndigits)
   
   def reduce_to_max_prec(self) -> Self:
     if self.place > self.max_prec:

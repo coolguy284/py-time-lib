@@ -56,14 +56,18 @@ class TestFixedPrec(TestCase):
     self.assertEqual(f'{FixedPrec('-0.01'):>6}', ' -0.01')
     self.assertEqual(f'{FixedPrec('-1234'):>6}', ' -1234')
     
-    self.assertEqual(f'{FixedPrec('123.4567'):0>+10.2f}', '000+123.46')
-    self.assertEqual(f'{FixedPrec('123.4567'):0=+10.2f}', '+000123.46')
-    self.assertEqual(f'{FixedPrec('123.4567'):0>+010.2f}', '000+123.46')
-    self.assertEqual(f'{FixedPrec('123.4567'):+10.2f}', '+000123.46')
-    self.assertEqual(f'{FixedPrec('123.4567'):+0.2f}', '+123.46')
-    self.assertEqual(f'{FixedPrec('123.4567'):+.2f}', '+123.46')
+    def test(string, format_spec, result):
+      self.assertEqual(f'{float(string):{format_spec}}', result)
+      self.assertEqual(f'{FixedPrec(string):{format_spec}}', result)
+    
+    test('123.4567', '0>+10.2f', '000+123.46')
+    test('123.4567', '0=+10.2f', '+000123.46')
+    test('123.4567', '0>+010.2f', '000+123.46')
+    test('123.4567', '+10.2f', '   +123.46')
+    test('123.4567', '+0.2f', '+123.46')
+    test('123.4567', '+.2f', '+123.46')
     self.assertEqual(f'{FixedPrec('123.4567'):+.20f}', '+123.45670000000000000000')
-    self.assertEqual(f'{FixedPrec('123.4567'):.2f}', '123.46')
+    test('123.4567', '.2f', '123.46')
     self.assertEqual(f'{FixedPrec('123.4567'):.2}', '123.46')
   
   def test_neg(self):

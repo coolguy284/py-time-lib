@@ -72,6 +72,7 @@ tests:
   timezone: test for tz name not just abbreviation
   timeinstant: test for smeared tz support
   fixedprec: format strings
+  fixedprec: round to precision increasable
 
 prob not doing:
 datedelta from/to timedelta
