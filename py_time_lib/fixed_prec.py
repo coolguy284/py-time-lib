@@ -187,22 +187,55 @@ class FixedPrec(Real):
           pass
         
         if match['precision'] == None:
-          if self.place > 0:
-            return f'{sign}{integer}.{fraction}{suffix}'
+          if self.place > 0 or match['hash'] != None:
+            decimal_point = '.'
           else:
-            return f'{sign}{integer}{suffix}'
+            decimal_point = ''
         else:
           precision = int(match['precision'])
+          
           if precision > self.F_STRING_MAX_PREC:
             raise ValueError(f'Format string precision {match['precision']} too high')
           else:
+            fraction = f'{fraction[:precision]:0<{precision}}'
+            
             if precision == 0:
               if match['hash'] != None:
-                return f'{sign}{integer}.{suffix}'
+                decimal_point = '.'
               else:
-                return f'{sign}{integer}{suffix}'
+                decimal_point = ''
             else:
-              return f'{sign}{integer}.{fraction[:precision]:0<{precision}}{suffix}'
+              decimal_point = '.'
+      
+      # f string now is f'{sign}{integer}{decimal_point}{fraction}{suffix}'
+      
+      number = f'{integer}{decimal_point}{fraction}{suffix}'
+      
+      # f string now is f'{sign}{number}'
+      
+      if match['width'] != None:
+        width = int(match['width'])
+        
+        if match['align'] != None:
+          align = match['align']
+          fill = match['fill'] if match['fill'] != None else ' '
+        else:
+          if match['zero']:
+            # behave like '0=' format code
+            align = '='
+            fill = '0'
+          else:
+            # behave like '>'
+            align = '>'
+            fill = ' '
+        
+        if align == '<' or align == '>' or align == '^':
+          return f'{f'{sign}{number}':{fill}{align}{match['width']}}'
+        else:
+          remaining_chars = max(width - (len(sign) + len(number)), 0)
+          return f'{sign}{fill * remaining_chars}{number}'
+      else:
+        return f'{sign}{number}'
     else:
       raise ValueError(f'Format specifier {format_spec!r} unknown')
   

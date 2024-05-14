@@ -16,8 +16,8 @@ from py_time_lib.constants import NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX
 
 def format_offsets(delta_time, delta_monotone):
   return (
-    f'{f'{FixedPrec(delta_time, NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX)!s}':>12}  ' +
-    f'{f'{FixedPrec(delta_monotone, NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX)!s}':>12}'
+    f'{FixedPrec(delta_time, NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX):>12}  ' +
+    f'{FixedPrec(delta_monotone, NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX):>12}'
   )
 
 def times():
