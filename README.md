@@ -10,7 +10,8 @@ This is a time library for python that attempts to handle some of the complexiti
   - [TAI: International Atomic Time](https://en.wikipedia.org/wiki/International_Atomic_Time)
   - [TT: Terrestrial Time](https://en.wikipedia.org/wiki/Terrestrial_Time)
   - [TCG: Geocentric Coordinate Time](https://en.wikipedia.org/wiki/Geocentric_Coordinate_Time)
-  - [TCB: Barycentric Coordinate Time](https://en.wikipedia.org/wiki/Barycentric_Coordinate_Time)
+  - [TCB: Barycentric Coordinate Time](https://en.wikipedia.org/wiki/Barycentric_Coordinate_Time) (probably inaccurate)
+  - [TDB: Barycentric Dynamical Time](https://en.wikipedia.org/wiki/Barycentric_Dynamical_Time) (probably inaccurate)
   - Galactic Coordinate Time (super approximate)
   - Universe Coordinate Time (super approximate)
 

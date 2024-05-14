@@ -1,4 +1,3 @@
-add TDB timescale
 strptime support
 test true leap second handling in windows
 
@@ -17,6 +16,7 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
+clean up TDB/TCB code
 write __new to prevent double creations of objects
 print statement code to root out double func calls; do deterministic profiling
 convert all uses of single under attributes to their equvalent property

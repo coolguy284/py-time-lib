@@ -20,6 +20,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
     'TCB', # inaccurate
     'GALACTIC_COORDINATE_TIME', # complete estimates
     'UNIVERSE_COORDINATE_TIME', # complete estimates
+    'TDB', # inaccurate?
     'UT1',
   ))
   
@@ -90,7 +91,7 @@ class TimeInstMonotonic(TimeInstantTimeZones):
       case cls.TIME_SCALES.TCG:
         return cls((mono_secs_since_epoch - cls.TT_OFFSET_FROM_TAI - cls.TT_EPOCH) * cls.TCG_TO_TT_FACTOR + cls.TT_EPOCH)
       
-      case _ if time_scale == cls.TIME_SCALES.TCB or time_scale == cls.TIME_SCALES.GALACTIC_COORDINATE_TIME or time_scale == cls.TIME_SCALES.UNIVERSE_COORDINATE_TIME:
+      case _ if time_scale == cls.TIME_SCALES.TCB or time_scale == cls.TIME_SCALES.GALACTIC_COORDINATE_TIME or time_scale == cls.TIME_SCALES.UNIVERSE_COORDINATE_TIME or time_scale == cls.TIME_SCALES.TDB:
         mono_secs_since_epoch = FixedPrec.from_basic(mono_secs_since_epoch)
         test = lambda x: cls(x).to_secs_since_epoch_mono(time_scale)
         return cls(almost_linear_func_inverse_deriv(test, mono_secs_since_epoch, epsilon = mono_secs_since_epoch.smallest_representable() * 2))
@@ -137,6 +138,15 @@ class TimeInstMonotonic(TimeInstantTimeZones):
       
       case self.TIME_SCALES.TCG:
         return (self._time - self.TT_EPOCH) / self.TCG_TO_TT_FACTOR + self.TT_EPOCH + self.TT_OFFSET_FROM_TAI
+      
+      case self.TIME_SCALES.TDB:
+        # https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems#TDT_-_TDB,_TCB
+        J2000_EPOCH = self.from_date_tuple_mono(self.TIME_SCALES.TT, 2000, 1, 1, 0, 0, 0, 0).time
+        
+        T = (self._time - J2000_EPOCH) / (36525 * 86400)
+        g = (FixedPrec('3.141592653589') / 180) * (FixedPrec('357.528') + FixedPrec('35999.050') * T)
+        TDB = self._time + self.TT_OFFSET_FROM_TAI + FixedPrec('0.001658') * (g + FixedPrec('0.0167') * g.sin()).sin()
+        return TDB
       
       case self.TIME_SCALES.TCB:
         # https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems#TDT_-_TDB,_TCB

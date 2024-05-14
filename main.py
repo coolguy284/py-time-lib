@@ -172,6 +172,8 @@ elif mode == RunModes.TEST_TIME_SCALES:
   print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCG) - 32.184, (t3b.tcg - t1b.tcg).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
   print(t2a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB) - 32.184, (t2b.tcb - t1b.tcb).to_value(format='sec') - (t2b.tai - t1b.tai).to_value(format='sec'))
   print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TCB) - 32.184, (t3b.tcb - t1b.tcb).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
+  print(t2a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TDB) - 32.184, (t2b.tdb - t1b.tdb).to_value(format='sec') - (t2b.tai - t1b.tai).to_value(format='sec'))
+  print(t3a.get_mono_tai_offset(TimeInstant.TIME_SCALES.TDB) - 32.184, (t3b.tdb - t1b.tdb).to_value(format='sec') - (t3b.tai - t1b.tai).to_value(format='sec'))
 elif mode == RunModes.TEST_UT1:
   print(get_ut1_offsets())
 elif mode == RunModes.TEST_SMEAR_TIME:

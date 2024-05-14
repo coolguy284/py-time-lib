@@ -108,7 +108,7 @@ async def main():
     
     x_center_offset = 600
     y_start = 100
-    y_step = 55
+    y_step = 50
     
     if tz != None:
       draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}',                                                          (width / 2 - x_center_offset, y_start + 0 * y_step))
@@ -118,14 +118,15 @@ async def main():
       draw_text_centered(screen, f'STZ: {now.to_format_string_smear_tz(smear_plan, tz, format_str_cap_offset, True)}',                       (width / 2 - x_center_offset, y_start + 3 * y_step))
     draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}',                                                               (width / 2 - x_center_offset, y_start + 4 * y_step))
     draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, format_str)}',                                  (width / 2 - x_center_offset, y_start + 5 * y_step))
-    draw_text_centered(screen, f'TCG: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 6 * y_step))
-    draw_text_centered(screen, f'TCB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 7 * y_step))
-    draw_text_centered(screen, f'GAL: {now.to_format_string_mono(TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME, format_str_cap_offset)}', (width / 2 - x_center_offset, y_start + 8 * y_step))
-    draw_text_centered(screen, f'UNI: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, format_str_cap_offset)}', (width / 2 - x_center_offset, y_start + 9 * y_step))
-    draw_text_centered(screen, f'UT1: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UT1, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 10 * y_step))
+    draw_text_centered(screen, f'TDB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TDB, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 6 * y_step))
+    draw_text_centered(screen, f'TCG: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 7 * y_step))
+    draw_text_centered(screen, f'TCB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 8 * y_step))
+    draw_text_centered(screen, f'GAL: {now.to_format_string_mono(TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME, format_str_cap_offset)}', (width / 2 - x_center_offset, y_start + 9 * y_step))
+    draw_text_centered(screen, f'UNI: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, format_str_cap_offset)}', (width / 2 - x_center_offset, y_start + 10 * y_step))
+    draw_text_centered(screen, f'UT1: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UT1, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 11 * y_step))
     if longitude != None:
-      draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, format_str_cap_offset)}',                              (width / 2 - x_center_offset, y_start + 11 * y_step))
-      draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, format_str_cap_offset)}',                               (width / 2 - x_center_offset, y_start + 12 * y_step))
+      draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, format_str_cap_offset)}',                              (width / 2 - x_center_offset, y_start + 12 * y_step))
+      draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, format_str_cap_offset)}',                               (width / 2 - x_center_offset, y_start + 13 * y_step))
     
     pygame.display.flip()
     await clock.tick_async(refresh_rate)
