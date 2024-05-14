@@ -1,7 +1,4 @@
-timedelta division by itself
 add TDB timescale
-write __new to prevent double creations of objects
-print statement code to root out double func calls; do deterministic profiling
 strptime support
 test true leap second handling in windows
 
@@ -20,6 +17,9 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
+write __new to prevent double creations of objects
+print statement code to root out double func calls; do deterministic profiling
+convert all uses of single under attributes to their equvalent property
 fixedprec support e+/- strings in object creation
 flip sign of self.place on fixedprec
 updatedbparams object to simplify function argument

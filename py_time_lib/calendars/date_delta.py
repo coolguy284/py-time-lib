@@ -68,14 +68,45 @@ class DateDelta:
       except TypeError:
         return NotImplemented
   
-  def __floordiv__(self, other) -> Self:
+  def __truediv__(self, other) -> float:
     if hasattr(other, 'date_delta'):
+      try:
+        return self.date_delta / other.date_delta
+      except TypeError:
+        return NotImplemented
+    else:
       return NotImplemented
+  
+  def __floordiv__(self, other) -> int:
+    if hasattr(other, 'date_delta'):
+      try:
+        return int(self.date_delta // other.date_delta)
+      except TypeError:
+        return NotImplemented
     else:
       try:
         return self.__class__(self._date_delta // other)
       except TypeError:
         return NotImplemented
+  
+  def __mod__(self, other) -> Self:
+    if hasattr(other, 'date_delta'):
+      try:
+        return self.__class__(self.date_delta % other.date_delta)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
+  
+  def __divmod__(self, other) -> tuple[int, Self]:
+    if hasattr(other, 'date_delta'):
+      try:
+        whole, remainder = divmod(self.date_delta, other.date_delta)
+        return int(whole), self.__class__(remainder)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __radd__(self, other: Self) -> Self:
     if hasattr(other, 'date_delta'):

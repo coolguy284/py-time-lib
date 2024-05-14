@@ -44,6 +44,10 @@ class TestTimeClasses(TestCase):
     self.assertEqual(str(TimeDelta(FixedPrec(3)) - TimeDelta(FixedPrec(2))), 'TD+1')
     self.assertEqual(str(TimeDelta(FixedPrec(3)) * FixedPrec(4)), 'TD+12')
     self.assertEqual(TimeDelta(FixedPrec(3)) / FixedPrec(3), TimeDelta(FixedPrec(1)))
+    self.assertEqual(TimeDelta(FixedPrec(3)) / TimeDelta(FixedPrec(3)), FixedPrec(1))
+    self.assertEqual(TimeDelta(FixedPrec(14)) // TimeDelta(FixedPrec(3)), FixedPrec(4))
+    self.assertEqual(TimeDelta(FixedPrec(14)) % TimeDelta(FixedPrec(3)), TimeDelta(FixedPrec(2)))
+    self.assertEqual(divmod(TimeDelta(FixedPrec(14)), TimeDelta(FixedPrec(3))), (FixedPrec(4), TimeDelta(FixedPrec(2))))
     
     self.assertEqual(str(FixedPrec(4) * TimeDelta(FixedPrec(3))), 'TD+12')
     with self.assertRaises(TypeError):

@@ -97,12 +97,43 @@ class TimeDelta:
   
   def __truediv__(self, other) -> Self:
     if hasattr(other, 'time_delta'):
-      return NotImplemented
+      try:
+        return self.time_delta / other.time_delta
+      except TypeError:
+        return NotImplemented
     else:
       try:
         return self.__class__(self._time_delta / other)
       except TypeError:
         return NotImplemented
+  
+  def __floordiv__(self, other) -> int:
+    if hasattr(other, 'time_delta'):
+      try:
+        return int(self.time_delta // other.time_delta)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
+  
+  def __mod__(self, other) -> Self:
+    if hasattr(other, 'time_delta'):
+      try:
+        return self.__class__(self.time_delta % other.time_delta)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
+  
+  def __divmod__(self, other) -> tuple[int, Self]:
+    if hasattr(other, 'time_delta'):
+      try:
+        whole, remainder = divmod(self.time_delta, other.time_delta)
+        return int(whole), self.__class__(remainder)
+      except TypeError:
+        return NotImplemented
+    else:
+      return NotImplemented
   
   def __radd__(self, other: Self) -> Self:
     if hasattr(other, 'time_delta'):

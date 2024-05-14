@@ -26,11 +26,14 @@ class TestCalendarDateBase(TestCase):
     self.assertEqual(str(DateDelta(3) - DateDelta(2)), '1 days')
     self.assertEqual(str(DateDelta(3) * 4), '12 days')
     self.assertEqual(DateDelta(3) // 3, DateDelta(1))
+    self.assertEqual(DateDelta(3) / DateDelta(2), 1.5)
+    self.assertEqual(DateDelta(14) // DateDelta(3), 4)
+    self.assertEqual(DateDelta(14) % DateDelta(3), DateDelta(2))
+    self.assertEqual(divmod(DateDelta(14), DateDelta(3)), (4, DateDelta(2)))
     
     self.assertEqual(str(4 * DateDelta(3)), '12 days')
     with self.assertRaises(TypeError):
       self.assertEqual(3 // DateDelta(3), DateDelta(1))
-  
   
   def test_date_base_basic_ops(self):
     self.assertEqual((GregorianDate(1000) + DateDelta(3)).days_since_epoch, 1003)
