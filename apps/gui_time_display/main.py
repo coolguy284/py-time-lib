@@ -55,8 +55,8 @@ async def main():
 
   width = 1280
   height = 800
-  format_str = f'%a %b %d %Y %I:%M:%S.%.9f %p %:z'
-  format_str_cap_offset = f'%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
+  format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
+  format_str_cap_offset = '%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
   smear_plan = LeapSmearPlan(
     LeapSmearSingle(
       start_basis = LeapBasis.START,

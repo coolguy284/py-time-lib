@@ -1220,7 +1220,7 @@ class TestTimeClasses(TestCase):
     )
   
   def test_monotonic_time_scale_tcb_cycle(self):
-    def test_cycle(instant, places = 12):
+    def test_cycle(instant: TimeInstant, places = 12):
       mono_secs_since_epoch = instant.to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB)
       from_mono_secs = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB, mono_secs_since_epoch)
       self.assertAlmostEqual(instant.time, from_mono_secs.time, places, f'{instant.to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB)} {from_mono_secs.to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.TCB)}')
@@ -1405,7 +1405,7 @@ class TestTimeClasses(TestCase):
     time_instant = TimeInstant.from_date_tuple_smear_utc(smear_plan, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(
       time_instant.to_format_string_smear_utc(smear_plan, 'a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I j:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
-      f'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:Z Z:Universal Time Coordinated (Smeared) %:% str:test'
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:Z Z:Universal Time Coordinated (Smeared) %:% str:test'
     )
     time_instant_2 = TimeInstant.from_date_tuple_smear_utc(smear_plan, 2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(
@@ -1429,7 +1429,7 @@ class TestTimeClasses(TestCase):
     time_instant = TimeInstant.from_date_tuple_smear_tz(smear_plan, tz, 2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(
       time_instant.to_format_string_smear_tz(smear_plan, tz, 'a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I j:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test'),
-      f'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+0100 Z:NULL (Smeared) %:% str:test'
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+0100 Z:NULL (Smeared) %:% str:test'
     )
     time_instant_2 = TimeInstant.from_date_tuple_smear_tz(smear_plan, tz, 2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(

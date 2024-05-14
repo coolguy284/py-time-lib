@@ -155,7 +155,7 @@ def parse_ut1_offsets(historic_file_str: str, recent_file_str: str, daily_file_s
   daily_data = parse_recent_files(daily_file_str)
   
   if len(recent_data) == 0:
-    raise ValueError(f'Recent data length must be greater than 0')
+    raise ValueError('Recent data length must be greater than 0')
   
   full_data = historic_data[:]
   
