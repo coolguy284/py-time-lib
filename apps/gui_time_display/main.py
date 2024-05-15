@@ -22,7 +22,7 @@ from advanced_clock import AdvancedClock
 
 async def main():
   update_time_databases()
-
+  
   if len(sys_argv) > 1:
     tz_name = sys_argv[1]
     if tz_name == 'None':
@@ -50,13 +50,22 @@ async def main():
     tz_name = None
     tz = None
     longitude = None
-
+  
   pygame.init()
-
+  
   width = 1280
   height = 800
-  format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
-  format_str_cap_offset = '%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
+  buttons_from_left_percent = 0.03
+  buttons_y_coord = 40
+  buttons_size = 40
+  button_disabled_color = 127, 127, 127
+  button_active_color = 255, 255, 255
+  time_standards_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
+  time_standards_format_str_cap_offset = '%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
+  time_standards_x_center_offset = 600
+  time_standards_y_start = 100
+  time_standards_y_step = 50
+  
   smear_plan = LeapSmearPlan(
     LeapSmearSingle(
       start_basis = LeapBasis.START,
@@ -67,34 +76,57 @@ async def main():
     ),
     ()
   )
-  RunMode = Enum('RunMode', (
+  TimeMode = Enum('TimeMode', (
     'CURRENT',
     'LEAP_SEC_REPLAY',
   ))
-  run_mode = RunMode.CURRENT
-
+  time_mode = TimeMode.CURRENT
+  RunMode = Enum('RunMode', (
+    'TIME_STANDARDS',
+    'CALENDARS',
+  ))
+  run_modes = list(RunMode)
+  run_mode_names = {
+    RunMode.TIME_STANDARDS: 'Time Standards',
+    RunMode.CALENDARS: 'Calendars',
+  }
+  run_mode = RunMode.TIME_STANDARDS
+  
   # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
   screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
   # https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
   pygame.display.set_caption('GUI Time Display')
   refresh_rate = pygame.display.get_current_refresh_rate()
   clock = AdvancedClock()
-
+  
   loop = True
-
-  if run_mode == RunMode.LEAP_SEC_REPLAY:
+  
+  if time_mode == TimeMode.LEAP_SEC_REPLAY:
     prgm_start_secs = TimeInstant.now().time
-
+  
   while loop:
+    left_disabled = run_mode.value <= 1
+    right_disabled = run_mode.value >= len(run_modes)
+    
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         loop = False
+      elif event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == 1:
+          if width * buttons_from_left_percent - buttons_size / 2 < event.pos[0] < width * buttons_from_left_percent + buttons_size / 2 and \
+            buttons_y_coord - buttons_size / 2 < event.pos[1] < buttons_y_coord + buttons_size / 2:
+            if not left_disabled:
+              run_mode = run_modes[run_mode.value - 2]
+          elif width - width * buttons_from_left_percent - buttons_size / 2 < event.pos[0] < width - width * buttons_from_left_percent + buttons_size / 2 and \
+            buttons_y_coord - buttons_size / 2 < event.pos[1] < buttons_y_coord + buttons_size / 2:
+            if not right_disabled:
+              run_mode = run_modes[run_mode.value]
     
     screen.fill((0, 0, 0))
     
-    if run_mode == RunMode.CURRENT:
+    if time_mode == TimeMode.CURRENT:
       now = TimeInstant.now()
-    elif run_mode == RunMode.LEAP_SEC_REPLAY:
+    elif time_mode == TimeMode.LEAP_SEC_REPLAY:
       now = TimeInstant(
         (
           TimeInstant.now().time -
@@ -103,30 +135,63 @@ async def main():
         TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
       )
     
-    draw_text_centered(screen, 'Current Time', (width / 2, 45), horz_align = 0.5, size = 43)
-    draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (70, 45), size = 30)
+    draw_text_centered(
+      screen,
+      '<',
+      (width * buttons_from_left_percent, buttons_y_coord + 5),
+      horz_align = 0.5,
+      color = button_active_color if not left_disabled else button_disabled_color
+    )
+    pygame.draw.rect(
+      screen,
+      button_active_color if not left_disabled else button_disabled_color,
+      (width * buttons_from_left_percent - 20, buttons_y_coord - 20, buttons_size, buttons_size),
+      width = 2,
+      border_top_left_radius = 2,
+      border_top_right_radius = 2,
+      border_bottom_left_radius = 2,
+      border_bottom_right_radius = 2
+    )
     
-    x_center_offset = 600
-    y_start = 100
-    y_step = 50
+    draw_text_centered(
+      screen,
+      '>',
+      (width - width * buttons_from_left_percent, buttons_y_coord + 5),
+      horz_align = 0.5,
+      color = button_active_color if not right_disabled else button_disabled_color
+    )
+    pygame.draw.rect(
+      screen,
+      button_active_color if not right_disabled else button_disabled_color,
+      (width - width * buttons_from_left_percent - 20, buttons_y_coord - 20, buttons_size, buttons_size),
+      width = 2,
+      border_top_left_radius = 2,
+      border_top_right_radius = 2,
+      border_bottom_left_radius = 2,
+      border_bottom_right_radius = 2
+    )
     
-    if tz != None:
-      draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, format_str)}',                                                          (width / 2 - x_center_offset, y_start + 0 * y_step))
-    draw_text_centered(screen, f'UTC: {now.to_format_string_utc(format_str)}',                                                               (width / 2 - x_center_offset, y_start + 1 * y_step))
-    draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, format_str_cap_offset, True)}',                            (width / 2 - x_center_offset, y_start + 2 * y_step))
-    if tz != None:
-      draw_text_centered(screen, f'STZ: {now.to_format_string_smear_tz(smear_plan, tz, format_str_cap_offset, True)}',                       (width / 2 - x_center_offset, y_start + 3 * y_step))
-    draw_text_centered(screen, f'TAI: {now.to_format_string_tai(format_str)}',                                                               (width / 2 - x_center_offset, y_start + 4 * y_step))
-    draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, format_str)}',                                  (width / 2 - x_center_offset, y_start + 5 * y_step))
-    draw_text_centered(screen, f'TDB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TDB, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 6 * y_step))
-    draw_text_centered(screen, f'TCG: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 7 * y_step))
-    draw_text_centered(screen, f'TCB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 8 * y_step))
-    draw_text_centered(screen, f'GAL: {now.to_format_string_mono(TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME, format_str_cap_offset)}', (width / 2 - x_center_offset, y_start + 9 * y_step))
-    draw_text_centered(screen, f'UNI: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, format_str_cap_offset)}', (width / 2 - x_center_offset, y_start + 10 * y_step))
-    draw_text_centered(screen, f'UT1: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UT1, format_str_cap_offset)}',                      (width / 2 - x_center_offset, y_start + 11 * y_step))
-    if longitude != None:
-      draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, format_str_cap_offset)}',                              (width / 2 - x_center_offset, y_start + 12 * y_step))
-      draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, format_str_cap_offset)}',                               (width / 2 - x_center_offset, y_start + 13 * y_step))
+    draw_text_centered(screen, run_mode_names[run_mode], (width / 2, 45), horz_align = 0.5, size = 43)
+    draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
+    
+    if run_mode == RunMode.TIME_STANDARDS:
+      if tz != None:
+        draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, time_standards_format_str)}',                                                          (width / 2 - time_standards_x_center_offset, time_standards_y_start + 0 * time_standards_y_step))
+      draw_text_centered(screen, f'UTC: {now.to_format_string_utc(time_standards_format_str)}',                                                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 1 * time_standards_y_step))
+      draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, time_standards_format_str_cap_offset, True)}',                            (width / 2 - time_standards_x_center_offset, time_standards_y_start + 2 * time_standards_y_step))
+      if tz != None:
+        draw_text_centered(screen, f'STZ: {now.to_format_string_smear_tz(smear_plan, tz, time_standards_format_str_cap_offset, True)}',                       (width / 2 - time_standards_x_center_offset, time_standards_y_start + 3 * time_standards_y_step))
+      draw_text_centered(screen, f'TAI: {now.to_format_string_tai(time_standards_format_str)}',                                                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 4 * time_standards_y_step))
+      draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, time_standards_format_str)}',                                  (width / 2 - time_standards_x_center_offset, time_standards_y_start + 5 * time_standards_y_step))
+      draw_text_centered(screen, f'TDB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TDB, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 6 * time_standards_y_step))
+      draw_text_centered(screen, f'TCG: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 7 * time_standards_y_step))
+      draw_text_centered(screen, f'TCB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 8 * time_standards_y_step))
+      draw_text_centered(screen, f'GAL: {now.to_format_string_mono(TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME, time_standards_format_str_cap_offset)}', (width / 2 - time_standards_x_center_offset, time_standards_y_start + 9 * time_standards_y_step))
+      draw_text_centered(screen, f'UNI: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, time_standards_format_str_cap_offset)}', (width / 2 - time_standards_x_center_offset, time_standards_y_start + 10 * time_standards_y_step))
+      draw_text_centered(screen, f'UT1: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UT1, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 11 * time_standards_y_step))
+      if longitude != None:
+        draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, time_standards_format_str_cap_offset)}',                              (width / 2 - time_standards_x_center_offset, time_standards_y_start + 12 * time_standards_y_step))
+        draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, time_standards_format_str_cap_offset)}',                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 13 * time_standards_y_step))
     
     pygame.display.flip()
     await clock.tick_async(refresh_rate)
