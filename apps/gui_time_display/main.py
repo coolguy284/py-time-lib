@@ -66,7 +66,8 @@ async def main():
   time_standards_x_center_offset = 600
   time_standards_y_start = 100
   time_standards_y_step = 50
-  calendars_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p'
+  calendars_time_format_str = '%I:%M:%S.%.9f %p'
+  calendars_format_str = f'%a %b %d %Y {calendars_time_format_str}'
   calendars_x_center_offset = 600
   calendars_y_start = 110
   calendars_y_step = 60
@@ -200,6 +201,8 @@ async def main():
     elif run_mode == RunMode.CALENDARS:
       draw_text_centered(screen, f'Julian:               {now.to_format_string_utc(calendars_format_str, date_cls = JulianDate)}',            (width / 2 - calendars_x_center_offset, calendars_y_start + 0 * calendars_y_step))
       draw_text_centered(screen, f'Gregorian:            {now.to_format_string_utc(calendars_format_str, date_cls = GregorianDate)}',         (width / 2 - calendars_x_center_offset, calendars_y_start + 1 * calendars_y_step))
+      iso_date: IsoWeekDate = now.get_date_object_utc(IsoWeekDate)
+      draw_text_centered(screen, f'ISOWeekDate:          {iso_date.to_iso_string()} {now.to_format_string_utc(calendars_time_format_str)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 2 * calendars_y_step))
       draw_text_centered(screen, f'Holocene:             {now.to_format_string_utc(calendars_format_str, date_cls = HoloceneDate)}',          (width / 2 - calendars_x_center_offset, calendars_y_start + 3 * calendars_y_step))
       draw_text_centered(screen, f'Symmetry010:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry010)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 4 * calendars_y_step))
       draw_text_centered(screen, f'Symmetry010LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry010LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 5 * calendars_y_step))

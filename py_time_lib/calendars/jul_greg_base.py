@@ -9,8 +9,9 @@ from ..lib_funcs import binary_search
 from ..named_tuples import MonthWeekDate
 from .date_delta import DateDelta
 from .date_base import DateBase
+from .date_base_extras import ThreeTupleBase
 
-class JulGregBaseDate(DateBase):
+class JulGregBaseDate(ThreeTupleBase):
   'Base class for Julian and Gregorian calendars. This class not intended to be directly instantiated.'
   
   # static stuff
@@ -102,8 +103,7 @@ class JulGregBaseDate(DateBase):
   
   # instance stuff
   
-  __slots__ = '_year', '_month', '_day'
-  _year: Integral
+  __slots__ = '_month', '_day'
   _month: Integral
   _day: Integral
   
@@ -223,14 +223,11 @@ class JulGregBaseDate(DateBase):
   def __str__(self) -> str:
     return self.to_iso_string()
   
-  def to_date_tuple(self) -> tuple[Integral, Integral, Integral]:
+  def to_date_tuple[T: Integral](self) -> tuple[T, T, T]:
     return (self.year, self.month, self.day)
   
   def to_iso_string(self) -> str:
     return f'{self.year}-{self.month:0>2}-{self.day:0>2}'
-  
-  def ordinal_date(self) -> int:
-    return self.days_since_epoch - self.__class__(self.year, 1, 1).days_since_epoch + 1
   
   def to_month_week_day(self, from_month_end: bool = False) -> MonthWeekDate:
     '''

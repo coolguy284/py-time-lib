@@ -4,9 +4,10 @@ from re import compile as re_compile
 from typing import Self
 
 from .date_base import DateBase
+from .date_base_extras import ThreeTupleBase
 from . import gregorian
 
-class IsoWeekDate(DateBase):
+class IsoWeekDate(ThreeTupleBase):
   # static stuff
   
   _date_iso_string_regex = re_compile(r'^(-?\d+)-W(\d{1,2})-(\d)$')
@@ -64,8 +65,7 @@ class IsoWeekDate(DateBase):
   
   # instance stuff
   
-  __slots__ = '_year', '_week', '_day'
-  _year: Integral
+  __slots__ = '_week', '_day'
   _week: Integral
   _day: Integral
   
@@ -128,10 +128,6 @@ class IsoWeekDate(DateBase):
     return cls(*cls.parse_iso_string(string))
   
   @property
-  def year(self) -> Integral:
-    return self._year
-  
-  @property
   def week(self) -> Integral:
     return self._week
   
@@ -145,7 +141,7 @@ class IsoWeekDate(DateBase):
   def __str__(self) -> str:
     return self.to_iso_string()
   
-  def to_date_tuple(self) -> tuple[Integral, Integral, Integral]:
+  def to_date_tuple[T: Integral](self) -> tuple[T, T, T]:
     return (self.year, self.week, self.day)
   
   def to_iso_string(self) -> str:

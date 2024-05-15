@@ -5,6 +5,7 @@ from .exceptions import TimeUnmappableError
 from .fixed_prec import FixedPrec
 from .calendars.date_delta import DateDelta
 from .calendars.date_base import DateBase
+from .calendars.date_base_extras import YearlyCalendarBase, ThreeTupleBase
 from .calendars.jul_greg_base import JulGregBaseDate
 from .calendars.julian import JulianDate
 from .calendars.gregorian import GregorianDate
