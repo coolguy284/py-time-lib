@@ -14,7 +14,8 @@ from asyncio import TaskGroup, run
 from enum import Enum
 from sys import argv as sys_argv
 import pygame
-from py_time_lib import TimeInstant, FixedPrec, TIMEZONES, update_time_databases, update_time_databases_loop
+from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
+from py_time_lib import TIMEZONES, update_time_databases, update_time_databases_loop
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
 from draw_lib import draw_text_centered
@@ -65,6 +66,10 @@ async def main():
   time_standards_x_center_offset = 600
   time_standards_y_start = 100
   time_standards_y_step = 50
+  calendars_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p'
+  calendars_x_center_offset = 600
+  calendars_y_start = 110
+  calendars_y_step = 60
   
   smear_plan = LeapSmearPlan(
     LeapSmearSingle(
@@ -88,7 +93,7 @@ async def main():
   run_modes = list(RunMode)
   run_mode_names = {
     RunMode.TIME_STANDARDS: 'Time Standards',
-    RunMode.CALENDARS: 'Calendars',
+    RunMode.CALENDARS: 'Calendars (UTC)',
   }
   run_mode = RunMode.TIME_STANDARDS
   
@@ -192,6 +197,14 @@ async def main():
       if longitude != None:
         draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, time_standards_format_str_cap_offset)}',                              (width / 2 - time_standards_x_center_offset, time_standards_y_start + 12 * time_standards_y_step))
         draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, time_standards_format_str_cap_offset)}',                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 13 * time_standards_y_step))
+    elif run_mode == RunMode.CALENDARS:
+      draw_text_centered(screen, f'Julian:               {now.to_format_string_utc(calendars_format_str, date_cls = JulianDate)}',            (width / 2 - calendars_x_center_offset, calendars_y_start + 0 * calendars_y_step))
+      draw_text_centered(screen, f'Gregorian:            {now.to_format_string_utc(calendars_format_str, date_cls = GregorianDate)}',         (width / 2 - calendars_x_center_offset, calendars_y_start + 1 * calendars_y_step))
+      draw_text_centered(screen, f'Holocene:             {now.to_format_string_utc(calendars_format_str, date_cls = HoloceneDate)}',          (width / 2 - calendars_x_center_offset, calendars_y_start + 3 * calendars_y_step))
+      draw_text_centered(screen, f'Symmetry010:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry010)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 4 * calendars_y_step))
+      draw_text_centered(screen, f'Symmetry010LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry010LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 5 * calendars_y_step))
+      draw_text_centered(screen, f'Symmetry454:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 6 * calendars_y_step))
+      draw_text_centered(screen, f'Symmetry454LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 7 * calendars_y_step))
     
     pygame.display.flip()
     await clock.tick_async(refresh_rate)
