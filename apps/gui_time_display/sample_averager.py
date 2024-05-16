@@ -1,4 +1,4 @@
-from random import random
+from random import random, seed
 
 # from https://github.com/coolguy284/c284-webmain-1/blob/main/srv_web_main/websites/public/misc/debug/time_syncer_2/js/sample_averager.js
 class SampleAverager:
@@ -35,7 +35,7 @@ class SampleAverager:
     if self._current_sample_index < 0:
       self._current_sample_index += 1
     else:
-      if self._current_sample_index in self._samples:
+      if 0 <= self._current_sample_index < len(self._samples):
         self._update_at_index(self._current_sample_index, sample)
       else:
         if len(self._samples) >= self._max_samples:
@@ -74,10 +74,13 @@ class SampleAverager:
     self._sample_average = self._get_true_average()
 
 def test_sample_averager() -> None:
+  # test 1
+  
+  seed(42)
   nums1 = [random() for _ in range(258)]
   nums2 = [random() for _ in range(150)]
   
-  avg = SampleAverager(100, 0)
+  avg = SampleAverager(100, 1)
   
   def check_integrity():
     reported_avg = avg.get_sample_average()
@@ -102,5 +105,27 @@ def test_sample_averager() -> None:
   
   for x in nums2:
     new_input_then_integrity(x)
+  
+  # test 2
+  
+  avg = SampleAverager(100, 1)
+  avg.new_sample_input(0.2)
+  avg.new_sample_input(0.2)
+  print(avg.get_sample_average())
+  print(avg.get_sample_average())
+  avg.new_sample_input(0.2)
+  avg.new_sample_input(0.2)
+  avg.new_sample_input(0.2)
+  avg.new_sample_input(0.2)
+  
+  avg = SampleAverager(100, 1)
+  avg.new_sample_input(4)
+  avg.new_sample_input(4)
+  print(avg.get_sample_average())
+  print(avg.get_sample_average())
+  avg.new_sample_input(4)
+  avg.new_sample_input(4)
+  avg.new_sample_input(4)
+  avg.new_sample_input(4)
   
   print('SampleAverager test successful.')

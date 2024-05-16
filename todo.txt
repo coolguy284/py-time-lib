@@ -1,3 +1,4 @@
+add time / time rate picker to apps page
 strptime support
 test true leap second handling in windows
 

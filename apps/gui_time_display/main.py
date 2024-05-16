@@ -65,7 +65,7 @@ async def main():
   time_standards_format_str_cap_offset = '%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
   time_standards_x_center_offset = 600
   time_standards_y_start = 100
-  time_standards_y_step = 50
+  time_standards_y_step = 45
   calendars_time_format_str = '%I:%M:%S.%.9f %p'
   calendars_format_str = f'%a %b %d %Y {calendars_time_format_str}'
   calendars_x_center_offset = 600
@@ -90,13 +90,15 @@ async def main():
   RunMode = Enum('RunMode', (
     'TIME_STANDARDS',
     'CALENDARS',
+    'BLANK',
   ))
   run_modes = list(RunMode)
   run_mode_names = {
     RunMode.TIME_STANDARDS: 'Time Standards',
     RunMode.CALENDARS: 'Calendars (UTC)',
+    RunMode.BLANK: 'Blank',
   }
-  run_mode = RunMode.TIME_STANDARDS
+  run_mode = RunMode.BLANK
   
   # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
   screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -209,6 +211,7 @@ async def main():
       draw_text_centered(screen, f'Symmetry454:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 6 * calendars_y_step))
       draw_text_centered(screen, f'Symmetry454LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 7 * calendars_y_step))
     
+    #clock.mark_tick_finish_processing()
     pygame.display.flip()
     await clock.tick_async(refresh_rate)
   

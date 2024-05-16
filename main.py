@@ -11,6 +11,7 @@ from py_time_lib.update_timezone_db import _parse_tzdb_get_filtered_lines, _pars
 from py_time_lib.update_ut1 import *
 from py_time_lib.data_py.holidays import *
 from py_time_lib.data_py.leap_smear_profiles import *
+from apps.gui_time_display.sample_averager import SampleAverager, test_sample_averager
 
 update_time_databases()
 

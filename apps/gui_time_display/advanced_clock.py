@@ -5,17 +5,28 @@ from pygame.time import wait
 from sample_averager import SampleAverager
 
 class AdvancedClock:
-  __slots__ = '_perf_counter_loop_start', '_perf_counter_loop_end', '_past_perf_counter_loop_end', '_frame_times', '_busy_fractions'
+  __slots__ = (
+    '_perf_counter_loop_start',
+    '_perf_counter_loop_end',
+    '_past_perf_counter_loop_end',
+    '_tick_finished_processing',
+    '_frame_times',
+    '_busy_fractions',
+  )
   
   def __init__(self):
     self._perf_counter_loop_start = None
     self._perf_counter_loop_end = None
     self._past_perf_counter_loop_end = None
+    self._tick_finished_processing = False
     self._frame_times = SampleAverager(100, 2)
     self._busy_fractions = SampleAverager(100, 2)
   
   def _computation_time_ns(self) -> int:
-    self._perf_counter_loop_end = perf_counter_ns()
+    if self._tick_finished_processing:
+      self._tick_finished_processing = False
+    else:
+      self._perf_counter_loop_end = perf_counter_ns()
     
     if self._perf_counter_loop_start == None:
       result = 0
@@ -37,6 +48,10 @@ class AdvancedClock:
     self._busy_fractions.new_sample_input(busy_fraction)
     self._past_perf_counter_loop_end = self._perf_counter_loop_end
     return remaining_frame_time
+  
+  def mark_tick_finish_processing(self):
+    self._perf_counter_loop_end = perf_counter_ns()
+    self._tick_finished_processing = True
   
   def tick(self, framerate: int) -> None:
     remaining_frame_time = self._tick_internal(framerate)
