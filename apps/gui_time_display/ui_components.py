@@ -69,7 +69,7 @@ class Button(PositionalElement):
       return False
 
 class Slider(PositionalElement):
-  __slots__ = 'orientation', 'value'
+  __slots__ = 'orientation', '_value'
   
   Orientation = Enum('SliderOrientation', (
     'HORIZONTAL',
@@ -77,7 +77,7 @@ class Slider(PositionalElement):
   ))
   
   orientation: Orientation
-  value: float
+  _value: float
   
   line_margin = 1
   
@@ -85,6 +85,19 @@ class Slider(PositionalElement):
     super().__init__(screen, x, y, w, h)
     self.orientation = orientation
     self.value = 0
+  
+  @property
+  def value(self) -> float:
+    return self._value
+  
+  @value.setter
+  def value(self, new_value: float) -> None:
+    if new_value < 0:
+      self._value = 0
+    elif new_value > 1:
+      self._value = 1
+    else:
+      self._value = new_value
   
   def draw(self) -> None:
     draw_rect(
@@ -114,11 +127,14 @@ class Slider(PositionalElement):
         width = 2
       )
   
-  def is_pressed(self, mouse_click_pos: tuple[float, float]) -> tuple[bool, float | None]:
+  def is_pressed(self, mouse_click_pos: tuple[float, float]) -> bool:
     if self.x < mouse_click_pos[0] < self.x + self.w and self.y < mouse_click_pos[1] < self.y + self.h:
-      if self.orientation == self.Orientation.HORIZONTAL:
-        return True, (mouse_click_pos[0] - self.x) / self.w
-      else:
-        return True, (mouse_click_pos[1] - self.y) / self.h
+      return True
     else:
-      return False, None
+      return False
+  
+  def get_pressed_value(self, mouse_click_pos: tuple[float, float]) -> float:
+    if self.orientation == self.Orientation.HORIZONTAL:
+      return (mouse_click_pos[0] - self.x) / self.w
+    else:
+      return (mouse_click_pos[1] - self.y) / self.h

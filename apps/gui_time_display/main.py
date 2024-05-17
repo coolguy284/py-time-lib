@@ -106,6 +106,7 @@ async def main():
   }
   run_mode = RunMode.TIME_STANDARDS
   dragging_time_slider = False
+  dragging_time_rate_slider = False
   
   # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
   screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -186,18 +187,48 @@ async def main():
     time_rate_reset_btn.enabled = True
   
   while loop:
+    # update
+    
     left_btn.enabled = run_mode.value > 1
     right_btn.enabled = run_mode.value < len(run_modes)
     
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         loop = False
+      
       elif event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == 1:
           if left_btn.is_pressed(event.pos):
             run_mode = run_modes[run_mode.value - 2]
           elif right_btn.is_pressed(event.pos):
             run_mode = run_modes[run_mode.value]
+        
+        if time_mode == TimeMode.CUSTOMIZABLE:
+          if event.button == 1:
+            if time_slider.is_pressed(event.pos):
+              time_slider.value = time_slider.get_pressed_value(event.pos)
+              dragging_time_slider = True
+            elif time_rate_slider.is_pressed(event.pos):
+              time_rate_slider.value = time_rate_slider.get_pressed_value(event.pos)
+              dragging_time_rate_slider = True
+      
+      elif event.type == pygame.MOUSEMOTION:
+        mouse_held = pygame.mouse.get_pressed()[0]
+        
+        if time_mode == TimeMode.CUSTOMIZABLE:
+          if dragging_time_slider:
+            if mouse_held:
+              time_slider.value = time_slider.get_pressed_value(event.pos)
+            else:
+              dragging_time_slider = False
+          
+          if dragging_time_rate_slider:
+            if mouse_held:
+              time_rate_slider.value = time_rate_slider.get_pressed_value(event.pos)
+            else:
+              dragging_time_rate_slider = False
+    
+    # draw
     
     screen.fill((0, 0, 0))
     
