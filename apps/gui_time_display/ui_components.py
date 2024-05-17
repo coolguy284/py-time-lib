@@ -113,7 +113,7 @@ class Slider(PositionalElement):
     if self.orientation == self.Orientation.HORIZONTAL:
       draw_line(
         self.screen,
-        (255, 255, 255),
+        (255, 0, 0),
         (self.x + self.w * self.value, self.y + self.line_margin),
         (self.x + self.w * self.value, self.y + self.h - self.line_margin),
         width = 2
@@ -121,7 +121,7 @@ class Slider(PositionalElement):
     else:
       draw_line(
         self.screen,
-        (255, 255, 255),
+        (255, 0, 0),
         (self.x + self.line_margin, self.y + self.h * self.value),
         (self.x + self.w - self.line_margin, self.y + self.h * self.value),
         width = 2

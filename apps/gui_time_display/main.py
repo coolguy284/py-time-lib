@@ -12,6 +12,7 @@ def fix_import_path():
 
 from asyncio import TaskGroup, run
 from enum import Enum
+from math import log10
 from sys import argv as sys_argv
 import pygame
 from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
@@ -61,7 +62,7 @@ async def main():
   buttons_y_coord = 40
   buttons_size = 40
   time_sliders_edge_dist = 15
-  time_rate_text_size = 100
+  time_rate_text_size = 150
   time_sliders_height = 40
   time_sliders_reset_btn_width = 100
   time_standards_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
@@ -69,6 +70,9 @@ async def main():
   time_standards_x_center_offset = 600
   time_standards_y_start = 100
   time_standards_y_step = 45
+  time_rate_center_radius = 0.02
+  time_rate_min_exp = -5
+  time_rate_max_exp = 6
   calendars_time_format_str = '%I:%M:%S.%.9f %p'
   calendars_format_str = f'%a %b %d %Y {calendars_time_format_str}'
   calendars_x_center_offset = 600
@@ -115,6 +119,31 @@ async def main():
   refresh_rate = pygame.display.get_current_refresh_rate()
   clock = AdvancedClock()
   
+  def time_rate_true_to_norm(time_rate: FixedPrec) -> float:
+    if time_rate == 0:
+      return 0.5
+    else:
+      forwards = time_rate > 0
+      mul = 1 if forwards else -1
+      rate_abs = abs(time_rate)
+      norm_abs = (log10(rate_abs) - time_rate_min_exp) / (time_rate_max_exp - time_rate_min_exp)
+      return 0.5 + mul * (norm_abs * (0.5 - time_rate_center_radius) + time_rate_center_radius)
+  
+  def time_rate_norm_to_true(time_rate_norm: float) -> tuple[FixedPrec, float]:
+    if 0.5 - time_rate_center_radius / 2 < time_rate_norm < 0.5 + time_rate_center_radius / 2:
+      return FixedPrec(0), 0.5
+    else:
+      forwards = time_rate_norm > 0.5
+      mul = 1 if forwards else -1
+      norm_abs = max(
+        (abs(time_rate_norm - 0.5) - time_rate_center_radius) / (0.5 - time_rate_center_radius),
+        0
+      )
+      return (
+        mul * FixedPrec(10) ** (time_rate_min_exp + (time_rate_max_exp - time_rate_min_exp) * norm_abs),
+        0.5 + mul * (norm_abs * (0.5 - time_rate_center_radius) + time_rate_center_radius),
+      )
+  
   loop = True
   
   if time_mode == TimeMode.LEAP_SEC_REPLAY:
@@ -123,6 +152,11 @@ async def main():
     time_reset_time = TimeInstant.now().time
     time_base = time_reset_time
     time_rate = FixedPrec(1)
+    
+    def reset_time_base_to_current() -> None:
+      nonlocal time_base, time_reset_time
+      time_base = now.time
+      time_reset_time = true_now.time
   
   left_btn = Button(
     screen = screen,
@@ -173,7 +207,7 @@ async def main():
       h = time_sliders_height,
       orientation = Slider.Orientation.HORIZONTAL
     )
-    time_rate_slider.value = 0.5
+    time_rate_slider.value = time_rate_true_to_norm(time_rate)
     
     time_rate_reset_btn = Button(
       screen = screen,
@@ -210,7 +244,16 @@ async def main():
               dragging_time_slider = True
             elif time_rate_slider.is_pressed(event.pos):
               time_rate_slider.value = time_rate_slider.get_pressed_value(event.pos)
+              time_rate, time_rate_slider.value = time_rate_norm_to_true(time_rate_slider.value)
+              reset_time_base_to_current()
               dragging_time_rate_slider = True
+            elif time_reset_btn.is_pressed(event.pos):
+              time_reset_time = TimeInstant.now().time
+              time_base = time_reset_time
+            elif time_rate_reset_btn.is_pressed(event.pos):
+              time_rate = FixedPrec(1)
+              time_rate_slider.value = time_rate_true_to_norm(time_rate)
+              reset_time_base_to_current()
       
       elif event.type == pygame.MOUSEMOTION:
         mouse_held = pygame.mouse.get_pressed()[0]
@@ -225,6 +268,8 @@ async def main():
           if dragging_time_rate_slider:
             if mouse_held:
               time_rate_slider.value = time_rate_slider.get_pressed_value(event.pos)
+              time_rate, time_rate_slider.value = time_rate_norm_to_true(time_rate_slider.value)
+              reset_time_base_to_current()
             else:
               dragging_time_rate_slider = False
     
@@ -238,12 +283,14 @@ async def main():
     draw_text_centered(screen, run_mode_names[run_mode], (width / 2, 45), horz_align = 0.5, size = 43)
     draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
     
+    true_now = TimeInstant.now()
+    
     if time_mode == TimeMode.CURRENT:
-      now = TimeInstant.now()
+      now = true_now
     elif time_mode == TimeMode.LEAP_SEC_REPLAY:
       now = TimeInstant(
         (
-          TimeInstant.now().time -
+          true_now.time -
           prgm_start_secs
         ) * 1 +
         TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
@@ -251,7 +298,7 @@ async def main():
     elif time_mode == TimeMode.CUSTOMIZABLE:
       now = TimeInstant(
         (
-          TimeInstant.now().time -
+          true_now.time -
           time_reset_time
         ) * time_rate +
         time_base
@@ -265,7 +312,7 @@ async def main():
       time_rate_reset_btn.draw()
       draw_text_centered(
         screen,
-        f'{time_rate:.2f}x',
+        f'{float(time_rate):.2e}x',
         (
           width - time_rate_text_size / 2 - time_sliders_edge_dist,
           height - time_sliders_height / 2 + 1
