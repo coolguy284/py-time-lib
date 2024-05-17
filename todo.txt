@@ -1,4 +1,6 @@
 add time / time rate picker to apps page
+add timezone / longitude picker to bototm
+add clock page
 ethiopian calendar
 strptime support
 test true leap second handling in windows

@@ -20,6 +20,7 @@ from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 
 from draw_lib import draw_text_centered
 from advanced_clock import AdvancedClock
+from ui_components import Button, Slider
 
 async def main():
   update_time_databases()
@@ -59,11 +60,8 @@ async def main():
   buttons_from_left_percent = 0.03
   buttons_y_coord = 40
   buttons_size = 40
-  button_disabled_color = 127, 127, 127
-  button_active_color = 255, 255, 255
   time_sliders_edge_dist = 15
   time_rate_text_size = 100
-  time_rate_slider_right_edge_dist = time_sliders_edge_dist + time_rate_text_size
   time_sliders_height = 40
   time_sliders_reset_btn_width = 100
   time_standards_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
@@ -106,7 +104,8 @@ async def main():
     RunMode.CALENDARS: 'Calendars (UTC)',
     RunMode.BLANK: 'Blank',
   }
-  run_mode = RunMode.CLOCK
+  run_mode = RunMode.TIME_STANDARDS
+  dragging_time_slider = False
   
   # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
   screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -124,61 +123,86 @@ async def main():
     time_base = time_reset_time
     time_rate = FixedPrec(1)
   
+  left_btn = Button(
+    screen = screen,
+    x = width * buttons_from_left_percent - buttons_size / 2,
+    y = buttons_y_coord - buttons_size / 2,
+    w = buttons_size,
+    h = buttons_size,
+    text = '<',
+    size = 40
+  )
+  right_btn = Button(
+    screen = screen,
+    x = width * (1 - buttons_from_left_percent) - buttons_size / 2,
+    y = buttons_y_coord - buttons_size / 2,
+    w = buttons_size,
+    h = buttons_size,
+    text = '>',
+    size = 40
+  )
+  
+  if time_mode == TimeMode.CUSTOMIZABLE:
+    time_slider = Slider(
+      screen = screen,
+      x = time_sliders_edge_dist,
+      y = height - time_sliders_height * 2 - 10,
+      w = width - time_sliders_reset_btn_width - time_sliders_edge_dist * 2,
+      h = time_sliders_height,
+      orientation = Slider.Orientation.HORIZONTAL
+    )
+    time_slider.value = 0.5
+    
+    time_reset_btn = Button(
+      screen = screen,
+      x = width - time_sliders_reset_btn_width - time_sliders_edge_dist,
+      y = height - time_sliders_height * 2 - 10,
+      w = time_sliders_reset_btn_width,
+      h = time_sliders_height,
+      text = 'Reset',
+      size = 35
+    )
+    time_reset_btn.enabled = True
+    
+    time_rate_slider = Slider(
+      screen = screen,
+      x = time_sliders_edge_dist,
+      y = height - time_sliders_height,
+      w = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist * 2,
+      h = time_sliders_height,
+      orientation = Slider.Orientation.HORIZONTAL
+    )
+    time_rate_slider.value = 0.5
+    
+    time_rate_reset_btn = Button(
+      screen = screen,
+      x = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist,
+      y = height - time_sliders_height,
+      w = time_sliders_reset_btn_width,
+      h = time_sliders_height,
+      text = 'Reset',
+      size = 35
+    )
+    time_rate_reset_btn.enabled = True
+  
   while loop:
-    left_disabled = run_mode.value <= 1
-    right_disabled = run_mode.value >= len(run_modes)
+    left_btn.enabled = run_mode.value > 1
+    right_btn.enabled = run_mode.value < len(run_modes)
     
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         loop = False
       elif event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == 1:
-          if width * buttons_from_left_percent - buttons_size / 2 < event.pos[0] < width * buttons_from_left_percent + buttons_size / 2 and \
-            buttons_y_coord - buttons_size / 2 < event.pos[1] < buttons_y_coord + buttons_size / 2:
-            if not left_disabled:
-              run_mode = run_modes[run_mode.value - 2]
-          elif width - width * buttons_from_left_percent - buttons_size / 2 < event.pos[0] < width - width * buttons_from_left_percent + buttons_size / 2 and \
-            buttons_y_coord - buttons_size / 2 < event.pos[1] < buttons_y_coord + buttons_size / 2:
-            if not right_disabled:
-              run_mode = run_modes[run_mode.value]
+          if left_btn.is_pressed(event.pos):
+            run_mode = run_modes[run_mode.value - 2]
+          elif right_btn.is_pressed(event.pos):
+            run_mode = run_modes[run_mode.value]
     
     screen.fill((0, 0, 0))
     
-    draw_text_centered(
-      screen,
-      '<',
-      (width * buttons_from_left_percent, buttons_y_coord + 5),
-      horz_align = 0.5,
-      color = button_active_color if not left_disabled else button_disabled_color
-    )
-    pygame.draw.rect(
-      screen,
-      button_active_color if not left_disabled else button_disabled_color,
-      (width * buttons_from_left_percent - 20, buttons_y_coord - 20, buttons_size, buttons_size),
-      width = 2,
-      border_top_left_radius = 2,
-      border_top_right_radius = 2,
-      border_bottom_left_radius = 2,
-      border_bottom_right_radius = 2
-    )
-    
-    draw_text_centered(
-      screen,
-      '>',
-      (width - width * buttons_from_left_percent, buttons_y_coord + 5),
-      horz_align = 0.5,
-      color = button_active_color if not right_disabled else button_disabled_color
-    )
-    pygame.draw.rect(
-      screen,
-      button_active_color if not right_disabled else button_disabled_color,
-      (width - width * buttons_from_left_percent - 20, buttons_y_coord - 20, buttons_size, buttons_size),
-      width = 2,
-      border_top_left_radius = 2,
-      border_top_right_radius = 2,
-      border_bottom_left_radius = 2,
-      border_bottom_right_radius = 2
-    )
+    left_btn.draw()
+    right_btn.draw()
     
     draw_text_centered(screen, run_mode_names[run_mode], (width / 2, 45), horz_align = 0.5, size = 43)
     draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
@@ -203,83 +227,18 @@ async def main():
       )
     
     if time_mode == TimeMode.CUSTOMIZABLE:
-      pygame.draw.rect(
-        screen,
-        (255, 255, 255),
-        (
-          time_sliders_edge_dist,
-          height - time_sliders_height * 2 - 10,
-          width - time_sliders_edge_dist * 2 - time_sliders_reset_btn_width,
-          time_sliders_height,
-        ),
-        width = 2,
-        border_top_left_radius = 4,
-        border_top_right_radius = 4,
-        border_bottom_left_radius = 4,
-        border_bottom_right_radius = 4
-      )
-      pygame.draw.rect(
-        screen,
-        (255, 255, 255),
-        (
-          width - time_sliders_edge_dist - time_sliders_reset_btn_width,
-          height - time_sliders_height * 2 - 10,
-          time_sliders_reset_btn_width,
-          time_sliders_height,
-        ),
-        width = 2,
-        border_top_left_radius = 4,
-        border_top_right_radius = 4,
-        border_bottom_left_radius = 4,
-        border_bottom_right_radius = 4
-      )
-      draw_text_centered(
-        screen,
-        'Reset',
-        (width - time_sliders_edge_dist - time_sliders_reset_btn_width / 2, height - time_sliders_height / 2 - time_sliders_height - 10 + 5),
-        horz_align = 0.5
-      )
+      time_slider.draw()
+      time_reset_btn.draw()
       
-      pygame.draw.rect(
-        screen,
-        (255, 255, 255),
-        (
-          time_sliders_edge_dist,
-          height - time_sliders_height,
-          width - time_sliders_edge_dist - time_rate_slider_right_edge_dist - time_sliders_reset_btn_width,
-          time_sliders_height,
-        ),
-        width = 2,
-        border_top_left_radius = 4,
-        border_top_right_radius = 4,
-        border_bottom_left_radius = 4,
-        border_bottom_right_radius = 4
-      )
-      pygame.draw.rect(
-        screen,
-        (255, 255, 255),
-        (
-          width - time_rate_slider_right_edge_dist - time_sliders_reset_btn_width,
-          height - time_sliders_height,
-          time_sliders_reset_btn_width,
-          time_sliders_height,
-        ),
-        width = 2,
-        border_top_left_radius = 4,
-        border_top_right_radius = 4,
-        border_bottom_left_radius = 4,
-        border_bottom_right_radius = 4
-      )
-      draw_text_centered(
-        screen,
-        'Reset',
-        (width - time_rate_slider_right_edge_dist - time_sliders_reset_btn_width / 2, height - time_sliders_height / 2 + 5),
-        horz_align = 0.5
-      )
+      time_rate_slider.draw()
+      time_rate_reset_btn.draw()
       draw_text_centered(
         screen,
         f'{time_rate:.2f}x',
-        (width - time_rate_text_size / 2 - time_sliders_edge_dist, height - time_sliders_height / 2 + 5),
+        (
+          width - time_rate_text_size / 2 - time_sliders_edge_dist,
+          height - time_sliders_height / 2 + 1
+        ),
         horz_align = 0.5,
         size = 23
       )
@@ -317,7 +276,9 @@ async def main():
       draw_text_centered(screen, f'Symmetry454:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 6 * calendars_y_step))
       draw_text_centered(screen, f'Symmetry454LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 7 * calendars_y_step))
     
-    #clock.mark_tick_finish_processing()
+    elif run_mode == RunMode.BLANK:
+      pass
+    
     pygame.display.flip()
     await clock.tick_async(refresh_rate)
   
