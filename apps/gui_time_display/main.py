@@ -61,6 +61,11 @@ async def main():
   buttons_size = 40
   button_disabled_color = 127, 127, 127
   button_active_color = 255, 255, 255
+  time_sliders_edge_dist = 15
+  time_rate_text_size = 100
+  time_rate_slider_right_edge_dist = time_sliders_edge_dist + time_rate_text_size
+  time_sliders_height = 40
+  time_sliders_reset_btn_width = 100
   time_standards_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
   time_standards_format_str_cap_offset = '%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
   time_standards_x_center_offset = 600
@@ -85,20 +90,23 @@ async def main():
   TimeMode = Enum('TimeMode', (
     'CURRENT',
     'LEAP_SEC_REPLAY',
+    'CUSTOMIZABLE',
   ))
-  time_mode = TimeMode.CURRENT
+  time_mode = TimeMode.CUSTOMIZABLE
   RunMode = Enum('RunMode', (
+    'CLOCK',
     'TIME_STANDARDS',
     'CALENDARS',
     'BLANK',
   ))
   run_modes = list(RunMode)
   run_mode_names = {
+    RunMode.CLOCK: 'Clock',
     RunMode.TIME_STANDARDS: 'Time Standards',
     RunMode.CALENDARS: 'Calendars (UTC)',
     RunMode.BLANK: 'Blank',
   }
-  run_mode = RunMode.BLANK
+  run_mode = RunMode.CLOCK
   
   # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
   screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -111,6 +119,10 @@ async def main():
   
   if time_mode == TimeMode.LEAP_SEC_REPLAY:
     prgm_start_secs = TimeInstant.now().time
+  elif time_mode == TimeMode.CUSTOMIZABLE:
+    time_reset_time = TimeInstant.now().time
+    time_base = time_reset_time
+    time_rate = FixedPrec(1)
   
   while loop:
     left_disabled = run_mode.value <= 1
@@ -131,17 +143,6 @@ async def main():
               run_mode = run_modes[run_mode.value]
     
     screen.fill((0, 0, 0))
-    
-    if time_mode == TimeMode.CURRENT:
-      now = TimeInstant.now()
-    elif time_mode == TimeMode.LEAP_SEC_REPLAY:
-      now = TimeInstant(
-        (
-          TimeInstant.now().time -
-          prgm_start_secs
-        ) * 1 +
-        TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
-      )
     
     draw_text_centered(
       screen,
@@ -182,7 +183,111 @@ async def main():
     draw_text_centered(screen, run_mode_names[run_mode], (width / 2, 45), horz_align = 0.5, size = 43)
     draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
     
-    if run_mode == RunMode.TIME_STANDARDS:
+    if time_mode == TimeMode.CURRENT:
+      now = TimeInstant.now()
+    elif time_mode == TimeMode.LEAP_SEC_REPLAY:
+      now = TimeInstant(
+        (
+          TimeInstant.now().time -
+          prgm_start_secs
+        ) * 1 +
+        TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
+      )
+    elif time_mode == TimeMode.CUSTOMIZABLE:
+      now = TimeInstant(
+        (
+          TimeInstant.now().time -
+          time_reset_time
+        ) * time_rate +
+        time_base
+      )
+    
+    if time_mode == TimeMode.CUSTOMIZABLE:
+      pygame.draw.rect(
+        screen,
+        (255, 255, 255),
+        (
+          time_sliders_edge_dist,
+          height - time_sliders_height * 2 - 10,
+          width - time_sliders_edge_dist * 2 - time_sliders_reset_btn_width,
+          time_sliders_height,
+        ),
+        width = 2,
+        border_top_left_radius = 4,
+        border_top_right_radius = 4,
+        border_bottom_left_radius = 4,
+        border_bottom_right_radius = 4
+      )
+      pygame.draw.rect(
+        screen,
+        (255, 255, 255),
+        (
+          width - time_sliders_edge_dist - time_sliders_reset_btn_width,
+          height - time_sliders_height * 2 - 10,
+          time_sliders_reset_btn_width,
+          time_sliders_height,
+        ),
+        width = 2,
+        border_top_left_radius = 4,
+        border_top_right_radius = 4,
+        border_bottom_left_radius = 4,
+        border_bottom_right_radius = 4
+      )
+      draw_text_centered(
+        screen,
+        'Reset',
+        (width - time_sliders_edge_dist - time_sliders_reset_btn_width / 2, height - time_sliders_height / 2 - time_sliders_height - 10 + 5),
+        horz_align = 0.5
+      )
+      
+      pygame.draw.rect(
+        screen,
+        (255, 255, 255),
+        (
+          time_sliders_edge_dist,
+          height - time_sliders_height,
+          width - time_sliders_edge_dist - time_rate_slider_right_edge_dist - time_sliders_reset_btn_width,
+          time_sliders_height,
+        ),
+        width = 2,
+        border_top_left_radius = 4,
+        border_top_right_radius = 4,
+        border_bottom_left_radius = 4,
+        border_bottom_right_radius = 4
+      )
+      pygame.draw.rect(
+        screen,
+        (255, 255, 255),
+        (
+          width - time_rate_slider_right_edge_dist - time_sliders_reset_btn_width,
+          height - time_sliders_height,
+          time_sliders_reset_btn_width,
+          time_sliders_height,
+        ),
+        width = 2,
+        border_top_left_radius = 4,
+        border_top_right_radius = 4,
+        border_bottom_left_radius = 4,
+        border_bottom_right_radius = 4
+      )
+      draw_text_centered(
+        screen,
+        'Reset',
+        (width - time_rate_slider_right_edge_dist - time_sliders_reset_btn_width / 2, height - time_sliders_height / 2 + 5),
+        horz_align = 0.5
+      )
+      draw_text_centered(
+        screen,
+        f'{time_rate:.2f}x',
+        (width - time_rate_text_size / 2 - time_sliders_edge_dist, height - time_sliders_height / 2 + 5),
+        horz_align = 0.5,
+        size = 23
+      )
+    
+    if run_mode == RunMode.CLOCK:
+      ...
+    
+    elif run_mode == RunMode.TIME_STANDARDS:
       if tz != None:
         draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, time_standards_format_str)}',                                                          (width / 2 - time_standards_x_center_offset, time_standards_y_start + 0 * time_standards_y_step))
       draw_text_centered(screen, f'UTC: {now.to_format_string_utc(time_standards_format_str)}',                                                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 1 * time_standards_y_step))
@@ -200,6 +305,7 @@ async def main():
       if longitude != None:
         draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, time_standards_format_str_cap_offset)}',                              (width / 2 - time_standards_x_center_offset, time_standards_y_start + 12 * time_standards_y_step))
         draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, time_standards_format_str_cap_offset)}',                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 13 * time_standards_y_step))
+    
     elif run_mode == RunMode.CALENDARS:
       draw_text_centered(screen, f'Julian:               {now.to_format_string_utc(calendars_format_str, date_cls = JulianDate)}',            (width / 2 - calendars_x_center_offset, calendars_y_start + 0 * calendars_y_step))
       draw_text_centered(screen, f'Gregorian:            {now.to_format_string_utc(calendars_format_str, date_cls = GregorianDate)}',         (width / 2 - calendars_x_center_offset, calendars_y_start + 1 * calendars_y_step))
