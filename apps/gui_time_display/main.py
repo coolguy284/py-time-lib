@@ -70,7 +70,11 @@ async def main():
   time_standards_x_center_offset = 600
   time_standards_y_start = 100
   time_standards_y_step = 45
+  time_linear_frac = 0.06
+  time_min_exp = -5
+  time_max_exp = 17.8
   time_rate_center_radius = 0.02
+  time_rate_linear_frac = 0.06
   time_rate_min_exp = -5
   time_rate_max_exp = 6
   calendars_time_format_str = '%I:%M:%S.%.9f %p'
@@ -119,6 +123,25 @@ async def main():
   refresh_rate = pygame.display.get_current_refresh_rate()
   clock = AdvancedClock()
   
+  def linear_to_exponential(linear_start_frac: float, min_exp: float, max_exp: float, value: float) -> FixedPrec:
+    if value <= linear_start_frac:
+      return FixedPrec(10) ** min_exp * value / linear_start_frac
+    else:
+      return FixedPrec(10) ** (
+        min_exp +
+        (value - linear_start_frac) /
+        (1 - linear_start_frac) *
+        (max_exp - min_exp)
+      )
+  
+  def exponential_to_linear(linear_start_frac: float, min_exp: float, max_exp: float, value: FixedPrec) -> float:
+    lin_threshold = FixedPrec(10) ** min_exp
+    if value <= lin_threshold:
+      return float(value / lin_threshold) * linear_start_frac
+    else:
+      return linear_start_frac + \
+        (log10(value) - min_exp) / (max_exp - min_exp) * (1 - linear_start_frac)
+  
   def time_rate_true_to_norm(time_rate: FixedPrec) -> float:
     if time_rate == 0:
       return 0.5
@@ -126,7 +149,7 @@ async def main():
       forwards = time_rate > 0
       mul = 1 if forwards else -1
       rate_abs = abs(time_rate)
-      norm_abs = (log10(rate_abs) - time_rate_min_exp) / (time_rate_max_exp - time_rate_min_exp)
+      norm_abs = exponential_to_linear(time_rate_linear_frac, time_rate_min_exp, time_rate_max_exp, rate_abs)
       return 0.5 + mul * (norm_abs * (0.5 - time_rate_center_radius) + time_rate_center_radius)
   
   def time_rate_norm_to_true(time_rate_norm: float) -> tuple[FixedPrec, float]:
@@ -140,9 +163,15 @@ async def main():
         0
       )
       return (
-        mul * FixedPrec(10) ** (time_rate_min_exp + (time_rate_max_exp - time_rate_min_exp) * norm_abs),
+        mul * linear_to_exponential(time_rate_linear_frac, time_rate_min_exp, time_rate_max_exp, norm_abs),
         0.5 + mul * (norm_abs * (0.5 - time_rate_center_radius) + time_rate_center_radius),
       )
+  
+  def time_norm_to_true_delta(time_norm: float) -> FixedPrec:
+    norm_abs = abs(time_norm - 0.5) * 2
+    positive = time_norm >= 0.5
+    mul = 1 if positive else -1
+    return mul * linear_to_exponential(time_linear_frac, time_min_exp, time_max_exp, norm_abs)
   
   loop = True
   
@@ -152,6 +181,9 @@ async def main():
     time_reset_time = TimeInstant.now().time
     time_base = time_reset_time
     time_rate = FixedPrec(1)
+    old_time_rate = None
+    old_time_base = None
+    time_delta = None
     
     def reset_time_base_to_current() -> None:
       nonlocal time_base, time_reset_time
@@ -241,6 +273,12 @@ async def main():
           if event.button == 1:
             if time_slider.is_pressed(event.pos):
               time_slider.value = time_slider.get_pressed_value(event.pos)
+              reset_time_base_to_current()
+              old_time_rate = time_rate
+              time_rate = FixedPrec(0)
+              old_time_base = time_base
+              time_delta = time_norm_to_true_delta(time_slider.value)
+              time_base = old_time_base + time_delta
               dragging_time_slider = True
             elif time_rate_slider.is_pressed(event.pos):
               time_rate_slider.value = time_rate_slider.get_pressed_value(event.pos)
@@ -256,22 +294,30 @@ async def main():
               reset_time_base_to_current()
       
       elif event.type == pygame.MOUSEMOTION:
-        mouse_held = pygame.mouse.get_pressed()[0]
-        
         if time_mode == TimeMode.CUSTOMIZABLE:
           if dragging_time_slider:
-            if mouse_held:
-              time_slider.value = time_slider.get_pressed_value(event.pos)
-            else:
-              dragging_time_slider = False
+            time_slider.value = time_slider.get_pressed_value(event.pos)
+            time_delta = time_norm_to_true_delta(time_slider.value)
+            time_base = old_time_base + time_delta
           
           if dragging_time_rate_slider:
-            if mouse_held:
-              time_rate_slider.value = time_rate_slider.get_pressed_value(event.pos)
-              time_rate, time_rate_slider.value = time_rate_norm_to_true(time_rate_slider.value)
-              reset_time_base_to_current()
-            else:
-              dragging_time_rate_slider = False
+            time_rate_slider.value = time_rate_slider.get_pressed_value(event.pos)
+            time_rate, time_rate_slider.value = time_rate_norm_to_true(time_rate_slider.value)
+            reset_time_base_to_current()
+      
+      elif event.type == pygame.MOUSEBUTTONUP:
+        if time_mode == TimeMode.CUSTOMIZABLE:
+          if event.button == 1 and (dragging_time_slider or dragging_time_rate_slider):
+            dragging_time_slider = False
+            dragging_time_rate_slider = False
+            time_slider.value = 0.5
+            if old_time_rate != None:
+              time_rate = old_time_rate
+              old_time_rate = None
+              time_base = old_time_base + time_delta
+              time_reset_time = true_now.time
+              old_time_base = None
+              time_delta = None
     
     # draw
     
@@ -310,9 +356,13 @@ async def main():
       
       time_rate_slider.draw()
       time_rate_reset_btn.draw()
+      if old_time_rate:
+        visual_time_rate = old_time_rate
+      else:
+        visual_time_rate = time_rate
       draw_text_centered(
         screen,
-        f'{float(time_rate):.2e}x',
+        f'{float(visual_time_rate):.2e}x',
         (
           width - time_rate_text_size / 2 - time_sliders_edge_dist,
           height - time_sliders_height / 2 + 1

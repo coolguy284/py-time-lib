@@ -61,7 +61,7 @@ class Button(PositionalElement):
   
   def is_pressed(self, mouse_click_pos: tuple[float, float]) -> bool:
     if self.enabled:
-      if self.x < mouse_click_pos[0] < self.x + self.w and self.y < mouse_click_pos[1] < self.y + self.h:
+      if self.x <= mouse_click_pos[0] <= self.x + self.w and self.y <= mouse_click_pos[1] <= self.y + self.h:
         return True
       else:
         return False
@@ -128,7 +128,7 @@ class Slider(PositionalElement):
       )
   
   def is_pressed(self, mouse_click_pos: tuple[float, float]) -> bool:
-    if self.x < mouse_click_pos[0] < self.x + self.w and self.y < mouse_click_pos[1] < self.y + self.h:
+    if self.x <= mouse_click_pos[0] <= self.x + self.w and self.y <= mouse_click_pos[1] <= self.y + self.h:
       return True
     else:
       return False
