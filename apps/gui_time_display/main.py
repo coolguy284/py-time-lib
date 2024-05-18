@@ -198,19 +198,19 @@ async def main():
   
   left_btn = Button(
     screen = screen,
-    x = width * buttons_from_left_percent - buttons_size / 2,
-    y = buttons_y_coord - buttons_size / 2,
-    w = buttons_size,
-    h = buttons_size,
+    x = None,
+    y = None,
+    w = None,
+    h = None,
     text = '<',
     size = 40
   )
   right_btn = Button(
     screen = screen,
-    x = width * (1 - buttons_from_left_percent) - buttons_size / 2,
-    y = buttons_y_coord - buttons_size / 2,
-    w = buttons_size,
-    h = buttons_size,
+    x = None,
+    y = None,
+    w = None,
+    h = None,
     text = '>',
     size = 40
   )
@@ -218,20 +218,20 @@ async def main():
   if time_mode == TimeMode.CUSTOMIZABLE:
     time_slider = Slider(
       screen = screen,
-      x = time_sliders_edge_dist,
-      y = height - time_sliders_height * 2 - 10,
-      w = width - time_sliders_reset_btn_width - time_sliders_edge_dist * 2,
-      h = time_sliders_height,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
       orientation = Slider.Orientation.HORIZONTAL
     )
     time_slider.value = 0.5
     
     time_reset_btn = Button(
       screen = screen,
-      x = width - time_sliders_reset_btn_width - time_sliders_edge_dist,
-      y = height - time_sliders_height * 2 - 10,
-      w = time_sliders_reset_btn_width,
-      h = time_sliders_height,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
       text = 'Reset',
       size = 35
     )
@@ -239,20 +239,20 @@ async def main():
     
     time_rate_slider = Slider(
       screen = screen,
-      x = time_sliders_edge_dist,
-      y = height - time_sliders_height,
-      w = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist * 2,
-      h = time_sliders_height,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
       orientation = Slider.Orientation.HORIZONTAL
     )
     time_rate_slider.value = time_rate_true_to_norm(time_rate)
     
     time_rate_reset_btn = Button(
       screen = screen,
-      x = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist,
-      y = height - time_sliders_height,
-      w = time_sliders_reset_btn_width,
-      h = time_sliders_height,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
       text = 'Reset',
       size = 35
     )
@@ -312,7 +312,45 @@ async def main():
       
       return result
     
-    time_rate_details = get_time_rate_slider_surface()
+    time_rate_details = None
+  
+  def recalculate_vars_after_resize():
+    left_btn.x = width * buttons_from_left_percent - buttons_size / 2
+    left_btn.y = buttons_y_coord - buttons_size / 2
+    left_btn.w = buttons_size
+    left_btn.h = buttons_size
+    
+    right_btn.x = width * (1 - buttons_from_left_percent) - buttons_size / 2
+    right_btn.y = buttons_y_coord - buttons_size / 2
+    right_btn.w = buttons_size
+    right_btn.h = buttons_size
+    
+    if time_mode == TimeMode.CUSTOMIZABLE:
+      nonlocal time_rate_details
+      
+      time_slider.x = time_sliders_edge_dist
+      time_slider.y = height - time_sliders_height * 2 - 10
+      time_slider.w = width - time_sliders_reset_btn_width - time_sliders_edge_dist * 2
+      time_slider.h = time_sliders_height
+      
+      time_reset_btn.x = width - time_sliders_reset_btn_width - time_sliders_edge_dist
+      time_reset_btn.y = height - time_sliders_height * 2 - 10
+      time_reset_btn.w = time_sliders_reset_btn_width
+      time_reset_btn.h = time_sliders_height
+      
+      time_rate_slider.x = time_sliders_edge_dist
+      time_rate_slider.y = height - time_sliders_height
+      time_rate_slider.w = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist * 2
+      time_rate_slider.h = time_sliders_height
+      
+      time_rate_reset_btn.x = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist
+      time_rate_reset_btn.y = height - time_sliders_height
+      time_rate_reset_btn.w = time_sliders_reset_btn_width
+      time_rate_reset_btn.h = time_sliders_height
+      
+      time_rate_details = get_time_rate_slider_surface()
+  
+  recalculate_vars_after_resize()
   
   while loop:
     # update
@@ -380,6 +418,12 @@ async def main():
               time_reset_time = true_now.time
               old_time_base = None
               time_delta = None
+      
+      elif event.type == pygame.WINDOWRESIZED:
+        width = screen.get_width()
+        height = screen.get_height()
+        
+        recalculate_vars_after_resize()
     
     # draw
     
