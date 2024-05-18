@@ -24,6 +24,14 @@ class PositionalElement(ABC):
   def draw(self) -> None:
     ...
   
+  def local_to_subworld(self, lx: float, ly: float, do_round = False) -> tuple[float, float]:
+    sx = self.w * lx
+    sy = self.h * ly
+    if do_round:
+      return round(sx), round(sy)
+    else:
+      return sx, sy
+  
   def local_to_world(self, lx: float, ly: float, do_round = False) -> tuple[float, float]:
     x = self.x + self.w * lx
     y = self.y + self.h * ly

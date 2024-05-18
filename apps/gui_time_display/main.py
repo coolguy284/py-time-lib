@@ -258,27 +258,28 @@ async def main():
     )
     time_rate_reset_btn.enabled = True
     
-    def draw_time_rate_line_raw(norm_x, color = (127, 127, 127), width = 1):
+    def draw_time_rate_line_raw(surf: pygame.Surface, norm_x, color = (127, 127, 127), width = 1) -> None:
       pygame.draw.line(
-        screen,
+        surf,
         color,
-        time_rate_slider.local_to_world(norm_x, 0, True),
-        time_rate_slider.local_to_world(norm_x, 1, True),
+        time_rate_slider.local_to_subworld(norm_x, 0, True),
+        time_rate_slider.local_to_subworld(norm_x, 1, True),
         width = width
       )
     
-    def draw_time_rate_line(value, color = (127, 127, 127), width = 1):
+    def draw_time_rate_line(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
       draw_time_rate_line_raw(
+        surf,
         time_rate_true_to_norm(value),
         color,
         width
       )
     
-    def draw_time_rate_text(value):
+    def draw_time_rate_text(surf: pygame.Surface, value) -> None:
       draw_text_centered(
-        screen,
+        surf,
         f'{value:g}x',
-        time_rate_slider.local_to_world(
+        time_rate_slider.local_to_subworld(
           time_rate_true_to_norm(value),
           0.5
         ),
@@ -286,6 +287,32 @@ async def main():
         size = 10,
         rotation = 90 if value < 0 else -90
       )
+    
+    def get_time_rate_slider_surface() -> pygame.Surface:
+      result = pygame.Surface((time_rate_slider.w, time_rate_slider.h))
+      
+      draw_time_rate_line(result, 0, (255, 255, 255))
+      draw_time_rate_line_raw(result, 0.5 + time_rate_center_radius, (255, 255, 255))
+      draw_time_rate_line_raw(result, 0.5 - time_rate_center_radius, (255, 255, 255))
+      for i in range(1, 10):
+        num = 10 ** time_rate_min_exp * (i / 10)
+        draw_time_rate_line(result, num)
+        draw_time_rate_line(result, -num)
+      for exp in range(time_rate_min_exp, ceil(time_rate_max_exp), 1):
+        draw_time_rate_line(result, 10 ** exp, (255, 255, 255))
+        draw_time_rate_line(result, -10 ** exp, (255, 255, 255))
+        draw_time_rate_text(result, 10 ** exp)
+        draw_time_rate_text(result, -10 ** exp)
+        for i in range(2, 10):
+          num = 10 ** exp * i
+          if log10(num) > time_rate_max_exp:
+            break
+          draw_time_rate_line(result, num)
+          draw_time_rate_line(result, -num)
+      
+      return result
+    
+    time_rate_details = get_time_rate_slider_surface()
   
   while loop:
     # update
@@ -389,24 +416,10 @@ async def main():
       time_slider.draw()
       time_reset_btn.draw()
       
-      draw_time_rate_line(0, (255, 255, 255))
-      draw_time_rate_line_raw(0.5 + time_rate_center_radius, (255, 255, 255))
-      draw_time_rate_line_raw(0.5 - time_rate_center_radius, (255, 255, 255))
-      for i in range(1, 10):
-        num = 10 ** time_rate_min_exp * (i / 10)
-        draw_time_rate_line(num)
-        draw_time_rate_line(-num)
-      for exp in range(time_rate_min_exp, ceil(time_rate_max_exp), 1):
-        draw_time_rate_line(10 ** exp, (255, 255, 255))
-        draw_time_rate_line(-10 ** exp, (255, 255, 255))
-        draw_time_rate_text(10 ** exp)
-        draw_time_rate_text(-10 ** exp)
-        for i in range(2, 10):
-          num = 10 ** exp * i
-          if log10(num) > time_rate_max_exp:
-            break
-          draw_time_rate_line(num)
-          draw_time_rate_line(-num)
+      screen.blit(
+        time_rate_details,
+        time_rate_slider.local_to_world(0, 0, True)
+      )
       
       time_rate_slider.draw()
       time_rate_reset_btn.draw()
