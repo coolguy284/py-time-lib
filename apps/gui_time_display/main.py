@@ -58,10 +58,11 @@ async def main():
   
   width = 1280
   height = 850
-  buttons_from_left_percent = 0.03
+  buttons_edge_x_coord = 40
   buttons_y_coord = 40
   buttons_size = 40
-  time_sliders_edge_dist = 15
+  time_sliders_edge_dist_x = 15
+  time_sliders_gap_y = 10
   time_rate_text_size = 150
   time_sliders_height = 60
   time_sliders_reset_btn_width = 100
@@ -315,12 +316,12 @@ async def main():
     time_rate_details = None
   
   def recalculate_vars_after_resize():
-    left_btn.x = width * buttons_from_left_percent - buttons_size / 2
+    left_btn.x = buttons_edge_x_coord - buttons_size / 2
     left_btn.y = buttons_y_coord - buttons_size / 2
     left_btn.w = buttons_size
     left_btn.h = buttons_size
     
-    right_btn.x = width * (1 - buttons_from_left_percent) - buttons_size / 2
+    right_btn.x = width - buttons_edge_x_coord - buttons_size / 2
     right_btn.y = buttons_y_coord - buttons_size / 2
     right_btn.w = buttons_size
     right_btn.h = buttons_size
@@ -328,23 +329,23 @@ async def main():
     if time_mode == TimeMode.CUSTOMIZABLE:
       nonlocal time_rate_details
       
-      time_slider.x = time_sliders_edge_dist
-      time_slider.y = height - time_sliders_height * 2 - 10
-      time_slider.w = width - time_sliders_reset_btn_width - time_sliders_edge_dist * 2
+      time_slider.x = time_sliders_edge_dist_x
+      time_slider.y = height - time_sliders_height * 2 - time_sliders_gap_y * 2
+      time_slider.w = width - time_sliders_reset_btn_width - time_sliders_edge_dist_x * 2
       time_slider.h = time_sliders_height
       
-      time_reset_btn.x = width - time_sliders_reset_btn_width - time_sliders_edge_dist
-      time_reset_btn.y = height - time_sliders_height * 2 - 10
+      time_reset_btn.x = width - time_sliders_reset_btn_width - time_sliders_edge_dist_x
+      time_reset_btn.y = height - time_sliders_height * 2 - time_sliders_gap_y * 2
       time_reset_btn.w = time_sliders_reset_btn_width
       time_reset_btn.h = time_sliders_height
       
-      time_rate_slider.x = time_sliders_edge_dist
-      time_rate_slider.y = height - time_sliders_height
-      time_rate_slider.w = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist * 2
+      time_rate_slider.x = time_sliders_edge_dist_x
+      time_rate_slider.y = height - time_sliders_height - time_sliders_gap_y
+      time_rate_slider.w = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist_x * 2
       time_rate_slider.h = time_sliders_height
       
-      time_rate_reset_btn.x = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist
-      time_rate_reset_btn.y = height - time_sliders_height
+      time_rate_reset_btn.x = width - time_sliders_reset_btn_width - time_rate_text_size - time_sliders_edge_dist_x
+      time_rate_reset_btn.y = height - time_sliders_height - time_sliders_gap_y
       time_rate_reset_btn.w = time_sliders_reset_btn_width
       time_rate_reset_btn.h = time_sliders_height
       
@@ -476,7 +477,7 @@ async def main():
         screen,
         f'{float(visual_time_rate):.2e}x',
         (
-          width - time_rate_text_size / 2 - time_sliders_edge_dist,
+          width - time_rate_text_size / 2 - time_sliders_edge_dist_x,
           height - time_sliders_height / 2 + 1
         ),
         horz_align = 0.5,
