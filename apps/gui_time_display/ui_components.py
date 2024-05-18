@@ -23,6 +23,20 @@ class PositionalElement(ABC):
   @abstractmethod
   def draw(self) -> None:
     ...
+  
+  def local_to_world(self, lx: float, ly: float, do_round = False) -> tuple[float, float]:
+    x = self.x + self.w * lx
+    y = self.y + self.h * ly
+    if do_round:
+      return round(x), round(y)
+    else:
+      return x, y
+  
+  def world_to_local(self, x: float, y: float) -> tuple[float, float]:
+    return (
+      (x - self.x) / self.w,
+      (y - self.y) / self.h,
+    )
 
 class Button(PositionalElement):
   __slots__ = 'text', 'size', 'enabled'

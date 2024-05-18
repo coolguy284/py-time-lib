@@ -12,7 +12,7 @@ def fix_import_path():
 
 from asyncio import TaskGroup, run
 from enum import Enum
-from math import log10
+from math import ceil, log10
 from sys import argv as sys_argv
 import pygame
 from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
@@ -57,13 +57,13 @@ async def main():
   pygame.init()
   
   width = 1280
-  height = 800
+  height = 850
   buttons_from_left_percent = 0.03
   buttons_y_coord = 40
   buttons_size = 40
   time_sliders_edge_dist = 15
   time_rate_text_size = 150
-  time_sliders_height = 40
+  time_sliders_height = 60
   time_sliders_reset_btn_width = 100
   time_standards_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
   time_standards_format_str_cap_offset = '%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
@@ -74,9 +74,9 @@ async def main():
   time_min_exp = -5
   time_max_exp = 17.8
   time_rate_center_radius = 0.02
-  time_rate_linear_frac = 0.06
   time_rate_min_exp = -5
   time_rate_max_exp = 6
+  time_rate_linear_frac = 1 / (time_rate_max_exp - time_rate_min_exp + 1)
   calendars_time_format_str = '%I:%M:%S.%.9f %p'
   calendars_format_str = f'%a %b %d %Y {calendars_time_format_str}'
   calendars_x_center_offset = 600
@@ -173,6 +173,12 @@ async def main():
     mul = 1 if positive else -1
     return mul * linear_to_exponential(time_linear_frac, time_min_exp, time_max_exp, norm_abs)
   
+  def time_delta_to_time_norm(time_delta: FixedPrec) -> float:
+    delta_abs = abs(time_delta)
+    mul = 1 if time_delta >= 0 else -1
+    norm_abs = exponential_to_linear(delta_abs)
+    return (mul * norm_abs) * 0.5 + 0.5
+  
   loop = True
   
   if time_mode == TimeMode.LEAP_SEC_REPLAY:
@@ -251,6 +257,35 @@ async def main():
       size = 35
     )
     time_rate_reset_btn.enabled = True
+    
+    def draw_time_rate_line_raw(norm_x, color = (127, 127, 127), width = 1):
+      pygame.draw.line(
+        screen,
+        color,
+        time_rate_slider.local_to_world(norm_x, 0, True),
+        time_rate_slider.local_to_world(norm_x, 1, True),
+        width = width
+      )
+    
+    def draw_time_rate_line(value, color = (127, 127, 127), width = 1):
+      draw_time_rate_line_raw(
+        time_rate_true_to_norm(value),
+        color,
+        width
+      )
+    
+    def draw_time_rate_text(value):
+      draw_text_centered(
+        screen,
+        f'{value:g}x',
+        time_rate_slider.local_to_world(
+          time_rate_true_to_norm(value),
+          0.5
+        ),
+        horz_align = 0.8 if value < 0 else 0,
+        size = 10,
+        rotation = 90 if value < 0 else -90
+      )
   
   while loop:
     # update
@@ -354,8 +389,28 @@ async def main():
       time_slider.draw()
       time_reset_btn.draw()
       
+      draw_time_rate_line(0, (255, 255, 255))
+      draw_time_rate_line_raw(0.5 + time_rate_center_radius, (255, 255, 255))
+      draw_time_rate_line_raw(0.5 - time_rate_center_radius, (255, 255, 255))
+      for i in range(1, 10):
+        num = 10 ** time_rate_min_exp * (i / 10)
+        draw_time_rate_line(num)
+        draw_time_rate_line(-num)
+      for exp in range(time_rate_min_exp, ceil(time_rate_max_exp), 1):
+        draw_time_rate_line(10 ** exp, (255, 255, 255))
+        draw_time_rate_line(-10 ** exp, (255, 255, 255))
+        draw_time_rate_text(10 ** exp)
+        draw_time_rate_text(-10 ** exp)
+        for i in range(2, 10):
+          num = 10 ** exp * i
+          if log10(num) > time_rate_max_exp:
+            break
+          draw_time_rate_line(num)
+          draw_time_rate_line(-num)
+      
       time_rate_slider.draw()
       time_rate_reset_btn.draw()
+      
       if old_time_rate:
         visual_time_rate = old_time_rate
       else:
