@@ -11,7 +11,6 @@ def fix_import_path():
   sys_path.append(str(parent_dir))
 
 from asyncio import TaskGroup, run
-from enum import Enum
 from math import ceil, floor, log10
 from sys import argv as sys_argv
 import pygame
@@ -20,90 +19,22 @@ from py_time_lib import TIMEZONES, update_time_databases, update_time_databases_
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 from py_time_lib.constants import NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_WEEK, APPROX_SECS_PER_MONTH, APPROX_SECS_PER_YEAR, NOMINAL_MILLISECS_PER_SEC, NOMINAL_MICROSECS_PER_SEC
 
-from draw_lib import draw_text_centered
 from advanced_clock import AdvancedClock
+from constants import time_mode, time_slider_absolute, run_mode
+from constants import width, height
+from constants import buttons_edge_x_coord, buttons_y_coord, buttons_size
+from constants import time_sliders_edge_dist_x, time_sliders_gap_y, time_sliders_height, time_sliders_reset_btn_width
+from constants import time_min_exp, time_max_exp, time_linear_frac
+from constants import time_rate_center_radius, time_rate_min_exp, time_rate_max_exp, time_rate_linear_frac, time_rate_text_size
+from constants import time_standards_format_str, time_standards_format_str_cap_offset, time_standards_x_center_offset, time_standards_y_start, time_standards_y_step
+from constants import calendars_time_format_str, calendars_format_str, calendars_x_center_offset, calendars_y_start, calendars_y_step
+from draw_lib import draw_text_centered
+from lib import exponential_to_linear, linear_to_exponential, LineStyles, RunMode, TimeMode, run_modes, run_mode_names
 from ui_components import Button, Slider
 
-def linear_to_exponential(linear_start_frac: float, min_exp: float, max_exp: float, value: float) -> FixedPrec:
-  if value <= linear_start_frac:
-    return FixedPrec(10) ** min_exp * value / linear_start_frac
-  else:
-    return FixedPrec(10) ** (
-      min_exp +
-      (value - linear_start_frac) /
-      (1 - linear_start_frac) *
-      (max_exp - min_exp)
-    )
-
-def exponential_to_linear(linear_start_frac: float, min_exp: float, max_exp: float, value: FixedPrec) -> float:
-  lin_threshold = FixedPrec(10) ** min_exp
-  if value <= lin_threshold:
-    return float(value / lin_threshold) * linear_start_frac
-  else:
-    return linear_start_frac + \
-      (log10(value) - min_exp) / (max_exp - min_exp) * (1 - linear_start_frac)
-
-TimeMode = Enum('TimeMode', (
-  'CURRENT',
-  'LEAP_SEC_REPLAY',
-  'CUSTOMIZABLE',
-))
-
-RunMode = Enum('RunMode', (
-  'CLOCK',
-  'TIME_STANDARDS',
-  'CALENDARS',
-  'BLANK',
-))
-run_mode_names = {
-  RunMode.CLOCK: 'Clock',
-  RunMode.TIME_STANDARDS: 'Time Standards',
-  RunMode.CALENDARS: 'Calendars (UTC)',
-  RunMode.BLANK: 'Blank',
-}
-run_modes = list(RunMode)
-
-LineStyles = Enum('LineStyles', (
-  'THIN',
-  'THICK',
-  'ORANGE',
-  'GREEN',
-))
-
 async def main():
-  # tweakables
-  time_mode = TimeMode.CUSTOMIZABLE
-  time_slider_absolute = True
-  run_mode = RunMode.TIME_STANDARDS
-  
-  # internal tweakables
-  width = 1280
-  height = 850
-  buttons_edge_x_coord = 40
-  buttons_y_coord = 40
-  buttons_size = 40
-  time_sliders_edge_dist_x = 15
-  time_sliders_gap_y = 10
-  time_rate_text_size = 150
-  time_sliders_height = 60
-  time_sliders_reset_btn_width = 100
-  time_standards_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
-  time_standards_format_str_cap_offset = '%a %b %d %Y %I:%M:%S.%.9f %p %.10z'
-  time_standards_x_center_offset = 600
-  time_standards_y_start = 100
-  time_standards_y_step = 45
-  time_min_exp = -5
-  time_max_exp = 17.8
-  time_linear_frac = 1 / (time_max_exp - time_min_exp + 1)
-  time_rate_center_radius = 0.02
-  time_rate_min_exp = -5
-  time_rate_max_exp = 8
-  time_rate_linear_frac = 1 / (time_rate_max_exp - time_rate_min_exp + 1)
-  calendars_time_format_str = '%I:%M:%S.%.9f %p'
-  calendars_format_str = f'%a %b %d %Y {calendars_time_format_str}'
-  calendars_x_center_offset = 600
-  calendars_y_start = 110
-  calendars_y_step = 60
+  global run_mode
+  global width, height
   
   def time_rate_true_to_norm(time_rate: FixedPrec) -> float:
     if time_rate == 0:
