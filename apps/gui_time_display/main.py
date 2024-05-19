@@ -14,64 +14,26 @@ from asyncio import TaskGroup, run
 from math import ceil, floor, log10
 from sys import argv as sys_argv
 import pygame
-from py_time_lib import FixedPrec, TimeInstant, TimeDelta, JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
+from py_time_lib import FixedPrec, TimeInstant, TimeDelta, GregorianDate
 from py_time_lib import TIMEZONES, update_time_databases, update_time_databases_loop
-from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 from py_time_lib.constants import NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_WEEK, APPROX_SECS_PER_MONTH, APPROX_SECS_PER_YEAR, NOMINAL_MILLISECS_PER_SEC, NOMINAL_MICROSECS_PER_SEC
 
 from advanced_clock import AdvancedClock
-from constants import time_mode, time_slider_absolute, run_mode
+from constants import time_mode, time_slider_absolute, get_run_mode, set_run_mode
 from constants import width, height
 from constants import buttons_edge_x_coord, buttons_y_coord, buttons_size
 from constants import time_sliders_edge_dist_x, time_sliders_gap_y, time_sliders_height, time_sliders_reset_btn_width
-from constants import time_min_exp, time_max_exp, time_linear_frac
-from constants import time_rate_center_radius, time_rate_min_exp, time_rate_max_exp, time_rate_linear_frac, time_rate_text_size
-from constants import time_standards_format_str, time_standards_format_str_cap_offset, time_standards_x_center_offset, time_standards_y_start, time_standards_y_step
-from constants import calendars_time_format_str, calendars_format_str, calendars_x_center_offset, calendars_y_start, calendars_y_step
-from draw_lib import draw_text_centered
-from lib import exponential_to_linear, linear_to_exponential, LineStyles, RunMode, TimeMode, run_modes, run_mode_names
+from constants import time_max_exp
+from constants import time_rate_center_radius, time_rate_min_exp, time_rate_max_exp, time_rate_text_size
+from constants import univ_start, earth_start
+from enums import LineStyles, TimeMode, run_modes, run_mode_names
+from lib_draw import draw_text_centered
+from lib_time import time_rate_true_to_norm, time_rate_norm_to_true, time_norm_to_true_delta, time_delta_to_time_norm
+from run_modes import draw_run_mode
 from ui_components import Button, Slider
 
 async def main():
-  global run_mode
   global width, height
-  
-  def time_rate_true_to_norm(time_rate: FixedPrec) -> float:
-    if time_rate == 0:
-      return 0.5
-    else:
-      forwards = time_rate > 0
-      mul = 1 if forwards else -1
-      rate_abs = abs(time_rate)
-      norm_abs = exponential_to_linear(time_rate_linear_frac, time_rate_min_exp, time_rate_max_exp, rate_abs)
-      return 0.5 + mul * (norm_abs * (0.5 - time_rate_center_radius) + time_rate_center_radius)
-  
-  def time_rate_norm_to_true(time_rate_norm: float) -> tuple[FixedPrec, float]:
-    if 0.5 - time_rate_center_radius / 2 < time_rate_norm < 0.5 + time_rate_center_radius / 2:
-      return FixedPrec(0), 0.5
-    else:
-      forwards = time_rate_norm > 0.5
-      mul = 1 if forwards else -1
-      norm_abs = max(
-        (abs(time_rate_norm - 0.5) - time_rate_center_radius) / (0.5 - time_rate_center_radius),
-        0
-      )
-      return (
-        mul * linear_to_exponential(time_rate_linear_frac, time_rate_min_exp, time_rate_max_exp, norm_abs),
-        0.5 + mul * (norm_abs * (0.5 - time_rate_center_radius) + time_rate_center_radius),
-      )
-  
-  def time_norm_to_true_delta(time_norm: float) -> FixedPrec:
-    norm_abs = abs(time_norm - 0.5) * 2
-    positive = time_norm >= 0.5
-    mul = 1 if positive else -1
-    return mul * linear_to_exponential(time_linear_frac, time_min_exp, time_max_exp, norm_abs)
-  
-  def time_delta_to_time_norm(time_delta: FixedPrec) -> float:
-    delta_abs = abs(time_delta)
-    mul = 1 if time_delta >= 0 else -1
-    norm_abs = exponential_to_linear(time_linear_frac, time_min_exp, time_max_exp, delta_abs)
-    return (mul * norm_abs) * 0.5 + 0.5
   
   update_time_databases()
   
@@ -103,21 +65,8 @@ async def main():
     tz = None
     longitude = None
   
-  smear_plan = LeapSmearPlan(
-    LeapSmearSingle(
-      start_basis = LeapBasis.START,
-      secs_before_start_basis = 5,
-      end_basis = LeapBasis.END,
-      secs_after_end_basis = 5,
-      type = SmearType.LINEAR
-    ),
-    ()
-  )
   dragging_time_slider = False
   dragging_time_rate_slider = False
-  years_ago_epoch = TimeInstant.from_date_tuple_utc(1950, 1, 1, 0, 0, 0, 0).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)
-  univ_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 13_800_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
-  earth_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 4_540_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
   
   pygame.init()
   
@@ -501,8 +450,8 @@ async def main():
   while loop:
     # update
     
-    left_btn.enabled = run_mode.value > 1
-    right_btn.enabled = run_mode.value < len(run_modes)
+    left_btn.enabled = get_run_mode().value > 1
+    right_btn.enabled = get_run_mode().value < len(run_modes)
     
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
@@ -511,9 +460,9 @@ async def main():
       elif event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == 1:
           if left_btn.is_pressed(event.pos):
-            run_mode = run_modes[run_mode.value - 2]
+            set_run_mode(run_modes[get_run_mode().value - 2])
           elif right_btn.is_pressed(event.pos):
-            run_mode = run_modes[run_mode.value]
+            set_run_mode(run_modes[get_run_mode().value])
         
         if time_mode == TimeMode.CUSTOMIZABLE:
           if event.button == 1:
@@ -578,7 +527,7 @@ async def main():
     left_btn.draw()
     right_btn.draw()
     
-    draw_text_centered(screen, run_mode_names[run_mode], (width / 2, 45), horz_align = 0.5, size = 43)
+    draw_text_centered(screen, run_mode_names[get_run_mode()], (width / 2, 45), horz_align = 0.5, size = 43)
     draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
     
     true_now = TimeInstant.now()
@@ -771,41 +720,7 @@ async def main():
         size = 23
       )
     
-    if run_mode == RunMode.CLOCK:
-      ...
-    
-    elif run_mode == RunMode.TIME_STANDARDS:
-      if tz != None:
-        draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, time_standards_format_str)}',                                                          (width / 2 - time_standards_x_center_offset, time_standards_y_start + 0 * time_standards_y_step))
-      draw_text_centered(screen, f'UTC: {now.to_format_string_utc(time_standards_format_str)}',                                                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 1 * time_standards_y_step))
-      draw_text_centered(screen, f'SUT: {now.to_format_string_smear_utc(smear_plan, time_standards_format_str_cap_offset, True)}',                            (width / 2 - time_standards_x_center_offset, time_standards_y_start + 2 * time_standards_y_step))
-      if tz != None:
-        draw_text_centered(screen, f'STZ: {now.to_format_string_smear_tz(smear_plan, tz, time_standards_format_str_cap_offset, True)}',                       (width / 2 - time_standards_x_center_offset, time_standards_y_start + 3 * time_standards_y_step))
-      draw_text_centered(screen, f'TAI: {now.to_format_string_tai(time_standards_format_str)}',                                                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 4 * time_standards_y_step))
-      draw_text_centered(screen, f'TT:  {now.to_format_string_mono(TimeInstant.TIME_SCALES.TT, time_standards_format_str)}',                                  (width / 2 - time_standards_x_center_offset, time_standards_y_start + 5 * time_standards_y_step))
-      draw_text_centered(screen, f'TDB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TDB, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 6 * time_standards_y_step))
-      draw_text_centered(screen, f'TCG: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCG, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 7 * time_standards_y_step))
-      draw_text_centered(screen, f'TCB: {now.to_format_string_mono(TimeInstant.TIME_SCALES.TCB, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 8 * time_standards_y_step))
-      draw_text_centered(screen, f'GAL: {now.to_format_string_mono(TimeInstant.TIME_SCALES.GALACTIC_COORDINATE_TIME, time_standards_format_str_cap_offset)}', (width / 2 - time_standards_x_center_offset, time_standards_y_start + 9 * time_standards_y_step))
-      draw_text_centered(screen, f'UNI: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, time_standards_format_str_cap_offset)}', (width / 2 - time_standards_x_center_offset, time_standards_y_start + 10 * time_standards_y_step))
-      draw_text_centered(screen, f'UT1: {now.to_format_string_mono(TimeInstant.TIME_SCALES.UT1, time_standards_format_str_cap_offset)}',                      (width / 2 - time_standards_x_center_offset, time_standards_y_start + 11 * time_standards_y_step))
-      if longitude != None:
-        draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, time_standards_format_str_cap_offset)}',                              (width / 2 - time_standards_x_center_offset, time_standards_y_start + 12 * time_standards_y_step))
-        draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, time_standards_format_str_cap_offset)}',                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 13 * time_standards_y_step))
-    
-    elif run_mode == RunMode.CALENDARS:
-      draw_text_centered(screen, f'Julian:               {now.to_format_string_utc(calendars_format_str, date_cls = JulianDate)}',            (width / 2 - calendars_x_center_offset, calendars_y_start + 0 * calendars_y_step))
-      draw_text_centered(screen, f'Gregorian:            {now.to_format_string_utc(calendars_format_str, date_cls = GregorianDate)}',         (width / 2 - calendars_x_center_offset, calendars_y_start + 1 * calendars_y_step))
-      iso_date: IsoWeekDate = now.get_date_object_utc(IsoWeekDate)
-      draw_text_centered(screen, f'ISOWeekDate:          {iso_date.to_iso_string()} {now.to_format_string_utc(calendars_time_format_str)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 2 * calendars_y_step))
-      draw_text_centered(screen, f'Holocene:             {now.to_format_string_utc(calendars_format_str, date_cls = HoloceneDate)}',          (width / 2 - calendars_x_center_offset, calendars_y_start + 3 * calendars_y_step))
-      draw_text_centered(screen, f'Symmetry010:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry010)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 4 * calendars_y_step))
-      draw_text_centered(screen, f'Symmetry010LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry010LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 5 * calendars_y_step))
-      draw_text_centered(screen, f'Symmetry454:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 6 * calendars_y_step))
-      draw_text_centered(screen, f'Symmetry454LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 7 * calendars_y_step))
-    
-    elif run_mode == RunMode.BLANK:
-      pass
+    draw_run_mode(screen, now, tz, longitude)
     
     pygame.display.flip()
     await clock.tick_async(refresh_rate)

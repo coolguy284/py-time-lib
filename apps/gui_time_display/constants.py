@@ -1,9 +1,21 @@
-from lib import RunMode, TimeMode
+from py_time_lib import LeapSmearPlan, LeapSmearSingle, LeapBasis, SmearType, FixedPrec, TimeInstant
+from py_time_lib.constants import APPROX_SECS_PER_YEAR
+
+from enums import RunMode, TimeMode
 
 # tweakables
 time_mode = TimeMode.CUSTOMIZABLE
 time_slider_absolute = True
+
 run_mode = RunMode.TIME_STANDARDS
+
+def get_run_mode() -> RunMode:
+  global run_mode
+  return run_mode
+
+def set_run_mode(new_run_mode: RunMode) -> None:
+  global run_mode
+  run_mode = new_run_mode
 
 # internal tweakables
 
@@ -49,3 +61,18 @@ calendars_format_str = f'%a %b %d %Y {calendars_time_format_str}'
 calendars_x_center_offset = 600
 calendars_y_start = 110
 calendars_y_step = 60
+
+# generated constants
+smear_plan = LeapSmearPlan(
+  LeapSmearSingle(
+    start_basis = LeapBasis.START,
+    secs_before_start_basis = 5,
+    end_basis = LeapBasis.END,
+    secs_after_end_basis = 5,
+    type = SmearType.LINEAR
+  ),
+  ()
+)
+years_ago_epoch = TimeInstant.from_date_tuple_utc(1950, 1, 1, 0, 0, 0, 0).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)
+univ_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 13_800_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
+earth_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 4_540_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))

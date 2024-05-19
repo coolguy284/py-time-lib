@@ -3,7 +3,7 @@ from enum import Enum
 from pygame import Surface
 from pygame.draw import line as draw_line, rect as draw_rect
 
-from draw_lib import draw_text_centered
+from lib_draw import draw_text_centered
 
 class PositionalElement(ABC):
   __slots__ = 'screen', 'x', 'y', 'w', 'h'
