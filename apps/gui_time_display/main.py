@@ -193,6 +193,8 @@ async def main():
     time_reset_time = TimeInstant.now().time
     time_base = time_reset_time
     time_rate = FixedPrec(1)
+    #time_base = TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 59, FixedPrec('0.1')).time
+    #time_rate = FixedPrec('0.1')
     old_time_rate = None
     old_time_base = None
     time_delta = None
@@ -770,8 +772,9 @@ async def main():
         if time_min_end != time_15min_end:
           draw_time_line_true(time_min_end, time_min_end.to_format_string_utc('%H:%M'), LineStyles.THICK)
         
-        time_15sec_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, second // 15 * 15, 0)
-        if second // 15 * 15 == 45:
+        second_capped = min(second, NOMINAL_SECS_PER_MIN - 1)
+        time_15sec_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, second_capped // 15 * 15, 0)
+        if second_capped // 15 * 15 == 45:
           time_15sec_end = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute + 1, 0, 0)
         else:
           time_15sec_end = time_15sec_start + TimeDelta(15)

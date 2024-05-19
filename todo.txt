@@ -1,6 +1,4 @@
-add time / time rate picker to apps page
 add clock page
-add timezone / longitude / calendar picker to bottom
 strptime support
 test true leap second handling in windows
 
@@ -19,6 +17,7 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
+add timezone / longitude / calendar picker to bottom
 ethiopian calendar
 add strftime codes from https://manpages.debian.org/bookworm/manpages-dev/strftime.3.en.html
 clean up TDB/TCB code
@@ -69,6 +68,7 @@ fixedprec constructor handle real, integral
 continue splitting timeinstant into many classes
 split fixedprec into many classes
 complete funcs for from/to secssinceepoch/datetuple/formatstring/juliandate tai/utc/tz/mono/solar(mean/true)/leapsmear
+test gui time display dynamic time bar during negative leap second or 2x positive or negative leap secound
 tests:
   timeinstant: tests for leap seconds during day
   timeinstant: test for passing in non-gregoriandate into to/from date tuple
