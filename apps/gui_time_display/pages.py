@@ -2,20 +2,20 @@ from pygame import Surface
 from py_time_lib import FixedPrec, TimeInstant, TimeZone
 from py_time_lib import JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
 
-from constants import RunMode, get_run_mode
+from constants import Page, get_current_page
 from constants import smear_plan
 from constants import time_standards_format_str, time_standards_format_str_cap_offset, time_standards_x_center_offset, time_standards_y_start, time_standards_y_step
 from constants import calendars_time_format_str, calendars_format_str, calendars_x_center_offset, calendars_y_start, calendars_y_step
 from lib_draw import draw_text_centered
 
-def draw_run_mode(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: FixedPrec):
+def draw_page(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: FixedPrec):
   width = screen.get_width()
   
-  match get_run_mode():
-    case RunMode.CLOCK:
+  match get_current_page():
+    case Page.CLOCK:
       ...
     
-    case RunMode.TIME_STANDARDS:
+    case Page.TIME_STANDARDS:
       if tz != None:
         draw_text_centered(screen, f'TZ:  {now.to_format_string_tz(tz, time_standards_format_str)}',                                                          (width / 2 - time_standards_x_center_offset, time_standards_y_start + 0 * time_standards_y_step))
       draw_text_centered(screen, f'UTC: {now.to_format_string_utc(time_standards_format_str)}',                                                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 1 * time_standards_y_step))
@@ -34,7 +34,7 @@ def draw_run_mode(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: Fi
         draw_text_centered(screen, f'MST: {now.to_format_string_solar(longitude, False, time_standards_format_str_cap_offset)}',                              (width / 2 - time_standards_x_center_offset, time_standards_y_start + 12 * time_standards_y_step))
         draw_text_centered(screen, f'TST: {now.to_format_string_solar(longitude, True, time_standards_format_str_cap_offset)}',                               (width / 2 - time_standards_x_center_offset, time_standards_y_start + 13 * time_standards_y_step))
     
-    case RunMode.CALENDARS:
+    case Page.CALENDARS:
       draw_text_centered(screen, f'Julian:               {now.to_format_string_utc(calendars_format_str, date_cls = JulianDate)}',            (width / 2 - calendars_x_center_offset, calendars_y_start + 0 * calendars_y_step))
       draw_text_centered(screen, f'Gregorian:            {now.to_format_string_utc(calendars_format_str, date_cls = GregorianDate)}',         (width / 2 - calendars_x_center_offset, calendars_y_start + 1 * calendars_y_step))
       iso_date: IsoWeekDate = now.get_date_object_utc(IsoWeekDate)
@@ -45,5 +45,5 @@ def draw_run_mode(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: Fi
       draw_text_centered(screen, f'Symmetry454:          {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454)}',           (width / 2 - calendars_x_center_offset, calendars_y_start + 6 * calendars_y_step))
       draw_text_centered(screen, f'Symmetry454LeapMonth: {now.to_format_string_utc(calendars_format_str, date_cls = Symmetry454LeapMonth)}',  (width / 2 - calendars_x_center_offset, calendars_y_start + 7 * calendars_y_step))
     
-    case RunMode.BLANK:
+    case Page.BLANK:
       pass

@@ -19,17 +19,17 @@ from py_time_lib import TIMEZONES, update_time_databases, update_time_databases_
 from py_time_lib import NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_WEEK, APPROX_SECS_PER_MONTH, APPROX_SECS_PER_YEAR, NOMINAL_MILLISECS_PER_SEC, NOMINAL_MICROSECS_PER_SEC
 
 from advanced_clock import AdvancedClock
-from constants import time_mode, time_slider_absolute, get_run_mode, set_run_mode
+from constants import time_mode, time_slider_absolute, get_current_page, set_current_page
 from constants import width, height
 from constants import buttons_edge_x_coord, buttons_y_coord, buttons_size
 from constants import time_sliders_edge_dist_x, time_sliders_gap_y, time_sliders_height, time_sliders_reset_btn_width
 from constants import time_max_exp
 from constants import time_rate_center_radius, time_rate_min_exp, time_rate_max_exp, time_rate_text_size
 from constants import univ_start, earth_start
-from enums import LineStyles, TimeMode, run_modes, run_mode_names
+from enums import LineStyles, TimeMode, pages, page_names
 from lib_draw import draw_text_centered
 from lib_time import time_rate_true_to_norm, time_rate_norm_to_true, time_norm_to_true_delta, time_delta_to_time_norm
-from run_modes import draw_run_mode
+from pages import draw_page
 from ui_components import Button, Slider
 
 dragging_time_slider = False
@@ -360,8 +360,8 @@ def update_prgm_state():
   global time_reset_time, time_rate, time_base, time_delta, old_time_base, old_time_rate
   global width, height
   
-  left_btn.enabled = get_run_mode().value > 1
-  right_btn.enabled = get_run_mode().value < len(run_modes)
+  left_btn.enabled = get_current_page().value > 1
+  right_btn.enabled = get_current_page().value < len(pages)
   
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
@@ -370,9 +370,9 @@ def update_prgm_state():
     elif event.type == pygame.MOUSEBUTTONDOWN:
       if event.button == 1:
         if left_btn.is_pressed(event.pos):
-          set_run_mode(run_modes[get_run_mode().value - 2])
+          set_current_page(pages[get_current_page().value - 2])
         elif right_btn.is_pressed(event.pos):
-          set_run_mode(run_modes[get_run_mode().value])
+          set_current_page(pages[get_current_page().value])
       
       if time_mode == TimeMode.CUSTOMIZABLE:
         if event.button == 1:
@@ -459,7 +459,7 @@ def render_prgm():
   left_btn.draw()
   right_btn.draw()
   
-  draw_text_centered(screen, run_mode_names[get_run_mode()], (width / 2, 45), horz_align = 0.5, size = 43)
+  draw_text_centered(screen, page_names[get_current_page()], (width / 2, 45), horz_align = 0.5, size = 43)
   draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
   
   if time_mode == TimeMode.CUSTOMIZABLE:
@@ -631,7 +631,7 @@ def render_prgm():
       size = 23
     )
   
-  draw_run_mode(screen, now, tz, longitude)
+  draw_page(screen, now, tz, longitude)
   
   pygame.display.flip()
 

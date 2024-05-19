@@ -1,21 +1,21 @@
 from py_time_lib import LeapSmearPlan, LeapSmearSingle, LeapBasis, SmearType, FixedPrec, TimeInstant
 from py_time_lib import APPROX_SECS_PER_YEAR
 
-from enums import RunMode, TimeMode
+from enums import Page, TimeMode
 
 # tweakables
 time_mode = TimeMode.CUSTOMIZABLE
 time_slider_absolute = False
 
-run_mode = RunMode.TIME_STANDARDS
+current_page = Page.TIME_STANDARDS
 
-def get_run_mode() -> RunMode:
-  global run_mode
-  return run_mode
+def get_current_page() -> Page:
+  global current_page
+  return current_page
 
-def set_run_mode(new_run_mode: RunMode) -> None:
-  global run_mode
-  run_mode = new_run_mode
+def set_current_page(new_page: Page) -> None:
+  global current_page
+  current_page = new_page
 
 # internal tweakables
 

@@ -6,19 +6,19 @@ TimeMode = Enum('TimeMode', (
   'CUSTOMIZABLE',
 ))
 
-RunMode = Enum('RunMode', (
+Page = Enum('Page', (
   'CLOCK',
   'TIME_STANDARDS',
   'CALENDARS',
   'BLANK',
 ))
-run_mode_names = {
-  RunMode.CLOCK: 'Clock',
-  RunMode.TIME_STANDARDS: 'Time Standards',
-  RunMode.CALENDARS: 'Calendars (UTC)',
-  RunMode.BLANK: 'Blank',
+page_names = {
+  Page.CLOCK: 'Clock',
+  Page.TIME_STANDARDS: 'Time Standards',
+  Page.CALENDARS: 'Calendars (UTC)',
+  Page.BLANK: 'Blank',
 }
-run_modes = list(RunMode)
+pages = list(Page)
 
 LineStyles = Enum('LineStyles', (
   'THIN',
