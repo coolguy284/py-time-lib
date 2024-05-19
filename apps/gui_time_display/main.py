@@ -682,6 +682,12 @@ async def main():
         for exp in range(floor(log10(10.0 ** time_max_exp / APPROX_SECS_PER_YEAR)), -1, -1):
           time_year_exp_start = TimeInstant.from_date_tuple_utc(year // 10 ** exp * 10 ** exp, 1, 1, 0, 0, 0, 0)
           time_year_exp_end = TimeInstant.from_date_tuple_utc((year // 10 ** exp + 1) * 10 ** exp, 1, 1, 0, 0, 0, 0)
+          
+          for i in range(1, 10):
+            time_year_exp_dynamic = TimeInstant.from_date_tuple_utc((year // 10 ** (exp + 1) * 10 + i) * 10 ** exp, 1, 1, 0, 0, 0, 0)
+            if time_year_exp_dynamic != time_year_exp_start and time_year_exp_dynamic != time_year_exp_end and log10(abs(time_year_exp_dynamic - visual_time).time_delta) < time_max_exp:
+              draw_time_line_true(time_year_exp_dynamic)
+          
           if 10 ** exp > year and year > 0:
             time_year_exp_start_2 = TimeInstant.from_date_tuple_utc(-10 ** exp, 1, 1, 0, 0, 0, 0)
             draw_time_line_true(time_year_exp_start_2, time_year_exp_start_2.to_format_string_utc('%Y'), LineStyles.THICK)
@@ -700,7 +706,7 @@ async def main():
         time_month_start = TimeInstant.from_date_tuple_utc(year, month, 1, 0, 0, 0, 0)
         time_month_end = TimeInstant.from_date_tuple_utc(year, month + 1, 1, 0, 0, 0, 0)
         
-        for i in range(1, 12):
+        for i in range(2, 12):
           time_month_dynamic = TimeInstant.from_date_tuple_utc(year, i, 1, 0, 0, 0, 0)
           if time_month_dynamic != time_month_start and time_month_dynamic != time_month_end:
             draw_time_line_true(time_month_dynamic)
