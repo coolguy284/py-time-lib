@@ -18,6 +18,7 @@ import pygame
 from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
 from py_time_lib import TIMEZONES, update_time_databases, update_time_databases_loop
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
+from py_time_lib.constants import NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_WEEK, APPROX_SECS_PER_MONTH, APPROX_SECS_PER_YEAR, NOMINAL_MILLISECS_PER_SEC, NOMINAL_MICROSECS_PER_SEC
 
 from draw_lib import draw_text_centered
 from advanced_clock import AdvancedClock
@@ -71,12 +72,12 @@ async def main():
   time_standards_x_center_offset = 600
   time_standards_y_start = 100
   time_standards_y_step = 45
-  time_linear_frac = 0.06
   time_min_exp = -5
   time_max_exp = 17.8
+  time_linear_frac = 1 / (time_max_exp - time_min_exp + 1)
   time_rate_center_radius = 0.02
   time_rate_min_exp = -5
-  time_rate_max_exp = 6
+  time_rate_max_exp = 8
   time_rate_linear_frac = 1 / (time_rate_max_exp - time_rate_min_exp + 1)
   calendars_time_format_str = '%I:%M:%S.%.9f %p'
   calendars_format_str = f'%a %b %d %Y {calendars_time_format_str}'
@@ -100,6 +101,7 @@ async def main():
     'CUSTOMIZABLE',
   ))
   time_mode = TimeMode.CUSTOMIZABLE
+  time_slider_absolute = True
   RunMode = Enum('RunMode', (
     'CLOCK',
     'TIME_STANDARDS',
@@ -177,7 +179,7 @@ async def main():
   def time_delta_to_time_norm(time_delta: FixedPrec) -> float:
     delta_abs = abs(time_delta)
     mul = 1 if time_delta >= 0 else -1
-    norm_abs = exponential_to_linear(delta_abs)
+    norm_abs = exponential_to_linear(time_linear_frac, time_min_exp, time_max_exp, delta_abs)
     return (mul * norm_abs) * 0.5 + 0.5
   
   loop = True
@@ -289,6 +291,29 @@ async def main():
         rotation = 90 if value < 0 else -90
       )
     
+    def draw_time_delta_line(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
+      norm_x = time_delta_to_time_norm(value)
+      pygame.draw.line(
+        surf,
+        color,
+        time_slider.local_to_subworld(norm_x, 0, True),
+        time_slider.local_to_subworld(norm_x, 1, True),
+        width = width
+      )
+    
+    def draw_time_delta_text(surf: pygame.Surface, value, value_str: str) -> None:
+      draw_text_centered(
+        surf,
+        value_str,
+        time_slider.local_to_subworld(
+          time_delta_to_time_norm(value),
+          0.5
+        ),
+        horz_align = 0.8 if value < 0 else 0,
+        size = 10,
+        rotation = 90 if value < 0 else -90
+      )
+    
     def get_time_rate_slider_surface() -> pygame.Surface:
       result = pygame.Surface((time_rate_slider.w, time_rate_slider.h))
       
@@ -313,6 +338,140 @@ async def main():
       
       return result
     
+    def get_time_slider_delta_surface() -> pygame.Surface:
+      result = pygame.Surface((time_slider.w, time_slider.h))
+      
+      draw_time_delta_line(result, 0, (255, 255, 255))
+      
+      for exp in range(3):
+        us = 10 ** exp
+        num_base = us / NOMINAL_MICROSECS_PER_SEC
+        
+        if exp != 0:
+          draw_time_delta_line(result, num_base, (255, 255, 255))
+          draw_time_delta_line(result, -num_base, (255, 255, 255))
+          draw_time_delta_text(result, num_base, f'{us:g}us')
+          draw_time_delta_text(result, -num_base, f'-{us:g}us')
+        
+        for i in range(2 if exp != 0 else 1, 10):
+          draw_time_delta_line(result, num_base * i)
+          draw_time_delta_line(result, -num_base * i)
+      
+      for exp in range(3):
+        ms = 10 ** exp
+        num_base = ms / NOMINAL_MILLISECS_PER_SEC
+        draw_time_delta_line(result, num_base, (255, 255, 255))
+        draw_time_delta_line(result, -num_base, (255, 255, 255))
+        draw_time_delta_text(result, num_base, f'{ms:g}ms')
+        draw_time_delta_text(result, -num_base, f'-{ms:g}ms')
+        
+        for i in range(2, 10):
+          draw_time_delta_line(result, num_base * i)
+          draw_time_delta_line(result, -num_base * i)
+      
+      draw_time_delta_line(result, 1, (255, 255, 255))
+      draw_time_delta_line(result, -1, (255, 255, 255))
+      draw_time_delta_text(result, 1, '1s')
+      draw_time_delta_text(result, -1, '-1s')
+      for i in range(2, 10):
+        draw_time_delta_line(result, i)
+        draw_time_delta_line(result, -i)
+      
+      draw_time_delta_line(result, 10, (255, 255, 255))
+      draw_time_delta_line(result, -10, (255, 255, 255))
+      draw_time_delta_text(result, 10, '10s')
+      draw_time_delta_text(result, -10, '-10s')
+      draw_time_delta_line(result, 15)
+      draw_time_delta_line(result, -15)
+      for i in range(2, 4):
+        draw_time_delta_line(result, 15 * i)
+        draw_time_delta_line(result, -15 * i)
+      
+      draw_time_delta_line(result, NOMINAL_SECS_PER_MIN, (255, 255, 255))
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_MIN, (255, 255, 255))
+      draw_time_delta_text(result, NOMINAL_SECS_PER_MIN, '1m')
+      draw_time_delta_text(result, -NOMINAL_SECS_PER_MIN, '-1m')
+      for i in range(2, 10):
+        draw_time_delta_line(result, NOMINAL_SECS_PER_MIN * i)
+        draw_time_delta_line(result, -NOMINAL_SECS_PER_MIN * i)
+      
+      draw_time_delta_line(result, 10 * NOMINAL_SECS_PER_MIN, (255, 255, 255))
+      draw_time_delta_line(result, -10 * NOMINAL_SECS_PER_MIN, (255, 255, 255))
+      draw_time_delta_text(result, 10 * NOMINAL_SECS_PER_MIN, '10m')
+      draw_time_delta_text(result, -10 * NOMINAL_SECS_PER_MIN, '-10m')
+      draw_time_delta_line(result, 15 * NOMINAL_SECS_PER_MIN)
+      draw_time_delta_line(result, -15 * NOMINAL_SECS_PER_MIN)
+      for i in range(2, 4):
+        draw_time_delta_line(result, 15 * NOMINAL_SECS_PER_MIN * i)
+        draw_time_delta_line(result, -15 * NOMINAL_SECS_PER_MIN * i)
+      
+      draw_time_delta_line(result, NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+      draw_time_delta_text(result, NOMINAL_SECS_PER_HOUR, '1h')
+      draw_time_delta_text(result, -NOMINAL_SECS_PER_HOUR, '-1h')
+      for i in range(2, 10):
+        draw_time_delta_line(result, NOMINAL_SECS_PER_HOUR * i)
+        draw_time_delta_line(result, -NOMINAL_SECS_PER_HOUR * i)
+      
+      draw_time_delta_line(result, 10 * NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+      draw_time_delta_line(result, -10 * NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+      draw_time_delta_text(result, 10 * NOMINAL_SECS_PER_HOUR, '10h')
+      draw_time_delta_text(result, -10 * NOMINAL_SECS_PER_HOUR, '-10h')
+      draw_time_delta_line(result, 12 * NOMINAL_SECS_PER_HOUR)
+      draw_time_delta_line(result, -12 * NOMINAL_SECS_PER_HOUR)
+      
+      draw_time_delta_line(result, NOMINAL_SECS_PER_DAY, (255, 255, 255))
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_DAY, (255, 255, 255))
+      draw_time_delta_text(result, NOMINAL_SECS_PER_DAY, '1d')
+      draw_time_delta_text(result, -NOMINAL_SECS_PER_DAY, '-1d')
+      
+      for i in range(2, 7):
+        draw_time_delta_line(result, NOMINAL_SECS_PER_DAY * i)
+        draw_time_delta_line(result, -NOMINAL_SECS_PER_DAY * i)
+      
+      draw_time_delta_line(result, NOMINAL_SECS_PER_WEEK, (255, 255, 255))
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_WEEK, (255, 255, 255))
+      draw_time_delta_text(result, NOMINAL_SECS_PER_WEEK, '1wk')
+      draw_time_delta_text(result, -NOMINAL_SECS_PER_WEEK, '-1wk')
+      
+      for i in range(2, 4):
+        draw_time_delta_line(result, NOMINAL_SECS_PER_WEEK * i)
+        draw_time_delta_line(result, -NOMINAL_SECS_PER_WEEK * i)
+      
+      draw_time_delta_line(result, APPROX_SECS_PER_MONTH, (255, 255, 255))
+      draw_time_delta_line(result, -APPROX_SECS_PER_MONTH, (255, 255, 255))
+      draw_time_delta_text(result, APPROX_SECS_PER_MONTH, '1mo')
+      draw_time_delta_text(result, -APPROX_SECS_PER_MONTH, '-1mo')
+      
+      for i in range(2, 12):
+        draw_time_delta_line(result, APPROX_SECS_PER_MONTH * i)
+        draw_time_delta_line(result, -APPROX_SECS_PER_MONTH * i)
+      
+      exp = 0
+      
+      while True:
+        years = 10 ** exp
+        num_base = APPROX_SECS_PER_YEAR * years
+        draw_time_delta_line(result, num_base, (255, 255, 255))
+        draw_time_delta_line(result, -num_base, (255, 255, 255))
+        draw_time_delta_text(result, num_base, f'{years:g}y')
+        draw_time_delta_text(result, -num_base, f'-{years:g}y')
+        
+        for i in range(2, 10):
+          draw_time_delta_line(result, num_base * i)
+          draw_time_delta_line(result, -num_base * i)
+          
+          if log10(num_base * i) > time_max_exp:
+            break
+        else:
+          exp += 1
+          continue
+        
+        break
+      
+      return result
+    
+    time_details = None
     time_rate_details = None
   
   def recalculate_vars_after_resize():
@@ -327,7 +486,7 @@ async def main():
     right_btn.h = buttons_size
     
     if time_mode == TimeMode.CUSTOMIZABLE:
-      nonlocal time_rate_details
+      nonlocal time_details, time_rate_details
       
       time_slider.x = time_sliders_edge_dist_x
       time_slider.y = height - time_sliders_height * 2 - time_sliders_gap_y * 2
@@ -349,6 +508,8 @@ async def main():
       time_rate_reset_btn.w = time_sliders_reset_btn_width
       time_rate_reset_btn.h = time_sliders_height
       
+      if time_slider_absolute:
+        time_details = get_time_slider_delta_surface()
       time_rate_details = get_time_rate_slider_surface()
   
   recalculate_vars_after_resize()
@@ -458,6 +619,11 @@ async def main():
       )
     
     if time_mode == TimeMode.CUSTOMIZABLE:
+      screen.blit(
+        time_details,
+        time_slider.local_to_world(0, 0, True)
+      )
+      
       time_slider.draw()
       time_reset_btn.draw()
       

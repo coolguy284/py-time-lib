@@ -4,6 +4,7 @@ from numbers import Integral
 from typing import Self
 
 from .date_delta import DateDelta
+from ..constants import NOMINAL_DAYS_PER_WEEK as _NOMINAL_DAYS_PER_WEEK
 
 def _init_module_vars():
   global iso_weekdate, gregorian
@@ -19,7 +20,7 @@ class DateBase(ABC):
   # static stuff
   
   DAY_OF_WEEK_OFFSET = -1
-  DAYS_IN_WEEK = 7
+  DAYS_IN_WEEK = _NOMINAL_DAYS_PER_WEEK
   WEEK_NAMES_LONG = [
     'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
   ]
