@@ -1,7 +1,6 @@
 add time / time rate picker to apps page
-add timezone / longitude picker to bototm
 add clock page
-ethiopian calendar
+add timezone / longitude / calendar picker to bottom
 strptime support
 test true leap second handling in windows
 
@@ -20,6 +19,7 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
+ethiopian calendar
 add strftime codes from https://manpages.debian.org/bookworm/manpages-dev/strftime.3.en.html
 clean up TDB/TCB code
 write __new to prevent double creations of objects

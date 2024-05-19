@@ -23,7 +23,7 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
   
   @classmethod
   def date_tuple_to_epoch_instant(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, date_cls: type[JulGregBaseDate] = GregorianDate) -> TimeStorageType:
-    date = date_cls(year, month, day)
+    date = date_cls.from_unnormalized(year, month, day)
     time = date.days_since_epoch * cls.NOMINAL_SECS_PER_DAY
     time += hour * cls.NOMINAL_SECS_PER_HOUR
     time += minute * cls.NOMINAL_SECS_PER_MIN
@@ -54,7 +54,7 @@ class TimeInstantDateTuple(TimeInstantLeapSec):
   def from_date_tuple_utc(cls, year: Integral, month: Integral, day: Integral, hour: Integral, minute: Integral, second: Integral, frac_second: TimeStorageType, round_invalid_time_upwards: bool = True, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
     'Converts a tuple of the form (year, month, day, hour, minute, second, frac_second) into a TimeInstant. Does not handle leap seconds that occur not on a minute boundary.'
     
-    date = date_cls(year, month, day)
+    date = date_cls.from_unnormalized(year, month, day)
     date_mins = cls.days_h_m_to_mins_since_epoch(date.days_since_epoch, hour, minute)
     
     time = date_mins * cls.NOMINAL_SECS_PER_MIN

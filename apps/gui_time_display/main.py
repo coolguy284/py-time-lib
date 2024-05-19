@@ -12,10 +12,10 @@ def fix_import_path():
 
 from asyncio import TaskGroup, run
 from enum import Enum
-from math import ceil, log10
+from math import ceil, floor, log10
 from sys import argv as sys_argv
 import pygame
-from py_time_lib import FixedPrec, TimeInstant, JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
+from py_time_lib import FixedPrec, TimeInstant, TimeDelta, JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
 from py_time_lib import TIMEZONES, update_time_databases, update_time_databases_loop
 from py_time_lib import LeapBasis, SmearType, LeapSmearSingle, LeapSmearPlan
 from py_time_lib.constants import NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_WEEK, APPROX_SECS_PER_MONTH, APPROX_SECS_PER_YEAR, NOMINAL_MILLISECS_PER_SEC, NOMINAL_MICROSECS_PER_SEC
@@ -301,11 +301,34 @@ async def main():
         width = width
       )
     
+    def draw_time_delta_line_true(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
+      norm_x = time_delta_to_time_norm(value)
+      pygame.draw.line(
+        surf,
+        color,
+        time_slider.local_to_world(norm_x, 0, True),
+        time_slider.local_to_world(norm_x, 0.95, True),
+        width = width
+      )
+    
     def draw_time_delta_text(surf: pygame.Surface, value, value_str: str) -> None:
       draw_text_centered(
         surf,
         value_str,
         time_slider.local_to_subworld(
+          time_delta_to_time_norm(value),
+          0.5
+        ),
+        horz_align = 0.8 if value < 0 else 0,
+        size = 10,
+        rotation = 90 if value < 0 else -90
+      )
+    
+    def draw_time_delta_text_true(surf: pygame.Surface, value, value_str: str) -> None:
+      draw_text_centered(
+        surf,
+        value_str,
+        time_slider.local_to_world(
           time_delta_to_time_norm(value),
           0.5
         ),
@@ -473,6 +496,11 @@ async def main():
     
     time_details = None
     time_rate_details = None
+    
+    def draw_time_line_true(instant: TimeInstant, string: str) -> None:
+      time_delta = (instant - visual_time).time_delta
+      draw_time_delta_line_true(screen, time_delta, (255, 255, 255))
+      draw_time_delta_text_true(screen, time_delta, string)
   
   def recalculate_vars_after_resize():
     left_btn.x = buttons_edge_x_coord - buttons_size / 2
@@ -508,7 +536,7 @@ async def main():
       time_rate_reset_btn.w = time_sliders_reset_btn_width
       time_rate_reset_btn.h = time_sliders_height
       
-      if time_slider_absolute:
+      if not time_slider_absolute:
         time_details = get_time_slider_delta_surface()
       time_rate_details = get_time_rate_slider_surface()
   
@@ -619,10 +647,102 @@ async def main():
       )
     
     if time_mode == TimeMode.CUSTOMIZABLE:
-      screen.blit(
-        time_details,
-        time_slider.local_to_world(0, 0, True)
-      )
+      if time_slider_absolute:
+        draw_time_delta_line_true(screen, 0, (255, 255, 255))
+        
+        if dragging_time_slider:
+          visual_time = TimeInstant(old_time_base)
+        else:
+          visual_time = now
+        
+        year, month, day, hour, minute, second, _ = visual_time.to_date_tuple_utc()
+        
+        old_time_year_exp_start = None
+        old_time_year_exp_end = None
+        
+        for exp in range(floor(log10(10.0 ** time_max_exp / APPROX_SECS_PER_YEAR)), -1, -1):
+          time_year_exp_start = TimeInstant.from_date_tuple_utc(year // 10 ** exp * 10 ** exp, 1, 1, 0, 0, 0, 0)
+          time_year_exp_end = TimeInstant.from_date_tuple_utc((year // 10 ** exp + 1) * 10 ** exp, 1, 1, 0, 0, 0, 0)
+          if 10 ** exp > year and year > 0:
+            time_year_exp_start_2 = TimeInstant.from_date_tuple_utc(-10 ** exp, 1, 1, 0, 0, 0, 0)
+            draw_time_line_true(time_year_exp_start_2, time_year_exp_start_2.to_format_string_utc('%Y'))
+          if -10 ** exp < year and year <= 0:
+            time_year_exp_end_2 = TimeInstant.from_date_tuple_utc(10 ** exp, 1, 1, 0, 0, 0, 0)
+            draw_time_line_true(time_year_exp_end_2, time_year_exp_end_2.to_format_string_utc('%Y'))
+          
+          if time_year_exp_start != old_time_year_exp_start:
+            draw_time_line_true(time_year_exp_start, time_year_exp_start.to_format_string_utc('%Y'))
+          if time_year_exp_end != old_time_year_exp_end:
+            draw_time_line_true(time_year_exp_end, time_year_exp_end.to_format_string_utc('%Y'))
+          
+          old_time_year_exp_start = time_year_exp_start
+          old_time_year_exp_end = time_year_exp_end
+        
+        time_month_start = TimeInstant.from_date_tuple_utc(year, month, 1, 0, 0, 0, 0)
+        time_month_end = TimeInstant.from_date_tuple_utc(year, month + 1, 1, 0, 0, 0, 0)
+        
+        if time_month_start != time_year_exp_start:
+          draw_time_line_true(time_month_start, time_month_start.to_format_string_utc('%Y-%m'))
+        if time_month_end != time_year_exp_end:
+          draw_time_line_true(time_month_end, time_month_end.to_format_string_utc('%Y-%m'))
+        
+        time_day_start = TimeInstant.from_date_tuple_utc(year, month, day, 0, 0, 0, 0)
+        time_halfday = TimeInstant.from_date_tuple_utc(year, month, day, 12, 0, 0, 0)
+        time_day_end = TimeInstant.from_date_tuple_utc(year, month, day + 1, 0, 0, 0, 0)
+        
+        if time_day_start != time_month_start:
+          draw_time_line_true(time_day_start, time_day_start.to_format_string_utc('%Y-%m-%d'))
+        draw_time_line_true(time_halfday, time_halfday.to_format_string_utc('%H:%M'))
+        if time_day_end != time_month_end:
+          draw_time_line_true(time_day_end, time_day_end.to_format_string_utc('%Y-%m-%d'))
+        
+        time_hour_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, 0, 0, 0)
+        time_hour_end = TimeInstant.from_date_tuple_utc(year, month, day, hour + 1, 0, 0, 0)
+        
+        if time_hour_start != time_day_start and time_hour_start != time_halfday:
+          draw_time_line_true(time_hour_start, time_hour_start.to_format_string_utc('%H:%M'))
+        if time_hour_end != time_day_end and time_hour_end != time_halfday:
+          draw_time_line_true(time_hour_end, time_hour_end.to_format_string_utc('%H:%M'))
+        
+        time_15min_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute // 15 * 15, 0, 0)
+        time_15min_end = TimeInstant.from_date_tuple_utc(year, month, day, hour, (minute // 15 + 1) * 15, 0, 0)
+        
+        if time_15min_start != time_hour_start:
+          draw_time_line_true(time_15min_start, time_15min_start.to_format_string_utc('%H:%M'))
+        if time_15min_end != time_hour_end:
+          draw_time_line_true(time_15min_end, time_15min_end.to_format_string_utc('%H:%M'))
+        
+        time_min_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, 0, 0)
+        time_min_end = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute + 1, 0, 0)
+        
+        if time_min_start != time_15min_start:
+          draw_time_line_true(time_min_start, time_min_start.to_format_string_utc('%H:%M'))
+        if time_min_end != time_15min_end:
+          draw_time_line_true(time_min_end, time_min_end.to_format_string_utc('%H:%M'))
+        
+        time_15sec_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, second // 15 * 15, 0)
+        if second // 15 * 15 == 45:
+          time_15sec_end = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute + 1, 0, 0)
+        else:
+          time_15sec_end = time_15sec_start + TimeDelta(15)
+        
+        if time_15sec_start != time_min_start:
+          draw_time_line_true(time_15sec_start, time_15sec_start.to_format_string_utc('%H:%M:%S'))
+        if time_15sec_end != time_min_end:
+          draw_time_line_true(time_15sec_end, time_15sec_end.to_format_string_utc('%H:%M:%S'))
+        
+        time_sec_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, second, 0)
+        time_sec_end = time_sec_start + TimeDelta(1)
+        
+        if time_sec_start != time_15sec_start:
+          draw_time_line_true(time_sec_start, time_sec_start.to_format_string_utc('%H:%M:%S'))
+        if time_sec_end != time_15sec_end:
+          draw_time_line_true(time_sec_end, time_sec_end.to_format_string_utc('%H:%M:%S'))
+      else:
+        screen.blit(
+          time_details,
+          time_slider.local_to_world(0, 0, True)
+        )
       
       time_slider.draw()
       time_reset_btn.draw()
@@ -644,7 +764,7 @@ async def main():
         f'{float(visual_time_rate):.2e}x',
         (
           width - time_rate_text_size / 2 - time_sliders_edge_dist_x,
-          height - time_sliders_height / 2 + 1
+          height - time_sliders_height / 2 - time_sliders_gap_y + 1
         ),
         horz_align = 0.5,
         size = 23
