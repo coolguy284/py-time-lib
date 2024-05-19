@@ -35,129 +35,36 @@ from ui_components import Button, Slider
 async def main():
   global width, height
   
-  update_time_databases()
-  
-  if len(sys_argv) > 1:
-    tz_name = sys_argv[1]
-    if tz_name == 'None':
-      tz_name = None
-      tz = None
-    elif tz_name == 'help':
-      print('Timezones:')
-      print(sorted(set([*TIMEZONES['proleptic_variable'], *TIMEZONES['proleptic_fixed']])))
-      
-      exit()
-    else:
-      try:
-        tz = TIMEZONES['proleptic_variable'][tz_name]
-      except KeyError:
-        try:
-          tz = TIMEZONES['proleptic_fixed'][tz_name]
-        except KeyError:
-          print(f'Timezone unknown: {tz_name}')
-          exit()
-    if len(sys_argv) > 2:
-      longitude = FixedPrec(sys_argv[2])
-    else:
-      longitude = None
-  else:
-    tz_name = None
-    tz = None
-    longitude = None
-  
   dragging_time_slider = False
   dragging_time_rate_slider = False
   
-  pygame.init()
+  time_reset_time = None
+  time_base = None
+  time_rate = None
+  time_details = None
+  time_rate_details = None
+  old_time_rate = None
+  old_time_base = None
+  time_delta = None
   
-  # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
-  screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-  # https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
-  pygame.display.set_caption('GUI Time Display')
-  refresh_rate = pygame.display.get_current_refresh_rate()
-  clock = AdvancedClock()
-  loop = True
+  left_btn = None
+  right_btn = None
+  time_slider = None
+  time_reset_btn = None
+  time_rate_slider = None
+  time_rate_reset_btn = None
   
-  if time_mode == TimeMode.LEAP_SEC_REPLAY:
-    prgm_start_secs = TimeInstant.now().time
-  elif time_mode == TimeMode.CUSTOMIZABLE:
-    time_reset_time = TimeInstant.now().time
-    time_base = time_reset_time
-    time_rate = FixedPrec(1)
-    #time_base = TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 59, FixedPrec('0.1')).time
-    #time_rate = FixedPrec('0.1')
-    old_time_rate = None
-    old_time_base = None
-    time_delta = None
-    
-    def reset_time_base_to_current() -> None:
-      nonlocal time_base, time_reset_time
-      time_base = now.time
-      time_reset_time = true_now.time
+  loop = None
+  true_now = None
+  now = None
+  visual_time = None
   
-  left_btn = Button(
-    screen = screen,
-    x = None,
-    y = None,
-    w = None,
-    h = None,
-    text = '<',
-    size = 40
-  )
-  right_btn = Button(
-    screen = screen,
-    x = None,
-    y = None,
-    w = None,
-    h = None,
-    text = '>',
-    size = 40
-  )
+  def reset_time_base_to_current() -> None:
+    nonlocal time_base, time_reset_time
+    time_base = now.time
+    time_reset_time = true_now.time
   
-  if time_mode == TimeMode.CUSTOMIZABLE:
-    time_slider = Slider(
-      screen = screen,
-      x = None,
-      y = None,
-      w = None,
-      h = None,
-      orientation = Slider.Orientation.HORIZONTAL
-    )
-    time_slider.value = 0.5
-    
-    time_reset_btn = Button(
-      screen = screen,
-      x = None,
-      y = None,
-      w = None,
-      h = None,
-      text = 'Reset',
-      size = 35
-    )
-    time_reset_btn.enabled = True
-    
-    time_rate_slider = Slider(
-      screen = screen,
-      x = None,
-      y = None,
-      w = None,
-      h = None,
-      orientation = Slider.Orientation.HORIZONTAL
-    )
-    time_rate_slider.value = time_rate_true_to_norm(time_rate)
-    
-    time_rate_reset_btn = Button(
-      screen = screen,
-      x = None,
-      y = None,
-      w = None,
-      h = None,
-      text = 'Reset',
-      size = 35
-    )
-    time_rate_reset_btn.enabled = True
-    
-    def draw_time_rate_line_raw(surf: pygame.Surface, norm_x, color = (127, 127, 127), width = 1) -> None:
+  def draw_time_rate_line_raw(surf: pygame.Surface, norm_x, color = (127, 127, 127), width = 1) -> None:
       pygame.draw.line(
         surf,
         color,
@@ -165,247 +72,245 @@ async def main():
         time_rate_slider.local_to_subworld(norm_x, 1, True),
         width = width
       )
-    
-    def draw_time_rate_line(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
-      draw_time_rate_line_raw(
-        surf,
+  
+  def draw_time_rate_line(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
+    draw_time_rate_line_raw(
+      surf,
+      time_rate_true_to_norm(value),
+      color,
+      width
+    )
+  
+  def draw_time_rate_text(surf: pygame.Surface, value) -> None:
+    draw_text_centered(
+      surf,
+      f'{value:g}x',
+      time_rate_slider.local_to_subworld(
         time_rate_true_to_norm(value),
-        color,
-        width
-      )
+        0.5
+      ),
+      horz_align = 0.8 if value < 0 else 0,
+      size = 10,
+      rotation = 90 if value < 0 else -90
+    )
+  
+  def draw_time_delta_line(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
+    norm_x = time_delta_to_time_norm(value)
+    pygame.draw.line(
+      surf,
+      color,
+      time_slider.local_to_subworld(norm_x, 0, True),
+      time_slider.local_to_subworld(norm_x, 1, True),
+      width = width
+    )
+  
+  def draw_time_delta_line_true(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
+    norm_x = time_delta_to_time_norm(value)
+    pygame.draw.line(
+      surf,
+      color,
+      time_slider.local_to_world(norm_x, 0, True),
+      time_slider.local_to_world(norm_x, 0.95, True),
+      width = width
+    )
+  
+  def draw_time_delta_text(surf: pygame.Surface, value, value_str: str) -> None:
+    draw_text_centered(
+      surf,
+      value_str,
+      time_slider.local_to_subworld(
+        time_delta_to_time_norm(value),
+        0.5
+      ),
+      horz_align = 0.8 if value < 0 else 0,
+      size = 10,
+      rotation = 90 if value < 0 else -90
+    )
+  
+  def draw_time_delta_text_true(surf: pygame.Surface, value, value_str: str) -> None:
+    draw_text_centered(
+      surf,
+      value_str,
+      time_slider.local_to_world(
+        time_delta_to_time_norm(value),
+        0.5
+      ),
+      horz_align = 0.8 if value < 0 else 0,
+      size = 10,
+      rotation = 90 if value < 0 else -90
+    )
+  
+  def get_time_rate_slider_surface() -> pygame.Surface:
+    result = pygame.Surface((time_rate_slider.w, time_rate_slider.h))
     
-    def draw_time_rate_text(surf: pygame.Surface, value) -> None:
-      draw_text_centered(
-        surf,
-        f'{value:g}x',
-        time_rate_slider.local_to_subworld(
-          time_rate_true_to_norm(value),
-          0.5
-        ),
-        horz_align = 0.8 if value < 0 else 0,
-        size = 10,
-        rotation = 90 if value < 0 else -90
-      )
-    
-    def draw_time_delta_line(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
-      norm_x = time_delta_to_time_norm(value)
-      pygame.draw.line(
-        surf,
-        color,
-        time_slider.local_to_subworld(norm_x, 0, True),
-        time_slider.local_to_subworld(norm_x, 1, True),
-        width = width
-      )
-    
-    def draw_time_delta_line_true(surf: pygame.Surface, value, color = (127, 127, 127), width = 1) -> None:
-      norm_x = time_delta_to_time_norm(value)
-      pygame.draw.line(
-        surf,
-        color,
-        time_slider.local_to_world(norm_x, 0, True),
-        time_slider.local_to_world(norm_x, 0.95, True),
-        width = width
-      )
-    
-    def draw_time_delta_text(surf: pygame.Surface, value, value_str: str) -> None:
-      draw_text_centered(
-        surf,
-        value_str,
-        time_slider.local_to_subworld(
-          time_delta_to_time_norm(value),
-          0.5
-        ),
-        horz_align = 0.8 if value < 0 else 0,
-        size = 10,
-        rotation = 90 if value < 0 else -90
-      )
-    
-    def draw_time_delta_text_true(surf: pygame.Surface, value, value_str: str) -> None:
-      draw_text_centered(
-        surf,
-        value_str,
-        time_slider.local_to_world(
-          time_delta_to_time_norm(value),
-          0.5
-        ),
-        horz_align = 0.8 if value < 0 else 0,
-        size = 10,
-        rotation = 90 if value < 0 else -90
-      )
-    
-    def get_time_rate_slider_surface() -> pygame.Surface:
-      result = pygame.Surface((time_rate_slider.w, time_rate_slider.h))
-      
-      draw_time_rate_line(result, 0, (255, 255, 255))
-      draw_time_rate_line_raw(result, 0.5 + time_rate_center_radius, (255, 255, 255))
-      draw_time_rate_line_raw(result, 0.5 - time_rate_center_radius, (255, 255, 255))
-      for i in range(1, 10):
-        num = 10 ** time_rate_min_exp * (i / 10)
+    draw_time_rate_line(result, 0, (255, 255, 255))
+    draw_time_rate_line_raw(result, 0.5 + time_rate_center_radius, (255, 255, 255))
+    draw_time_rate_line_raw(result, 0.5 - time_rate_center_radius, (255, 255, 255))
+    for i in range(1, 10):
+      num = 10 ** time_rate_min_exp * (i / 10)
+      draw_time_rate_line(result, num)
+      draw_time_rate_line(result, -num)
+    for exp in range(time_rate_min_exp, ceil(time_rate_max_exp), 1):
+      draw_time_rate_line(result, 10 ** exp, (255, 255, 255))
+      draw_time_rate_line(result, -10 ** exp, (255, 255, 255))
+      draw_time_rate_text(result, 10 ** exp)
+      draw_time_rate_text(result, -10 ** exp)
+      for i in range(2, 10):
+        num = 10 ** exp * i
+        if log10(num) > time_rate_max_exp:
+          break
         draw_time_rate_line(result, num)
         draw_time_rate_line(result, -num)
-      for exp in range(time_rate_min_exp, ceil(time_rate_max_exp), 1):
-        draw_time_rate_line(result, 10 ** exp, (255, 255, 255))
-        draw_time_rate_line(result, -10 ** exp, (255, 255, 255))
-        draw_time_rate_text(result, 10 ** exp)
-        draw_time_rate_text(result, -10 ** exp)
-        for i in range(2, 10):
-          num = 10 ** exp * i
-          if log10(num) > time_rate_max_exp:
-            break
-          draw_time_rate_line(result, num)
-          draw_time_rate_line(result, -num)
-      
-      return result
     
-    def get_time_slider_delta_surface() -> pygame.Surface:
-      result = pygame.Surface((time_slider.w, time_slider.h))
+    return result
+  
+  def get_time_slider_delta_surface() -> pygame.Surface:
+    result = pygame.Surface((time_slider.w, time_slider.h))
+    
+    draw_time_delta_line(result, 0, (255, 255, 255))
+    
+    for exp in range(3):
+      us = 10 ** exp
+      num_base = us / NOMINAL_MICROSECS_PER_SEC
       
-      draw_time_delta_line(result, 0, (255, 255, 255))
-      
-      for exp in range(3):
-        us = 10 ** exp
-        num_base = us / NOMINAL_MICROSECS_PER_SEC
-        
-        if exp != 0:
-          draw_time_delta_line(result, num_base, (255, 255, 255))
-          draw_time_delta_line(result, -num_base, (255, 255, 255))
-          draw_time_delta_text(result, num_base, f'{us:g}us')
-          draw_time_delta_text(result, -num_base, f'-{us:g}us')
-        
-        for i in range(2 if exp != 0 else 1, 10):
-          draw_time_delta_line(result, num_base * i)
-          draw_time_delta_line(result, -num_base * i)
-      
-      for exp in range(3):
-        ms = 10 ** exp
-        num_base = ms / NOMINAL_MILLISECS_PER_SEC
+      if exp != 0:
         draw_time_delta_line(result, num_base, (255, 255, 255))
         draw_time_delta_line(result, -num_base, (255, 255, 255))
-        draw_time_delta_text(result, num_base, f'{ms:g}ms')
-        draw_time_delta_text(result, -num_base, f'-{ms:g}ms')
-        
-        for i in range(2, 10):
-          draw_time_delta_line(result, num_base * i)
-          draw_time_delta_line(result, -num_base * i)
+        draw_time_delta_text(result, num_base, f'{us:g}us')
+        draw_time_delta_text(result, -num_base, f'-{us:g}us')
       
-      draw_time_delta_line(result, 1, (255, 255, 255))
-      draw_time_delta_line(result, -1, (255, 255, 255))
-      draw_time_delta_text(result, 1, '1s')
-      draw_time_delta_text(result, -1, '-1s')
-      for i in range(2, 10):
-        draw_time_delta_line(result, i)
-        draw_time_delta_line(result, -i)
-      
-      draw_time_delta_line(result, 10, (255, 255, 255))
-      draw_time_delta_line(result, -10, (255, 255, 255))
-      draw_time_delta_text(result, 10, '10s')
-      draw_time_delta_text(result, -10, '-10s')
-      draw_time_delta_line(result, 15)
-      draw_time_delta_line(result, -15)
-      for i in range(2, 4):
-        draw_time_delta_line(result, 15 * i)
-        draw_time_delta_line(result, -15 * i)
-      
-      draw_time_delta_line(result, NOMINAL_SECS_PER_MIN, (255, 255, 255))
-      draw_time_delta_line(result, -NOMINAL_SECS_PER_MIN, (255, 255, 255))
-      draw_time_delta_text(result, NOMINAL_SECS_PER_MIN, '1m')
-      draw_time_delta_text(result, -NOMINAL_SECS_PER_MIN, '-1m')
-      for i in range(2, 10):
-        draw_time_delta_line(result, NOMINAL_SECS_PER_MIN * i)
-        draw_time_delta_line(result, -NOMINAL_SECS_PER_MIN * i)
-      
-      draw_time_delta_line(result, 10 * NOMINAL_SECS_PER_MIN, (255, 255, 255))
-      draw_time_delta_line(result, -10 * NOMINAL_SECS_PER_MIN, (255, 255, 255))
-      draw_time_delta_text(result, 10 * NOMINAL_SECS_PER_MIN, '10m')
-      draw_time_delta_text(result, -10 * NOMINAL_SECS_PER_MIN, '-10m')
-      draw_time_delta_line(result, 15 * NOMINAL_SECS_PER_MIN)
-      draw_time_delta_line(result, -15 * NOMINAL_SECS_PER_MIN)
-      for i in range(2, 4):
-        draw_time_delta_line(result, 15 * NOMINAL_SECS_PER_MIN * i)
-        draw_time_delta_line(result, -15 * NOMINAL_SECS_PER_MIN * i)
-      
-      draw_time_delta_line(result, NOMINAL_SECS_PER_HOUR, (255, 255, 255))
-      draw_time_delta_line(result, -NOMINAL_SECS_PER_HOUR, (255, 255, 255))
-      draw_time_delta_text(result, NOMINAL_SECS_PER_HOUR, '1h')
-      draw_time_delta_text(result, -NOMINAL_SECS_PER_HOUR, '-1h')
-      for i in range(2, 10):
-        draw_time_delta_line(result, NOMINAL_SECS_PER_HOUR * i)
-        draw_time_delta_line(result, -NOMINAL_SECS_PER_HOUR * i)
-      
-      draw_time_delta_line(result, 10 * NOMINAL_SECS_PER_HOUR, (255, 255, 255))
-      draw_time_delta_line(result, -10 * NOMINAL_SECS_PER_HOUR, (255, 255, 255))
-      draw_time_delta_text(result, 10 * NOMINAL_SECS_PER_HOUR, '10h')
-      draw_time_delta_text(result, -10 * NOMINAL_SECS_PER_HOUR, '-10h')
-      draw_time_delta_line(result, 12 * NOMINAL_SECS_PER_HOUR)
-      draw_time_delta_line(result, -12 * NOMINAL_SECS_PER_HOUR)
-      
-      draw_time_delta_line(result, NOMINAL_SECS_PER_DAY, (255, 255, 255))
-      draw_time_delta_line(result, -NOMINAL_SECS_PER_DAY, (255, 255, 255))
-      draw_time_delta_text(result, NOMINAL_SECS_PER_DAY, '1d')
-      draw_time_delta_text(result, -NOMINAL_SECS_PER_DAY, '-1d')
-      
-      for i in range(2, 7):
-        draw_time_delta_line(result, NOMINAL_SECS_PER_DAY * i)
-        draw_time_delta_line(result, -NOMINAL_SECS_PER_DAY * i)
-      
-      draw_time_delta_line(result, NOMINAL_SECS_PER_WEEK, (255, 255, 255))
-      draw_time_delta_line(result, -NOMINAL_SECS_PER_WEEK, (255, 255, 255))
-      draw_time_delta_text(result, NOMINAL_SECS_PER_WEEK, '1wk')
-      draw_time_delta_text(result, -NOMINAL_SECS_PER_WEEK, '-1wk')
-      
-      for i in range(2, 4):
-        draw_time_delta_line(result, NOMINAL_SECS_PER_WEEK * i)
-        draw_time_delta_line(result, -NOMINAL_SECS_PER_WEEK * i)
-      
-      draw_time_delta_line(result, APPROX_SECS_PER_MONTH, (255, 255, 255))
-      draw_time_delta_line(result, -APPROX_SECS_PER_MONTH, (255, 255, 255))
-      draw_time_delta_text(result, APPROX_SECS_PER_MONTH, '1mo')
-      draw_time_delta_text(result, -APPROX_SECS_PER_MONTH, '-1mo')
-      
-      for i in range(2, 12):
-        draw_time_delta_line(result, APPROX_SECS_PER_MONTH * i)
-        draw_time_delta_line(result, -APPROX_SECS_PER_MONTH * i)
-      
-      exp = 0
-      
-      while True:
-        years = 10 ** exp
-        num_base = APPROX_SECS_PER_YEAR * years
-        draw_time_delta_line(result, num_base, (255, 255, 255))
-        draw_time_delta_line(result, -num_base, (255, 255, 255))
-        draw_time_delta_text(result, num_base, f'{years:g}y')
-        draw_time_delta_text(result, -num_base, f'-{years:g}y')
-        
-        for i in range(2, 10):
-          draw_time_delta_line(result, num_base * i)
-          draw_time_delta_line(result, -num_base * i)
-          
-          if log10(num_base * i) > time_max_exp:
-            break
-        else:
-          exp += 1
-          continue
-        
-        break
-      
-      return result
+      for i in range(2 if exp != 0 else 1, 10):
+        draw_time_delta_line(result, num_base * i)
+        draw_time_delta_line(result, -num_base * i)
     
-    time_details = None
-    time_rate_details = None
+    for exp in range(3):
+      ms = 10 ** exp
+      num_base = ms / NOMINAL_MILLISECS_PER_SEC
+      draw_time_delta_line(result, num_base, (255, 255, 255))
+      draw_time_delta_line(result, -num_base, (255, 255, 255))
+      draw_time_delta_text(result, num_base, f'{ms:g}ms')
+      draw_time_delta_text(result, -num_base, f'-{ms:g}ms')
+      
+      for i in range(2, 10):
+        draw_time_delta_line(result, num_base * i)
+        draw_time_delta_line(result, -num_base * i)
     
-    def draw_time_line_true(instant: TimeInstant, string: str = None, line_style: LineStyles = LineStyles.THIN) -> None:
-      time_delta = (instant - visual_time).time_delta
-      match line_style:
-        case LineStyles.THIN:
-          draw_time_delta_line_true(screen, time_delta)
-        case LineStyles.THICK:
-          draw_time_delta_line_true(screen, time_delta, (255, 255, 255))
-        case LineStyles.ORANGE:
-          draw_time_delta_line_true(screen, time_delta, (255, 127, 0))
-        case LineStyles.GREEN:
-          draw_time_delta_line_true(screen, time_delta, (0, 255, 0))
-      if string != None:
-        draw_time_delta_text_true(screen, time_delta, string)
+    draw_time_delta_line(result, 1, (255, 255, 255))
+    draw_time_delta_line(result, -1, (255, 255, 255))
+    draw_time_delta_text(result, 1, '1s')
+    draw_time_delta_text(result, -1, '-1s')
+    for i in range(2, 10):
+      draw_time_delta_line(result, i)
+      draw_time_delta_line(result, -i)
+    
+    draw_time_delta_line(result, 10, (255, 255, 255))
+    draw_time_delta_line(result, -10, (255, 255, 255))
+    draw_time_delta_text(result, 10, '10s')
+    draw_time_delta_text(result, -10, '-10s')
+    draw_time_delta_line(result, 15)
+    draw_time_delta_line(result, -15)
+    for i in range(2, 4):
+      draw_time_delta_line(result, 15 * i)
+      draw_time_delta_line(result, -15 * i)
+    
+    draw_time_delta_line(result, NOMINAL_SECS_PER_MIN, (255, 255, 255))
+    draw_time_delta_line(result, -NOMINAL_SECS_PER_MIN, (255, 255, 255))
+    draw_time_delta_text(result, NOMINAL_SECS_PER_MIN, '1m')
+    draw_time_delta_text(result, -NOMINAL_SECS_PER_MIN, '-1m')
+    for i in range(2, 10):
+      draw_time_delta_line(result, NOMINAL_SECS_PER_MIN * i)
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_MIN * i)
+    
+    draw_time_delta_line(result, 10 * NOMINAL_SECS_PER_MIN, (255, 255, 255))
+    draw_time_delta_line(result, -10 * NOMINAL_SECS_PER_MIN, (255, 255, 255))
+    draw_time_delta_text(result, 10 * NOMINAL_SECS_PER_MIN, '10m')
+    draw_time_delta_text(result, -10 * NOMINAL_SECS_PER_MIN, '-10m')
+    draw_time_delta_line(result, 15 * NOMINAL_SECS_PER_MIN)
+    draw_time_delta_line(result, -15 * NOMINAL_SECS_PER_MIN)
+    for i in range(2, 4):
+      draw_time_delta_line(result, 15 * NOMINAL_SECS_PER_MIN * i)
+      draw_time_delta_line(result, -15 * NOMINAL_SECS_PER_MIN * i)
+    
+    draw_time_delta_line(result, NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+    draw_time_delta_line(result, -NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+    draw_time_delta_text(result, NOMINAL_SECS_PER_HOUR, '1h')
+    draw_time_delta_text(result, -NOMINAL_SECS_PER_HOUR, '-1h')
+    for i in range(2, 10):
+      draw_time_delta_line(result, NOMINAL_SECS_PER_HOUR * i)
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_HOUR * i)
+    
+    draw_time_delta_line(result, 10 * NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+    draw_time_delta_line(result, -10 * NOMINAL_SECS_PER_HOUR, (255, 255, 255))
+    draw_time_delta_text(result, 10 * NOMINAL_SECS_PER_HOUR, '10h')
+    draw_time_delta_text(result, -10 * NOMINAL_SECS_PER_HOUR, '-10h')
+    draw_time_delta_line(result, 12 * NOMINAL_SECS_PER_HOUR)
+    draw_time_delta_line(result, -12 * NOMINAL_SECS_PER_HOUR)
+    
+    draw_time_delta_line(result, NOMINAL_SECS_PER_DAY, (255, 255, 255))
+    draw_time_delta_line(result, -NOMINAL_SECS_PER_DAY, (255, 255, 255))
+    draw_time_delta_text(result, NOMINAL_SECS_PER_DAY, '1d')
+    draw_time_delta_text(result, -NOMINAL_SECS_PER_DAY, '-1d')
+    
+    for i in range(2, 7):
+      draw_time_delta_line(result, NOMINAL_SECS_PER_DAY * i)
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_DAY * i)
+    
+    draw_time_delta_line(result, NOMINAL_SECS_PER_WEEK, (255, 255, 255))
+    draw_time_delta_line(result, -NOMINAL_SECS_PER_WEEK, (255, 255, 255))
+    draw_time_delta_text(result, NOMINAL_SECS_PER_WEEK, '1wk')
+    draw_time_delta_text(result, -NOMINAL_SECS_PER_WEEK, '-1wk')
+    
+    for i in range(2, 4):
+      draw_time_delta_line(result, NOMINAL_SECS_PER_WEEK * i)
+      draw_time_delta_line(result, -NOMINAL_SECS_PER_WEEK * i)
+    
+    draw_time_delta_line(result, APPROX_SECS_PER_MONTH, (255, 255, 255))
+    draw_time_delta_line(result, -APPROX_SECS_PER_MONTH, (255, 255, 255))
+    draw_time_delta_text(result, APPROX_SECS_PER_MONTH, '1mo')
+    draw_time_delta_text(result, -APPROX_SECS_PER_MONTH, '-1mo')
+    
+    for i in range(2, 12):
+      draw_time_delta_line(result, APPROX_SECS_PER_MONTH * i)
+      draw_time_delta_line(result, -APPROX_SECS_PER_MONTH * i)
+    
+    exp = 0
+    
+    while True:
+      years = 10 ** exp
+      num_base = APPROX_SECS_PER_YEAR * years
+      draw_time_delta_line(result, num_base, (255, 255, 255))
+      draw_time_delta_line(result, -num_base, (255, 255, 255))
+      draw_time_delta_text(result, num_base, f'{years:g}y')
+      draw_time_delta_text(result, -num_base, f'-{years:g}y')
+      
+      for i in range(2, 10):
+        draw_time_delta_line(result, num_base * i)
+        draw_time_delta_line(result, -num_base * i)
+        
+        if log10(num_base * i) > time_max_exp:
+          break
+      else:
+        exp += 1
+        continue
+      
+      break
+    
+    return result
+  
+  def draw_time_line_true(instant: TimeInstant, string: str = None, line_style: LineStyles = LineStyles.THIN) -> None:
+    nonlocal visual_time
+    time_delta = (instant - visual_time).time_delta
+    match line_style:
+      case LineStyles.THIN:
+        draw_time_delta_line_true(screen, time_delta)
+      case LineStyles.THICK:
+        draw_time_delta_line_true(screen, time_delta, (255, 255, 255))
+      case LineStyles.ORANGE:
+        draw_time_delta_line_true(screen, time_delta, (255, 127, 0))
+      case LineStyles.GREEN:
+        draw_time_delta_line_true(screen, time_delta, (0, 255, 0))
+    if string != None:
+      draw_time_delta_text_true(screen, time_delta, string)
   
   def recalculate_vars_after_resize():
     left_btn.x = buttons_edge_x_coord - buttons_size / 2
@@ -445,10 +350,10 @@ async def main():
         time_details = get_time_slider_delta_surface()
       time_rate_details = get_time_rate_slider_surface()
   
-  recalculate_vars_after_resize()
-  
-  while loop:
-    # update
+  def update_prgm_state():
+    nonlocal dragging_time_slider, dragging_time_rate_slider
+    nonlocal true_now, now, loop
+    nonlocal time_reset_time, time_rate, time_base, time_delta, old_time_base, old_time_rate
     
     left_btn.enabled = get_run_mode().value > 1
     right_btn.enabled = get_run_mode().value < len(run_modes)
@@ -520,16 +425,6 @@ async def main():
         
         recalculate_vars_after_resize()
     
-    # draw
-    
-    screen.fill((0, 0, 0))
-    
-    left_btn.draw()
-    right_btn.draw()
-    
-    draw_text_centered(screen, run_mode_names[get_run_mode()], (width / 2, 45), horz_align = 0.5, size = 43)
-    draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
-    
     true_now = TimeInstant.now()
     
     if time_mode == TimeMode.CURRENT:
@@ -538,7 +433,7 @@ async def main():
       now = TimeInstant(
         (
           true_now.time -
-          prgm_start_secs
+          time_reset_time
         ) * 1 +
         TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 50, 0).time
       )
@@ -550,6 +445,17 @@ async def main():
         ) * time_rate +
         time_base
       )
+  
+  def render_prgm():
+    nonlocal visual_time
+    
+    screen.fill((0, 0, 0))
+    
+    left_btn.draw()
+    right_btn.draw()
+    
+    draw_text_centered(screen, run_mode_names[get_run_mode()], (width / 2, 45), horz_align = 0.5, size = 43)
+    draw_text_centered(screen, f'{clock.get_fps():.1f} FPS, {clock.get_busy_fraction() * 100:0>4.1f}% use', (90, 45), size = 30)
     
     if time_mode == TimeMode.CUSTOMIZABLE:
       if time_slider_absolute:
@@ -723,6 +629,126 @@ async def main():
     draw_run_mode(screen, now, tz, longitude)
     
     pygame.display.flip()
+  
+  update_time_databases()
+  
+  if len(sys_argv) > 1:
+    tz_name = sys_argv[1]
+    if tz_name == 'None':
+      tz_name = None
+      tz = None
+    elif tz_name == 'help':
+      print('Timezones:')
+      print(sorted(set([*TIMEZONES['proleptic_variable'], *TIMEZONES['proleptic_fixed']])))
+      
+      exit()
+    else:
+      try:
+        tz = TIMEZONES['proleptic_variable'][tz_name]
+      except KeyError:
+        try:
+          tz = TIMEZONES['proleptic_fixed'][tz_name]
+        except KeyError:
+          print(f'Timezone unknown: {tz_name}')
+          exit()
+    if len(sys_argv) > 2:
+      longitude = FixedPrec(sys_argv[2])
+    else:
+      longitude = None
+  else:
+    tz_name = None
+    tz = None
+    longitude = None
+  
+  pygame.init()
+  
+  # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
+  screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+  # https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
+  pygame.display.set_caption('GUI Time Display')
+  refresh_rate = pygame.display.get_current_refresh_rate()
+  clock = AdvancedClock()
+  loop = True
+  
+  if time_mode == TimeMode.LEAP_SEC_REPLAY:
+    time_reset_time = TimeInstant.now().time
+  elif time_mode == TimeMode.CUSTOMIZABLE:
+    time_reset_time = TimeInstant.now().time
+    time_base = time_reset_time
+    time_rate = FixedPrec(1)
+    #time_base = TimeInstant.from_date_tuple_utc(2016, 12, 31, 23, 59, 59, FixedPrec('0.1')).time
+    #time_rate = FixedPrec('0.1')
+  
+  left_btn = Button(
+    screen = screen,
+    x = None,
+    y = None,
+    w = None,
+    h = None,
+    text = '<',
+    size = 40
+  )
+  right_btn = Button(
+    screen = screen,
+    x = None,
+    y = None,
+    w = None,
+    h = None,
+    text = '>',
+    size = 40
+  )
+  
+  if time_mode == TimeMode.CUSTOMIZABLE:
+    time_slider = Slider(
+      screen = screen,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
+      orientation = Slider.Orientation.HORIZONTAL
+    )
+    time_slider.value = 0.5
+    
+    time_reset_btn = Button(
+      screen = screen,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
+      text = 'Reset',
+      size = 35
+    )
+    time_reset_btn.enabled = True
+    
+    time_rate_slider = Slider(
+      screen = screen,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
+      orientation = Slider.Orientation.HORIZONTAL
+    )
+    time_rate_slider.value = time_rate_true_to_norm(time_rate)
+    
+    time_rate_reset_btn = Button(
+      screen = screen,
+      x = None,
+      y = None,
+      w = None,
+      h = None,
+      text = 'Reset',
+      size = 35
+    )
+    time_rate_reset_btn.enabled = True
+  
+  recalculate_vars_after_resize()
+  
+  while loop:
+    # update
+    update_prgm_state()
+    
+    # draw
+    render_prgm()
     await clock.tick_async(refresh_rate)
   
   pygame.quit()
