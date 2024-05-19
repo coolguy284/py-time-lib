@@ -1,11 +1,11 @@
 from py_time_lib import LeapSmearPlan, LeapSmearSingle, LeapBasis, SmearType, FixedPrec, TimeInstant
-from py_time_lib.constants import APPROX_SECS_PER_YEAR
+from py_time_lib import APPROX_SECS_PER_YEAR
 
 from enums import RunMode, TimeMode
 
 # tweakables
 time_mode = TimeMode.CUSTOMIZABLE
-time_slider_absolute = True
+time_slider_absolute = False
 
 run_mode = RunMode.TIME_STANDARDS
 

@@ -16,7 +16,7 @@ from sys import argv as sys_argv
 import pygame
 from py_time_lib import FixedPrec, TimeInstant, TimeDelta, GregorianDate
 from py_time_lib import TIMEZONES, update_time_databases, update_time_databases_loop
-from py_time_lib.constants import NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_WEEK, APPROX_SECS_PER_MONTH, APPROX_SECS_PER_YEAR, NOMINAL_MILLISECS_PER_SEC, NOMINAL_MICROSECS_PER_SEC
+from py_time_lib import NOMINAL_SECS_PER_MIN, NOMINAL_SECS_PER_HOUR, NOMINAL_SECS_PER_DAY, NOMINAL_SECS_PER_WEEK, APPROX_SECS_PER_MONTH, APPROX_SECS_PER_YEAR, NOMINAL_MILLISECS_PER_SEC, NOMINAL_MICROSECS_PER_SEC
 
 from advanced_clock import AdvancedClock
 from constants import time_mode, time_slider_absolute, get_run_mode, set_run_mode

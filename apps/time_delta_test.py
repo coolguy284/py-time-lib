@@ -11,8 +11,7 @@ def fix_import_path():
   sys_path.append(str(parent_dir))
 
 from time import sleep, perf_counter_ns, monotonic_ns, time_ns
-from py_time_lib import FixedPrec
-from py_time_lib.constants import NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX
+from py_time_lib import FixedPrec, NOMINAL_NANOSECS_PER_SEC_LOG_FIXEDPREC_RADIX
 
 def format_offsets(delta_time, delta_monotone):
   return (
@@ -33,7 +32,9 @@ def times_delta():
 
 print('Initial offsets:')
 print(format_offsets(delta_time_initial, delta_monotone_initial))
+print()
 
+print('Delta offsets:')
 while True:
   print(times_delta())
   sleep(1)
