@@ -118,6 +118,9 @@ async def main():
   run_mode = RunMode.TIME_STANDARDS
   dragging_time_slider = False
   dragging_time_rate_slider = False
+  years_ago_epoch = TimeInstant.from_date_tuple_utc(1950, 1, 1, 0, 0, 0, 0).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)
+  univ_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 13_800_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
+  earth_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 4_540_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
   
   # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
   screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -497,10 +500,26 @@ async def main():
     time_details = None
     time_rate_details = None
     
-    def draw_time_line_true(instant: TimeInstant, string: str) -> None:
+    LineStyles = Enum('LineStyles', (
+      'THIN',
+      'THICK',
+      'ORANGE',
+      'GREEN',
+    ))
+    
+    def draw_time_line_true(instant: TimeInstant, string: str = None, line_style: LineStyles = LineStyles.THIN) -> None:
       time_delta = (instant - visual_time).time_delta
-      draw_time_delta_line_true(screen, time_delta, (255, 255, 255))
-      draw_time_delta_text_true(screen, time_delta, string)
+      match line_style:
+        case LineStyles.THIN:
+          draw_time_delta_line_true(screen, time_delta)
+        case LineStyles.THICK:
+          draw_time_delta_line_true(screen, time_delta, (255, 255, 255))
+        case LineStyles.ORANGE:
+          draw_time_delta_line_true(screen, time_delta, (255, 127, 0))
+        case LineStyles.GREEN:
+          draw_time_delta_line_true(screen, time_delta, (0, 255, 0))
+      if string != None:
+        draw_time_delta_text_true(screen, time_delta, string)
   
   def recalculate_vars_after_resize():
     left_btn.x = buttons_edge_x_coord - buttons_size / 2
@@ -665,15 +684,15 @@ async def main():
           time_year_exp_end = TimeInstant.from_date_tuple_utc((year // 10 ** exp + 1) * 10 ** exp, 1, 1, 0, 0, 0, 0)
           if 10 ** exp > year and year > 0:
             time_year_exp_start_2 = TimeInstant.from_date_tuple_utc(-10 ** exp, 1, 1, 0, 0, 0, 0)
-            draw_time_line_true(time_year_exp_start_2, time_year_exp_start_2.to_format_string_utc('%Y'))
+            draw_time_line_true(time_year_exp_start_2, time_year_exp_start_2.to_format_string_utc('%Y'), LineStyles.THICK)
           if -10 ** exp < year and year <= 0:
             time_year_exp_end_2 = TimeInstant.from_date_tuple_utc(10 ** exp, 1, 1, 0, 0, 0, 0)
-            draw_time_line_true(time_year_exp_end_2, time_year_exp_end_2.to_format_string_utc('%Y'))
+            draw_time_line_true(time_year_exp_end_2, time_year_exp_end_2.to_format_string_utc('%Y'), LineStyles.THICK)
           
           if time_year_exp_start != old_time_year_exp_start:
-            draw_time_line_true(time_year_exp_start, time_year_exp_start.to_format_string_utc('%Y'))
+            draw_time_line_true(time_year_exp_start, time_year_exp_start.to_format_string_utc('%Y'), LineStyles.THICK)
           if time_year_exp_end != old_time_year_exp_end:
-            draw_time_line_true(time_year_exp_end, time_year_exp_end.to_format_string_utc('%Y'))
+            draw_time_line_true(time_year_exp_end, time_year_exp_end.to_format_string_utc('%Y'), LineStyles.THICK)
           
           old_time_year_exp_start = time_year_exp_start
           old_time_year_exp_end = time_year_exp_end
@@ -681,44 +700,69 @@ async def main():
         time_month_start = TimeInstant.from_date_tuple_utc(year, month, 1, 0, 0, 0, 0)
         time_month_end = TimeInstant.from_date_tuple_utc(year, month + 1, 1, 0, 0, 0, 0)
         
+        for i in range(1, 12):
+          time_month_dynamic = TimeInstant.from_date_tuple_utc(year, i, 1, 0, 0, 0, 0)
+          if time_month_dynamic != time_month_start and time_month_dynamic != time_month_end:
+            draw_time_line_true(time_month_dynamic)
+        
         if time_month_start != time_year_exp_start:
-          draw_time_line_true(time_month_start, time_month_start.to_format_string_utc('%Y-%m'))
+          draw_time_line_true(time_month_start, time_month_start.to_format_string_utc('%Y-%m'), LineStyles.THICK)
         if time_month_end != time_year_exp_end:
-          draw_time_line_true(time_month_end, time_month_end.to_format_string_utc('%Y-%m'))
+          draw_time_line_true(time_month_end, time_month_end.to_format_string_utc('%Y-%m'), LineStyles.THICK)
         
         time_day_start = TimeInstant.from_date_tuple_utc(year, month, day, 0, 0, 0, 0)
         time_halfday = TimeInstant.from_date_tuple_utc(year, month, day, 12, 0, 0, 0)
         time_day_end = TimeInstant.from_date_tuple_utc(year, month, day + 1, 0, 0, 0, 0)
         
+        for i in range(2, GregorianDate.days_in_month(year, month)):
+          time_day_dynamic = TimeInstant.from_date_tuple_utc(year, month, i, 0, 0, 0, 0)
+          if time_day_dynamic != time_day_start and time_day_dynamic != time_day_end:
+            draw_time_line_true(time_day_dynamic)
+        
         if time_day_start != time_month_start:
-          draw_time_line_true(time_day_start, time_day_start.to_format_string_utc('%Y-%m-%d'))
-        draw_time_line_true(time_halfday, time_halfday.to_format_string_utc('%H:%M'))
+          draw_time_line_true(time_day_start, time_day_start.to_format_string_utc('%Y-%m-%d'), LineStyles.THICK)
+        draw_time_line_true(time_halfday, time_halfday.to_format_string_utc('%H:%M'), LineStyles.THICK)
         if time_day_end != time_month_end:
-          draw_time_line_true(time_day_end, time_day_end.to_format_string_utc('%Y-%m-%d'))
+          draw_time_line_true(time_day_end, time_day_end.to_format_string_utc('%Y-%m-%d'), LineStyles.THICK)
         
         time_hour_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, 0, 0, 0)
         time_hour_end = TimeInstant.from_date_tuple_utc(year, month, day, hour + 1, 0, 0, 0)
         
+        for i in range(1, 12):
+          time_hour_dynamic = TimeInstant.from_date_tuple_utc(year, month, day, hour // 12 * 12 + i, 0, 0, 0)
+          if time_hour_dynamic != time_hour_start and time_hour_dynamic != time_hour_end:
+            draw_time_line_true(time_hour_dynamic)
+        
         if time_hour_start != time_day_start and time_hour_start != time_halfday:
-          draw_time_line_true(time_hour_start, time_hour_start.to_format_string_utc('%H:%M'))
+          draw_time_line_true(time_hour_start, time_hour_start.to_format_string_utc('%H:%M'), LineStyles.THICK)
         if time_hour_end != time_day_end and time_hour_end != time_halfday:
-          draw_time_line_true(time_hour_end, time_hour_end.to_format_string_utc('%H:%M'))
+          draw_time_line_true(time_hour_end, time_hour_end.to_format_string_utc('%H:%M'), LineStyles.THICK)
         
         time_15min_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute // 15 * 15, 0, 0)
         time_15min_end = TimeInstant.from_date_tuple_utc(year, month, day, hour, (minute // 15 + 1) * 15, 0, 0)
         
+        for i in range(1, 4):
+          time_15min_dynamic = TimeInstant.from_date_tuple_utc(year, month, day, hour, 15 * i, 0, 0)
+          if time_15min_dynamic != time_15min_start and time_15min_dynamic != time_15min_end:
+            draw_time_line_true(time_15min_dynamic)
+        
         if time_15min_start != time_hour_start:
-          draw_time_line_true(time_15min_start, time_15min_start.to_format_string_utc('%H:%M'))
+          draw_time_line_true(time_15min_start, time_15min_start.to_format_string_utc('%H:%M'), LineStyles.THICK)
         if time_15min_end != time_hour_end:
-          draw_time_line_true(time_15min_end, time_15min_end.to_format_string_utc('%H:%M'))
+          draw_time_line_true(time_15min_end, time_15min_end.to_format_string_utc('%H:%M'), LineStyles.THICK)
         
         time_min_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, 0, 0)
         time_min_end = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute + 1, 0, 0)
         
+        for i in range(1, 15):
+          time_min_dynamic = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute // 15 * 15 + i, 0, 0)
+          if time_min_dynamic != time_min_start and time_min_dynamic != time_min_end:
+            draw_time_line_true(time_min_dynamic)
+        
         if time_min_start != time_15min_start:
-          draw_time_line_true(time_min_start, time_min_start.to_format_string_utc('%H:%M'))
+          draw_time_line_true(time_min_start, time_min_start.to_format_string_utc('%H:%M'), LineStyles.THICK)
         if time_min_end != time_15min_end:
-          draw_time_line_true(time_min_end, time_min_end.to_format_string_utc('%H:%M'))
+          draw_time_line_true(time_min_end, time_min_end.to_format_string_utc('%H:%M'), LineStyles.THICK)
         
         time_15sec_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, second // 15 * 15, 0)
         if second // 15 * 15 == 45:
@@ -726,18 +770,31 @@ async def main():
         else:
           time_15sec_end = time_15sec_start + TimeDelta(15)
         
+        for i in range(1, 4):
+          time_15sec_dynamic = time_min_start + TimeDelta(i * 15)
+          if time_15sec_dynamic != time_15sec_start and time_15sec_dynamic != time_15sec_end:
+            draw_time_line_true(time_15sec_dynamic)
+        
         if time_15sec_start != time_min_start:
-          draw_time_line_true(time_15sec_start, time_15sec_start.to_format_string_utc('%H:%M:%S'))
+          draw_time_line_true(time_15sec_start, time_15sec_start.to_format_string_utc('%H:%M:%S'), LineStyles.THICK)
         if time_15sec_end != time_min_end:
-          draw_time_line_true(time_15sec_end, time_15sec_end.to_format_string_utc('%H:%M:%S'))
+          draw_time_line_true(time_15sec_end, time_15sec_end.to_format_string_utc('%H:%M:%S'), LineStyles.THICK)
         
         time_sec_start = TimeInstant.from_date_tuple_utc(year, month, day, hour, minute, second, 0)
         time_sec_end = time_sec_start + TimeDelta(1)
         
+        for i in range(1, int((time_15sec_end - time_15sec_start).time_delta)):
+          time_sec_dynamic = time_15sec_start + TimeDelta(i)
+          if time_sec_dynamic != time_sec_start and time_sec_dynamic != time_sec_end:
+            draw_time_line_true(time_sec_dynamic)
+        
         if time_sec_start != time_15sec_start:
-          draw_time_line_true(time_sec_start, time_sec_start.to_format_string_utc('%H:%M:%S'))
+          draw_time_line_true(time_sec_start, time_sec_start.to_format_string_utc('%H:%M:%S'), LineStyles.THICK)
         if time_sec_end != time_15sec_end:
-          draw_time_line_true(time_sec_end, time_sec_end.to_format_string_utc('%H:%M:%S'))
+          draw_time_line_true(time_sec_end, time_sec_end.to_format_string_utc('%H:%M:%S'), LineStyles.THICK)
+        
+        draw_time_line_true(univ_start, line_style = LineStyles.ORANGE)
+        draw_time_line_true(earth_start, line_style = LineStyles.GREEN)
       else:
         screen.blit(
           time_details,

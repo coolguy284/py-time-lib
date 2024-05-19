@@ -135,6 +135,8 @@ def almost_linear_func_inverse_deriv[T: Real](func: Callable[[T], T], output: T,
     deriv = (func(deriv_guess) - current_output) / deriv_epsilon
     if deriv_flip:
       deriv *= -1
+    if deriv == 0:
+      deriv = 1
     
     guess -= delta / deriv
     
