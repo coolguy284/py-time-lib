@@ -24,39 +24,59 @@ from draw_lib import draw_text_centered
 from advanced_clock import AdvancedClock
 from ui_components import Button, Slider
 
-async def main():
-  update_time_databases()
-  
-  if len(sys_argv) > 1:
-    tz_name = sys_argv[1]
-    if tz_name == 'None':
-      tz_name = None
-      tz = None
-    elif tz_name == 'help':
-      print('Timezones:')
-      print(sorted(set([*TIMEZONES['proleptic_variable'], *TIMEZONES['proleptic_fixed']])))
-      
-      exit()
-    else:
-      try:
-        tz = TIMEZONES['proleptic_variable'][tz_name]
-      except KeyError:
-        try:
-          tz = TIMEZONES['proleptic_fixed'][tz_name]
-        except KeyError:
-          print(f'Timezone unknown: {tz_name}')
-          exit()
-    if len(sys_argv) > 2:
-      longitude = FixedPrec(sys_argv[2])
-    else:
-      longitude = None
+def linear_to_exponential(linear_start_frac: float, min_exp: float, max_exp: float, value: float) -> FixedPrec:
+  if value <= linear_start_frac:
+    return FixedPrec(10) ** min_exp * value / linear_start_frac
   else:
-    tz_name = None
-    tz = None
-    longitude = None
+    return FixedPrec(10) ** (
+      min_exp +
+      (value - linear_start_frac) /
+      (1 - linear_start_frac) *
+      (max_exp - min_exp)
+    )
+
+def exponential_to_linear(linear_start_frac: float, min_exp: float, max_exp: float, value: FixedPrec) -> float:
+  lin_threshold = FixedPrec(10) ** min_exp
+  if value <= lin_threshold:
+    return float(value / lin_threshold) * linear_start_frac
+  else:
+    return linear_start_frac + \
+      (log10(value) - min_exp) / (max_exp - min_exp) * (1 - linear_start_frac)
+
+TimeMode = Enum('TimeMode', (
+  'CURRENT',
+  'LEAP_SEC_REPLAY',
+  'CUSTOMIZABLE',
+))
+
+RunMode = Enum('RunMode', (
+  'CLOCK',
+  'TIME_STANDARDS',
+  'CALENDARS',
+  'BLANK',
+))
+run_mode_names = {
+  RunMode.CLOCK: 'Clock',
+  RunMode.TIME_STANDARDS: 'Time Standards',
+  RunMode.CALENDARS: 'Calendars (UTC)',
+  RunMode.BLANK: 'Blank',
+}
+run_modes = list(RunMode)
+
+LineStyles = Enum('LineStyles', (
+  'THIN',
+  'THICK',
+  'ORANGE',
+  'GREEN',
+))
+
+async def main():
+  # tweakables
+  time_mode = TimeMode.CUSTOMIZABLE
+  time_slider_absolute = True
+  run_mode = RunMode.TIME_STANDARDS
   
-  pygame.init()
-  
+  # internal tweakables
   width = 1280
   height = 850
   buttons_edge_x_coord = 40
@@ -84,69 +104,6 @@ async def main():
   calendars_x_center_offset = 600
   calendars_y_start = 110
   calendars_y_step = 60
-  
-  smear_plan = LeapSmearPlan(
-    LeapSmearSingle(
-      start_basis = LeapBasis.START,
-      secs_before_start_basis = 5,
-      end_basis = LeapBasis.END,
-      secs_after_end_basis = 5,
-      type = SmearType.LINEAR
-    ),
-    ()
-  )
-  TimeMode = Enum('TimeMode', (
-    'CURRENT',
-    'LEAP_SEC_REPLAY',
-    'CUSTOMIZABLE',
-  ))
-  time_mode = TimeMode.CUSTOMIZABLE
-  time_slider_absolute = True
-  RunMode = Enum('RunMode', (
-    'CLOCK',
-    'TIME_STANDARDS',
-    'CALENDARS',
-    'BLANK',
-  ))
-  run_modes = list(RunMode)
-  run_mode_names = {
-    RunMode.CLOCK: 'Clock',
-    RunMode.TIME_STANDARDS: 'Time Standards',
-    RunMode.CALENDARS: 'Calendars (UTC)',
-    RunMode.BLANK: 'Blank',
-  }
-  run_mode = RunMode.TIME_STANDARDS
-  dragging_time_slider = False
-  dragging_time_rate_slider = False
-  years_ago_epoch = TimeInstant.from_date_tuple_utc(1950, 1, 1, 0, 0, 0, 0).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)
-  univ_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 13_800_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
-  earth_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 4_540_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
-  
-  # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
-  screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-  # https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
-  pygame.display.set_caption('GUI Time Display')
-  refresh_rate = pygame.display.get_current_refresh_rate()
-  clock = AdvancedClock()
-  
-  def linear_to_exponential(linear_start_frac: float, min_exp: float, max_exp: float, value: float) -> FixedPrec:
-    if value <= linear_start_frac:
-      return FixedPrec(10) ** min_exp * value / linear_start_frac
-    else:
-      return FixedPrec(10) ** (
-        min_exp +
-        (value - linear_start_frac) /
-        (1 - linear_start_frac) *
-        (max_exp - min_exp)
-      )
-  
-  def exponential_to_linear(linear_start_frac: float, min_exp: float, max_exp: float, value: FixedPrec) -> float:
-    lin_threshold = FixedPrec(10) ** min_exp
-    if value <= lin_threshold:
-      return float(value / lin_threshold) * linear_start_frac
-    else:
-      return linear_start_frac + \
-        (log10(value) - min_exp) / (max_exp - min_exp) * (1 - linear_start_frac)
   
   def time_rate_true_to_norm(time_rate: FixedPrec) -> float:
     if time_rate == 0:
@@ -185,6 +142,60 @@ async def main():
     norm_abs = exponential_to_linear(time_linear_frac, time_min_exp, time_max_exp, delta_abs)
     return (mul * norm_abs) * 0.5 + 0.5
   
+  update_time_databases()
+  
+  if len(sys_argv) > 1:
+    tz_name = sys_argv[1]
+    if tz_name == 'None':
+      tz_name = None
+      tz = None
+    elif tz_name == 'help':
+      print('Timezones:')
+      print(sorted(set([*TIMEZONES['proleptic_variable'], *TIMEZONES['proleptic_fixed']])))
+      
+      exit()
+    else:
+      try:
+        tz = TIMEZONES['proleptic_variable'][tz_name]
+      except KeyError:
+        try:
+          tz = TIMEZONES['proleptic_fixed'][tz_name]
+        except KeyError:
+          print(f'Timezone unknown: {tz_name}')
+          exit()
+    if len(sys_argv) > 2:
+      longitude = FixedPrec(sys_argv[2])
+    else:
+      longitude = None
+  else:
+    tz_name = None
+    tz = None
+    longitude = None
+  
+  smear_plan = LeapSmearPlan(
+    LeapSmearSingle(
+      start_basis = LeapBasis.START,
+      secs_before_start_basis = 5,
+      end_basis = LeapBasis.END,
+      secs_after_end_basis = 5,
+      type = SmearType.LINEAR
+    ),
+    ()
+  )
+  dragging_time_slider = False
+  dragging_time_rate_slider = False
+  years_ago_epoch = TimeInstant.from_date_tuple_utc(1950, 1, 1, 0, 0, 0, 0).to_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME)
+  univ_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 13_800_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
+  earth_start = TimeInstant.from_secs_since_epoch_mono(TimeInstant.TIME_SCALES.UNIVERSE_COORDINATE_TIME, years_ago_epoch - 4_540_000_000 * FixedPrec(APPROX_SECS_PER_YEAR))
+  
+  pygame.init()
+  
+  # https://stackoverflow.com/questions/11603222/allowing-resizing-window-pygame
+  screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+  # https://stackoverflow.com/questions/40566585/how-to-change-the-name-of-a-pygame-window/40595418#40595418
+  pygame.display.set_caption('GUI Time Display')
+  refresh_rate = pygame.display.get_current_refresh_rate()
+  clock = AdvancedClock()
   loop = True
   
   if time_mode == TimeMode.LEAP_SEC_REPLAY:
@@ -501,13 +512,6 @@ async def main():
     
     time_details = None
     time_rate_details = None
-    
-    LineStyles = Enum('LineStyles', (
-      'THIN',
-      'THICK',
-      'ORANGE',
-      'GREEN',
-    ))
     
     def draw_time_line_true(instant: TimeInstant, string: str = None, line_style: LineStyles = LineStyles.THIN) -> None:
       time_delta = (instant - visual_time).time_delta
