@@ -17,7 +17,12 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
-add timezone / longitude / calendar picker to bottom
+accept tuple/sequence/iterator for format string funcs to batch process
+redo univ coord time to use earth motion to univ only
+redo earth formation time to use tcb and put the formation time vars and years ago base in data py
+gui time display: holidays page
+gui time display: make time bar a little bit taller when rendered in absolute mode
+gui time display: add timezone / longitude / calendar picker to bottom
 ethiopian calendar
 add strftime codes from https://manpages.debian.org/bookworm/manpages-dev/strftime.3.en.html
 clean up TDB/TCB code

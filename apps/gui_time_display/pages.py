@@ -1,4 +1,6 @@
+from math import cos, sin, pi
 from pygame import Surface
+from pygame.draw import circle, line
 from py_time_lib import FixedPrec, TimeInstant, TimeZone
 from py_time_lib import JulianDate, GregorianDate, IsoWeekDate, HoloceneDate, Symmetry010, Symmetry010LeapMonth, Symmetry454, Symmetry454LeapMonth
 
@@ -6,14 +8,41 @@ from constants import Page, get_current_page
 from constants import smear_plan
 from constants import time_standards_format_str, time_standards_format_str_cap_offset, time_standards_x_center_offset, time_standards_y_start, time_standards_y_step
 from constants import calendars_time_format_str, calendars_format_str, calendars_x_center_offset, calendars_y_start, calendars_y_step
+from constants import clock_format_str
 from lib_draw import draw_text_centered
 
-def draw_page(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: FixedPrec):
+def draw_page(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: FixedPrec, central_start_y, central_size):
   width = screen.get_width()
+  height = screen.get_height()
   
   match get_current_page():
     case Page.CLOCK:
-      ...
+      if tz != None:
+        _, _2, _3, hour, minute, second_int, frac_second, _ = now.to_date_tuple_tz(tz)
+        second = second_int + frac_second
+        circle(
+          screen,
+          (255, 255, 255),
+          (width * 0.25, central_start_y + central_size / 2 - 20),
+          height * 0.3,
+          width = 10
+        )
+        sec_angle = pi / 2 - second / 60
+        line(
+          screen,
+          (255, 0, 0),
+          (width * 0.25, central_start_y + central_size / 2 - 20),
+          (width * 0.25 + cos(sec_angle) * height * 0.24, central_start_y + central_size / 2 - 20 - sin(sec_angle) * height * 0.24),
+          width = 4
+        )
+        
+        date, time = now.to_format_string_tz(tz, clock_format_str).split(' | ')
+        draw_text_centered(
+          screen,
+          f'{date}          {time}',
+          (width / 2, central_start_y + central_size - 30),
+          horz_align = 0.5
+        )
     
     case Page.TIME_STANDARDS:
       if tz != None:

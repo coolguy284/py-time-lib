@@ -60,6 +60,8 @@ tz = None
 longitude = None
 screen = None
 clock = None
+central_start_y = None
+central_size = None
 
 def reset_time_base_to_current() -> None:
   global time_base, time_reset_time
@@ -316,6 +318,7 @@ def draw_time_line_true(instant: TimeInstant, string: str = None, line_style: Li
 
 def recalculate_vars_after_resize():
   global time_details, time_rate_details
+  global central_start_y, central_size
   
   left_btn.x = buttons_edge_x_coord - buttons_size / 2
   left_btn.y = buttons_y_coord - buttons_size / 2
@@ -328,7 +331,6 @@ def recalculate_vars_after_resize():
   right_btn.h = buttons_size
   
   if time_mode == TimeMode.CUSTOMIZABLE:
-    
     time_slider.x = time_sliders_edge_dist_x
     time_slider.y = height - time_sliders_height * 2 - time_sliders_gap_y * 2
     time_slider.w = width - time_sliders_reset_btn_width - time_sliders_edge_dist_x * 2
@@ -353,6 +355,9 @@ def recalculate_vars_after_resize():
       time_details = get_time_slider_delta_surface()
     
     time_rate_details = get_time_rate_slider_surface()
+  
+  central_start_y = buttons_y_coord * 2
+  central_size = height - time_sliders_height * 2 - time_sliders_gap_y * 2 - central_start_y
 
 def update_prgm_state():
   global dragging_time_slider, dragging_time_rate_slider
@@ -631,7 +636,7 @@ def render_prgm():
       size = 23
     )
   
-  draw_page(screen, now, tz, longitude)
+  draw_page(screen, now, tz, longitude, central_start_y, central_size)
   
   pygame.display.flip()
 
@@ -640,6 +645,7 @@ async def main():
   global left_btn, right_btn, time_slider, time_reset_btn, time_rate_slider, time_rate_reset_btn
   global loop
   global tz, longitude, screen, clock
+  global central_start_y, central_size
   
   update_time_databases()
   

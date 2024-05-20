@@ -27,3 +27,7 @@ def draw_text_centered(
     pos[1] - font_rendered.get_height() * vert_align,
   )
   surf.blit(font_rendered, coords)
+
+class PolarDrawer:
+  def __init__(self):
+    ...

@@ -7,7 +7,7 @@ from enums import Page, TimeMode
 time_mode = TimeMode.CUSTOMIZABLE
 time_slider_absolute = False
 
-current_page = Page.TIME_STANDARDS
+current_page = Page.CLOCK
 
 def get_current_page() -> Page:
   global current_page
@@ -47,6 +47,9 @@ time_rate_linear_frac = 1 / (time_rate_max_exp - time_rate_min_exp + 1)
 time_rate_text_size = 150
 
 # > pages
+
+# >> clock
+clock_format_str = '%I:%M:%S.%.9f %p | %a %b %d %Y %:z'
 
 # >> time standards
 time_standards_format_str = '%a %b %d %Y %I:%M:%S.%.9f %p %:z'
