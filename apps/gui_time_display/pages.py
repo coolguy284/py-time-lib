@@ -9,7 +9,7 @@ from constants import smear_plan
 from constants import time_standards_format_str, time_standards_format_str_cap_offset, time_standards_x_center_offset, time_standards_y_start, time_standards_y_step
 from constants import calendars_time_format_str, calendars_format_str, calendars_x_center_offset, calendars_y_start, calendars_y_step
 from constants import clock_format_str
-from lib_draw import draw_text_centered
+from lib_draw import draw_text_centered, thick_aaline
 
 def draw_page(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: FixedPrec, central_start_y, central_size):
   width = screen.get_width()
@@ -27,12 +27,12 @@ def draw_page(screen: Surface, now: TimeInstant, tz: TimeZone, longitude: FixedP
           height * 0.3,
           width = 10
         )
-        sec_angle = pi / 2 - second / 60
-        line(
+        sec_angle = pi / 2 - second / 60 * pi * 2
+        thick_aaline(
           screen,
-          (255, 0, 0),
           (width * 0.25, central_start_y + central_size / 2 - 20),
           (width * 0.25 + cos(sec_angle) * height * 0.24, central_start_y + central_size / 2 - 20 - sin(sec_angle) * height * 0.24),
+          (255, 0, 0),
           width = 4
         )
         
