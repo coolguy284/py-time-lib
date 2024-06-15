@@ -1,6 +1,6 @@
+finish format string parse support
 remove class specific constant vars that are already in constants file
 add clock page
-strptime support
 test true leap second handling in windows
 
 option to cache parsed tz, leapsecs in pickle file

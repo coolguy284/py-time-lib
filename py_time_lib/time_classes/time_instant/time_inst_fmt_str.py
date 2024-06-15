@@ -20,8 +20,8 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   FORMAT_STRING_MAX_DIGITS = 1000
   HALF_DAY_VARIATIONS = ('AM', 'PM')
   
-  _str_offset_to_fixedprec_minute = re_compile(r'([+-])(\d{2})(\d{2})')
-  _str_offset_to_fixedprec_any = re_compile(r'([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?')
+  _str_offset_to_fixedprec_minute = re_compile(r'^([+-])(\d{2})(\d{2})')
+  _str_offset_to_fixedprec_any = re_compile(r'^([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?')
   
   @classmethod
   def fixedprec_offset_to_str(cls, offset_secs: TimeStorageType, minute_colon: bool = False, precision: Integral | None = None) -> str:
@@ -204,12 +204,16 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
           if char.isnumeric():
             frac_size += char
           elif char == 'f':
-            frac_size = int(frac_size)
-            if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
-              raise ValueError(f'Format string sequence %.{frac_size}f percision too large')
+            if frac_size == '':
+              place = info['frac_second'].place
+              result += f'{int(info['frac_second'] * 10 ** place):0>{place}}'
             else:
-              result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
-              state = cls._format_string_state.START
+              frac_size = int(frac_size)
+              if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
+                raise ValueError(f'Format string sequence %.{frac_size}f percision too large')
+              else:
+                result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
+            state = cls._format_string_state.START
           elif char == 'z':
             frac_size = int(frac_size)
             if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
@@ -344,7 +348,8 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
             week_num = (info['ordinal_day'] - week_1_sunday_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
             result += f'{week_num:0>2}'
           elif char == 'w':
-            result += str(info['day_of_week'])
+            info['day_of_week'] = int(time_str[index])
+            index += 1
           elif char == 'W':
             week_1_monday_start_ordinal = date_cls.from_month_week_day(info['year'], 1, 1, 1).ordinal_date()
             week_num = (info['ordinal_day'] - week_1_monday_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
@@ -391,14 +396,26 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
           elif char == 'z':
             result += cls.fixedprec_offset_to_str(info['tz_offset'])
           elif char == 'Z':
-            result += info['tz_name']
+            raise ValueError('Format string parse code %Z unsupported')
           # datetime format strings
           elif char == 'G':
-            result += f'{info['iso_week_date_year']:0>4}'
+            if time_str[index] == '-':
+              year_part = '-'
+              index += 1
+            else:
+              year_part = ''
+            
+            while index < len(time_str) and time_str[index:index + 1].isdigit():
+              year_part += time_str[index]
+              index += 1
+            
+            info['iso_week_date_year'] = int(year_part)
           elif char == 'u':
-            result += str(info['iso_week_date_day'])
+            info['iso_week_date_day'] = int(time_str[index])
+            index += 1
           elif char == 'V':
-            result += f'{info['iso_week_date_week']:0>2}'
+            info['iso_week_date_week'] = int(time_str[index:index + 2])
+            index += 2
           elif char == ':':
             state = cls._format_string_state.PERCENT_COLON
             continue
@@ -428,12 +445,16 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
           if char.isnumeric():
             frac_size += char
           elif char == 'f':
-            frac_size = int(frac_size)
-            if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
-              raise ValueError(f'Format string sequence %.{frac_size}f percision too large')
+            if frac_size == '':
+              place = info['frac_second'].place
+              result += f'{int(info['frac_second'] * 10 ** place):0>{place}}'
             else:
-              result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
-              state = cls._format_string_state.START
+              frac_size = int(frac_size)
+              if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
+                raise ValueError(f'Format string sequence %.{frac_size}f percision too large')
+              else:
+                result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
+            state = cls._format_string_state.START
           elif char == 'z':
             frac_size = int(frac_size)
             if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
