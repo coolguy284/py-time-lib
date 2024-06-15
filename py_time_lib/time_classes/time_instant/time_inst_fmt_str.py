@@ -4,6 +4,7 @@ from re import compile as re_compile
 from typing import Self
 
 from ...fixed_prec import FixedPrec
+from ...constants import NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX
 from ...calendars.gregorian import GregorianDate
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.iso_weekdate import IsoWeekDate
@@ -17,6 +18,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   # static stuff
   
   FORMAT_STRING_MAX_DIGITS = 1000
+  HALF_DAY_VARIATIONS = ('AM', 'PM')
   
   _str_offset_to_fixedprec_minute = re_compile(r'([+-])(\d{2})(\d{2})')
   _str_offset_to_fixedprec_any = re_compile(r'([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?')
@@ -221,7 +223,234 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     
     return result
   
-  # static stuff
+  def get_string_array_match(cls, format_arr: list[str], string: str) -> int | None:
+    for i in range(len(format_arr)):
+      test_str = format_arr[i]
+      if string.startswith(test_str):
+        return i
+    
+    return None
+  
+  def info_from_format_string(
+      cls,
+      format_str: str,
+      time_str: str,
+      error_if_invalid_base_char: bool = True,
+      error_if_time_str_too_long: bool = True,
+      date_cls: type[JulGregBaseDate] = GregorianDate
+    ) -> tuple[dict, int]:
+    'Return argument is format string info dict, then int of length of format string copied.'
+    
+    state = cls._format_string_state.START
+    index = 0
+    info = {}
+    
+    for char in format_str:
+      match state:
+        case cls._format_string_state.START:
+          if char == '%':
+            state = cls._format_string_state.PERCENT_START
+          else:
+            if time_str[index] == char or not error_if_invalid_base_char:
+              pass
+            else:
+              raise ValueError(f'Character mismatch at char {index}, expected {char}, found {time_str[index]}')
+            
+            index += 1
+        
+        case cls._format_string_state.PERCENT_START:
+          # C89 format strings
+          if char == '%':
+            if time_str[index] == char or not error_if_invalid_base_char:
+              pass
+            else:
+              raise ValueError(f'Character mismatch at char {index}, expected {char}, found {time_str[index]}')
+            
+            index += 1
+          elif char == 'a':
+            day_of_week = cls.get_string_array_match(date_cls.WEEK_NAMES_SHORT, time_str[index:])
+            if day_of_week == None:
+              raise ValueError(f'Day of week invalid: {time_str[index:]}')
+            else:
+              info['day_of_week'] = day_of_week
+            
+            index += len(date_cls.WEEK_NAMES_SHORT[day_of_week])
+          elif char == 'A':
+            day_of_week = cls.get_string_array_match(date_cls.WEEK_NAMES_LONG, time_str[index:])
+            if day_of_week == None:
+              raise ValueError(f'Day of week invalid: {time_str[index:]}')
+            else:
+              info['day_of_week'] = day_of_week
+            
+            index += len(date_cls.WEEK_NAMES_LONG[day_of_week])
+          elif char == 'b':
+            month_of_year = cls.get_string_array_match(date_cls.MONTH_NAMES_SHORT, time_str[index:])
+            if month_of_year == None:
+              raise ValueError(f'Month of year invalid: {time_str[index:]}')
+            else:
+              info['day_of_week'] = month_of_year + 1
+            
+            index += len(date_cls.MONTH_NAMES_SHORT[day_of_week])
+          elif char == 'B':
+            month_of_year = cls.get_string_array_match(date_cls.MONTH_NAMES_LONG, time_str[index:])
+            if month_of_year == None:
+              raise ValueError(f'Month of year invalid: {time_str[index:]}')
+            else:
+              info['day_of_week'] = month_of_year + 1
+            
+            index += len(date_cls.MONTH_NAMES_LONG[day_of_week])
+          elif char == 'c':
+            new_info, length = cls.info_from_format_string(
+              format_str = '%a %b %d %H:%M:%S %Y',
+              time_str = time_str[index:],
+              error_if_invalid_base_char = error_if_invalid_base_char,
+              error_if_time_str_too_long = False,
+              date_cls = date_cls
+            )
+            
+            info.update(new_info)
+            
+            index += length
+          elif char == 'd':
+            info['day'] = int(time_str[index:index + 2])
+            index += 2
+          elif char == 'f':
+            info['frac_second'] = FixedPrec(int(time_str[index:index + 6]), NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX)
+            index += 6
+          elif char == 'H':
+            info['hour'] = int(time_str[index:index + 2])
+            index += 2
+          elif char == 'I':
+            info['12hr_hour'] = int(time_str[index:index + 2]) % 12
+            index += 2
+          elif char == 'j':
+            info['ordinal_day'] = int(time_str[index:index + 3])
+            index += 3
+          elif char == 'm':
+            info['month'] = int(time_str[index:index + 2])
+            index += 2
+          elif char == 'M':
+            info['minute'] = int(time_str[index:index + 2])
+            index += 2
+          elif char == 'p':
+            half_day_variation = cls.get_string_array_match(cls.HALF_DAY_VARIATIONS, time_str[index:])
+            info['12hr_half_day'] = half_day_variation
+            index += len(cls.HALF_DAY_VARIATIONS[half_day_variation])
+          elif char == 'S':
+            info['second'] = int(time_str[index:index + 2])
+            index += 2
+          elif char == 'U':
+            week_1_sunday_start_ordinal = date_cls.from_month_week_day(info['year'], 1, 1, 0).ordinal_date()
+            week_num = (info['ordinal_day'] - week_1_sunday_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
+            result += f'{week_num:0>2}'
+          elif char == 'w':
+            result += str(info['day_of_week'])
+          elif char == 'W':
+            week_1_monday_start_ordinal = date_cls.from_month_week_day(info['year'], 1, 1, 1).ordinal_date()
+            week_num = (info['ordinal_day'] - week_1_monday_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
+            result += f'{week_num:0>2}'
+          elif char == 'x':
+            new_info, length = cls.info_from_format_string(
+              format_str = '%m/%d/%y',
+              time_str = time_str[index:],
+              error_if_invalid_base_char = error_if_invalid_base_char,
+              error_if_time_str_too_long = False,
+              date_cls = date_cls
+            )
+            
+            info.update(new_info)
+            
+            index += length
+          elif char == 'X':
+            new_info, length = cls.info_from_format_string(
+              format_str = '%H:%M:%S',
+              time_str = time_str[index:],
+              error_if_invalid_base_char = error_if_invalid_base_char,
+              error_if_time_str_too_long = False,
+              date_cls = date_cls
+            )
+            
+            info.update(new_info)
+            
+            index += length
+          elif char == 'y':
+            info['year_mod_100'] = int(time_str[index:index + 2]) % 12
+            index += 2
+          elif char == 'Y':
+            if time_str[index] == '-':
+              year_part = '-'
+              index += 1
+            else:
+              year_part = ''
+            
+            while index < len(time_str) and time_str[index:index + 1].isdigit():
+              year_part += time_str[index]
+              index += 1
+            
+            info['year'] = int(year_part)
+          elif char == 'z':
+            result += cls.fixedprec_offset_to_str(info['tz_offset'])
+          elif char == 'Z':
+            result += info['tz_name']
+          # datetime format strings
+          elif char == 'G':
+            result += f'{info['iso_week_date_year']:0>4}'
+          elif char == 'u':
+            result += str(info['iso_week_date_day'])
+          elif char == 'V':
+            result += f'{info['iso_week_date_week']:0>2}'
+          elif char == ':':
+            state = cls._format_string_state.PERCENT_COLON
+            continue
+          # custom format strings
+          elif char == '.':
+            state = cls._format_string_state.FRAC_HIGH_PREC
+            frac_size = ''
+            continue
+          # invalid format specifier
+          else:
+            raise ValueError(f'Invalid format string sequence %{char}')
+          
+          state = cls._format_string_state.START
+        
+        case cls._format_string_state.PERCENT_COLON:
+          # datetime format strings
+          if char == 'z':
+            result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = True)
+          # invalid format specifier
+          else:
+            raise ValueError(f'Invalid format string sequence %:{char}')
+          
+          state = cls._format_string_state.START
+        
+        case cls._format_string_state.FRAC_HIGH_PREC:
+          # custom format strings
+          if char.isnumeric():
+            frac_size += char
+          elif char == 'f':
+            frac_size = int(frac_size)
+            if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
+              raise ValueError(f'Format string sequence %.{frac_size}f percision too large')
+            else:
+              result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
+              state = cls._format_string_state.START
+          elif char == 'z':
+            frac_size = int(frac_size)
+            if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
+              raise ValueError(f'Format string sequence %.{frac_size}z percision too large')
+            else:
+              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = True, precision = frac_size)
+              state = cls._format_string_state.START
+          # invalid format specifier
+          else:
+            raise ValueError(f'Invalid format string sequence %.{frac_size}{char}')
+    
+    if index < len(time_str) and error_if_time_str_too_long:
+      raise ValueError(f'Time string extends {len(time_str) - index} chars past format string')
+    
+    return info
+  
+  # instance stuff
   
   __slots__ = ()
   

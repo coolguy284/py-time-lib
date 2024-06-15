@@ -1,3 +1,4 @@
+remove class specific constant vars that are already in constants file
 add clock page
 strptime support
 test true leap second handling in windows
