@@ -1341,11 +1341,33 @@ class TestTimeClasses(TestCase):
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = 0), offset_prec_0)
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = 1), offset_prec_1)
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = 2), offset_prec_2)
-      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon), offset)
-      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon), offset)
-      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_0), trunc(offset))
-      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_1), offset)
-      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_2), offset)
+      
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon, allow_text_beyond_end = False), offset)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon, allow_text_beyond_end = False), offset)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_0, allow_text_beyond_end = False), trunc(offset))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_1, allow_text_beyond_end = False), offset)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_2, allow_text_beyond_end = False), offset)
+      with self.assertRaises(ValueError):
+        TimeInstant.str_offset_to_fixedprec(offset_no_colon + ' ', allow_text_beyond_end = False)
+      with self.assertRaises(ValueError):
+        TimeInstant.str_offset_to_fixedprec(offset_colon + ' ', allow_text_beyond_end = False)
+      with self.assertRaises(ValueError):
+        TimeInstant.str_offset_to_fixedprec(offset_prec_0 + ' ', allow_text_beyond_end = False)
+      with self.assertRaises(ValueError):
+        TimeInstant.str_offset_to_fixedprec(offset_prec_1 + ' ', allow_text_beyond_end = False)
+      with self.assertRaises(ValueError):
+        TimeInstant.str_offset_to_fixedprec(offset_prec_2 + ' ', allow_text_beyond_end = False)
+      
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon, allow_text_beyond_end = True), (offset, len(offset_no_colon)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon, allow_text_beyond_end = True), (offset, len(offset_colon)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_0, allow_text_beyond_end = True), (trunc(offset), len(offset_prec_0)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_1, allow_text_beyond_end = True), (offset, len(offset_prec_1)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_2, allow_text_beyond_end = True), (offset, len(offset_prec_2)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon + ' ', allow_text_beyond_end = True), (offset, len(offset_no_colon)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon + ' ', allow_text_beyond_end = True), (offset, len(offset_colon)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_0 + ' ', allow_text_beyond_end = True), (trunc(offset), len(offset_prec_0)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_1 + ' ', allow_text_beyond_end = True), (offset, len(offset_prec_1)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_2 + ' ', allow_text_beyond_end = True), (offset, len(offset_prec_2)))
     
     test(-3600,   '-0100'      , '-01:00'     , '-01:00:00', '-01:00:00.0', '-01:00:00.00')
     test(-61,     '-00:01:01'  , '-00:01:01'  , '-00:01:01', '-00:01:01.0', '-00:01:01.00')

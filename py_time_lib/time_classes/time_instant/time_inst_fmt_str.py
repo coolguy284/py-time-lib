@@ -61,35 +61,55 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
         return 'Z'
   
   @classmethod
-  def str_offset_to_fixedprec(cls, offset_str: str) -> FixedPrec:
-    if offset_str == 'Z':
-      return FixedPrec(0)
-    elif match := cls._str_offset_to_fixedprec_minute.match(offset_str):
-      return FixedPrec(
-        int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
-        int(match[3]) * cls.NOMINAL_SECS_PER_MIN
-      ) * (1 if match[1] == '+' else -1)
-    elif match := cls._str_offset_to_fixedprec_any.match(offset_str):
-      if match[5] != None:
-        return (
-          int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
-          int(match[3]) * cls.NOMINAL_SECS_PER_MIN +
-          int(match[4]) +
-          FixedPrec('0.' + match[5])
-        ) * (1 if match[1] == '+' else -1)
-      elif match[4] != None:
-        return FixedPrec(
-          int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
-          int(match[3]) * cls.NOMINAL_SECS_PER_MIN +
-          int(match[4])
-        ) * (1 if match[1] == '+' else -1)
+  def str_offset_to_fixedprec(cls, offset_str: str, allow_text_beyond_end: bool = False) -> FixedPrec | tuple[FixedPrec, int]:
+    'If text beyond end is allowed, return value is tuple of offset and length of characters parsed.'
+    if not allow_text_beyond_end:
+      offset, length = cls.str_offset_to_fixedprec(offset_str, allow_text_beyond_end = True)
+      if len(offset_str) > length:
+        raise ValueError('Offset string cannot be converted, extra content beyond end of offset')
       else:
-        return FixedPrec(
-          int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
-          int(match[3]) * cls.NOMINAL_SECS_PER_MIN
-        ) * (1 if match[1] == '+' else -1)
+        return offset
     else:
-      raise ValueError('Offset string cannot be converted, form invalid')
+      if offset_str[0:1] == 'Z':
+        return FixedPrec(0), 1
+      elif match := cls._str_offset_to_fixedprec_minute.match(offset_str):
+        return (
+          FixedPrec(
+            int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+            int(match[3]) * cls.NOMINAL_SECS_PER_MIN
+          ) * (1 if match[1] == '+' else -1),
+          len(match[1]) + len(match[2]) + len(match[3]),
+        )
+      elif match := cls._str_offset_to_fixedprec_any.match(offset_str):
+        if match[5] != None:
+          return (
+            (
+              int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+              int(match[3]) * cls.NOMINAL_SECS_PER_MIN +
+              int(match[4]) +
+              FixedPrec('0.' + match[5])
+            ) * (1 if match[1] == '+' else -1),
+            len(match[1]) + len(match[2]) + 1 + len(match[3]) + 1 + len(match[4]) + 1 + len(match[5]),
+          )
+        elif match[4] != None:
+          return (
+            FixedPrec(
+              int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+              int(match[3]) * cls.NOMINAL_SECS_PER_MIN +
+              int(match[4])
+            ) * (1 if match[1] == '+' else -1),
+            len(match[1]) + len(match[2]) + 1 + len(match[3]) + 1 + len(match[4]),
+          )
+        else:
+          return (
+            FixedPrec(
+              int(match[2]) * cls.NOMINAL_SECS_PER_HOUR +
+              int(match[3]) * cls.NOMINAL_SECS_PER_MIN
+            ) * (1 if match[1] == '+' else -1),
+            len(match[1]) + len(match[2]) + 1 + len(match[3]),
+          )
+      else:
+        raise ValueError('Offset string cannot be converted, form invalid')
   
   _format_string_state = Enum('_format_string_state', (
     'START',
