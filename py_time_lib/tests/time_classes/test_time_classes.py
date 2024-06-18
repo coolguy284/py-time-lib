@@ -1334,16 +1334,20 @@ class TestTimeClasses(TestCase):
     test(0, 3600 + (FixedPrec('-7.659') * D.sin() + FixedPrec('9.863') * (2 * D + FixedPrec('3.5932')).sin()) * 60, True)
   
   def test_fixedprec_offset_to_str(self):
-    def test(offset, offset_no_colon, offset_colon, offset_prec_0, offset_prec_1, offset_prec_2):
+    def test(offset, offset_no_colon, offset_colon, offset_prec_min, offset_prec_min_colon, offset_prec_0, offset_prec_1, offset_prec_2):
       offset = FixedPrec(offset)
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = False), offset_no_colon)
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, minute_colon = True), offset_colon)
+      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = -1, minute_colon = False), offset_prec_min)
+      self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = -1, minute_colon = True), offset_prec_min_colon)
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = 0), offset_prec_0)
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = 1), offset_prec_1)
       self.assertEqual(TimeInstant.fixedprec_offset_to_str(offset, precision = 2), offset_prec_2)
       
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon, allow_text_beyond_end = False), offset)
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon, allow_text_beyond_end = False), offset)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_min, allow_text_beyond_end = False), trunc(offset / 60) * 60)
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_min_colon, allow_text_beyond_end = False), trunc(offset / 60) * 60)
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_0, allow_text_beyond_end = False), trunc(offset))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_1, allow_text_beyond_end = False), offset)
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_2, allow_text_beyond_end = False), offset)
@@ -1351,6 +1355,10 @@ class TestTimeClasses(TestCase):
         TimeInstant.str_offset_to_fixedprec(offset_no_colon + ' ', allow_text_beyond_end = False)
       with self.assertRaises(ValueError):
         TimeInstant.str_offset_to_fixedprec(offset_colon + ' ', allow_text_beyond_end = False)
+      with self.assertRaises(ValueError):
+        TimeInstant.str_offset_to_fixedprec(offset_prec_min + ' ', allow_text_beyond_end = False)
+      with self.assertRaises(ValueError):
+        TimeInstant.str_offset_to_fixedprec(offset_prec_min_colon + ' ', allow_text_beyond_end = False)
       with self.assertRaises(ValueError):
         TimeInstant.str_offset_to_fixedprec(offset_prec_0 + ' ', allow_text_beyond_end = False)
       with self.assertRaises(ValueError):
@@ -1360,26 +1368,30 @@ class TestTimeClasses(TestCase):
       
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon, allow_text_beyond_end = True), (offset, len(offset_no_colon)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon, allow_text_beyond_end = True), (offset, len(offset_colon)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_min, allow_text_beyond_end = True), (trunc(offset / 60) * 60, len(offset_prec_min)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_min_colon, allow_text_beyond_end = True), (trunc(offset / 60) * 60, len(offset_prec_min_colon)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_0, allow_text_beyond_end = True), (trunc(offset), len(offset_prec_0)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_1, allow_text_beyond_end = True), (offset, len(offset_prec_1)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_2, allow_text_beyond_end = True), (offset, len(offset_prec_2)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_no_colon + ' ', allow_text_beyond_end = True), (offset, len(offset_no_colon)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_colon + ' ', allow_text_beyond_end = True), (offset, len(offset_colon)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_min + ' ', allow_text_beyond_end = True), (trunc(offset / 60) * 60, len(offset_prec_min)))
+      self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_min_colon + ' ', allow_text_beyond_end = True), (trunc(offset / 60) * 60, len(offset_prec_min_colon)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_0 + ' ', allow_text_beyond_end = True), (trunc(offset), len(offset_prec_0)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_1 + ' ', allow_text_beyond_end = True), (offset, len(offset_prec_1)))
       self.assertEqual(TimeInstant.str_offset_to_fixedprec(offset_prec_2 + ' ', allow_text_beyond_end = True), (offset, len(offset_prec_2)))
     
-    test(-3600,   '-0100'      , '-01:00'     , '-01:00:00', '-01:00:00.0', '-01:00:00.00')
-    test(-61,     '-00:01:01'  , '-00:01:01'  , '-00:01:01', '-00:01:01.0', '-00:01:01.00')
-    test(-60,     '-0001'      , '-00:01'     , '-00:01:00', '-00:01:00.0', '-00:01:00.00')
-    test(-59,     '-00:00:59'  , '-00:00:59'  , '-00:00:59', '-00:00:59.0', '-00:00:59.00')
-    test('-58.9', '-00:00:58.9', '-00:00:58.9', '-00:00:58', '-00:00:58.9', '-00:00:58.90')
-    test(0,       'Z'          , '+00:00'     , '+00:00:00', '+00:00:00.0', '+00:00:00.00')
-    test('58.9',  '+00:00:58.9', '+00:00:58.9', '+00:00:58', '+00:00:58.9', '+00:00:58.90')
-    test(59,      '+00:00:59'  , '+00:00:59'  , '+00:00:59', '+00:00:59.0', '+00:00:59.00')
-    test(60,      '+0001'      , '+00:01'     , '+00:01:00', '+00:01:00.0', '+00:01:00.00')
-    test(61,      '+00:01:01'  , '+00:01:01'  , '+00:01:01', '+00:01:01.0', '+00:01:01.00')
-    test(3600,    '+0100'      , '+01:00'     , '+01:00:00', '+01:00:00.0', '+01:00:00.00')
+    test(-3600,   '-0100'      , '-01:00'     , '-0100', '-01:00', '-01:00:00', '-01:00:00.0', '-01:00:00.00')
+    test(-61,     '-00:01:01'  , '-00:01:01'  , '-0001', '-00:01', '-00:01:01', '-00:01:01.0', '-00:01:01.00')
+    test(-60,     '-0001'      , '-00:01'     , '-0001', '-00:01', '-00:01:00', '-00:01:00.0', '-00:01:00.00')
+    test(-59,     '-00:00:59'  , '-00:00:59'  , '+0000', '+00:00', '-00:00:59', '-00:00:59.0', '-00:00:59.00')
+    test('-58.9', '-00:00:58.9', '-00:00:58.9', '+0000', '+00:00', '-00:00:58', '-00:00:58.9', '-00:00:58.90')
+    test(0,       'Z'          , '+00:00'     , 'Z',     '+00:00', '+00:00:00', '+00:00:00.0', '+00:00:00.00')
+    test('58.9',  '+00:00:58.9', '+00:00:58.9', '+0000', '+00:00', '+00:00:58', '+00:00:58.9', '+00:00:58.90')
+    test(59,      '+00:00:59'  , '+00:00:59'  , '+0000', '+00:00', '+00:00:59', '+00:00:59.0', '+00:00:59.00')
+    test(60,      '+0001'      , '+00:01'     , '+0001', '+00:01', '+00:01:00', '+00:01:00.0', '+00:01:00.00')
+    test(61,      '+00:01:01'  , '+00:01:01'  , '+0001', '+00:01', '+00:01:01', '+00:01:01.0', '+00:01:01.00')
+    test(3600,    '+0100'      , '+01:00'     , '+0100', '+01:00', '+01:00:00', '+01:00:00.0', '+01:00:00.00')
   
   def test_to_format_string_tai(self):
     time_instant = TimeInstant.from_date_tuple_tai(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))

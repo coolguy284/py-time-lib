@@ -25,6 +25,8 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   
   @classmethod
   def fixedprec_offset_to_str(cls, offset_secs: TimeStorageType, minute_colon: bool = False, precision: Integral | None = None) -> str:
+    'Precision can be -1 to truncate to minute.'
+    
     offset_secs = FixedPrec.from_basic(offset_secs)
     offset_sign = '+' if offset_secs >= 0 else '-'
     offset_hrs, remainder = divmod(abs(offset_secs), cls.NOMINAL_SECS_PER_HOUR)
@@ -32,7 +34,12 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     offset_secs_trunc, offset_frac_secs = divmod(remainder, 1)
     
     if precision != None:
-      if precision == 0:
+      if precision == -1:
+        if minute_colon:
+          return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}'
+        else:
+          return f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
+      elif precision == 0:
         return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
       else:
         frac_sec_split = str(offset_frac_secs.reduce_to_lowest_place()).split('.')
