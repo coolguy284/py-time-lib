@@ -36,18 +36,43 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     if precision != None:
       if precision == -1:
         if minute_colon:
-          return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}'
+          result = f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}'
+          
+          if result == '-00:00':
+            return '+00:00'
+          else:
+            return result
         else:
-          return f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
+          if offset_secs == 0:
+            return 'Z'
+          else:
+            result = f'{offset_sign}{int(offset_hrs):0>2}{int(offset_mins):0>2}'
+            
+            if result == '-0000':
+              return '+0000'
+            else:
+              return result
       elif precision == 0:
-        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
+        result = f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}'
+        
+        if result == '-00:00:00':
+          return '+00:00:00'
+        else:
+          return result
       else:
         frac_sec_split = str(offset_frac_secs.reduce_to_lowest_place()).split('.')
+        
         if len(frac_sec_split) > 1:
           frac_sec_str = frac_sec_split[1][:precision]
         else:
           frac_sec_str = ''
-        return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{frac_sec_str:0<{precision}}'
+        
+        result = f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{frac_sec_str:0<{precision}}'
+        
+        if result == f'-00:00:00.{'0' * precision}':
+          return f'+00:00:00.{'0' * precision}'
+        else:
+          return result
     elif minute_colon:
       if offset_frac_secs != 0:
         return f'{offset_sign}{int(offset_hrs):0>2}:{int(offset_mins):0>2}:{int(offset_secs_trunc):0>2}.{str(offset_frac_secs.reduce_to_lowest_place()).split('.')[1]}'
