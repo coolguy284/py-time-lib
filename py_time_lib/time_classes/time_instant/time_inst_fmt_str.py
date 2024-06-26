@@ -424,16 +424,14 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
             info['second'] = int(time_str[index:index + 2])
             index += 2
           elif char == 'U':
-            week_1_sunday_start_ordinal = date_cls.from_month_week_day(info['year'], 1, 1, 0).ordinal_date()
-            week_num = (info['ordinal_day'] - week_1_sunday_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
-            result += f'{week_num:0>2}'
+            info['week_num_sunday_start'] = int(time_str[index:index + 2])
+            index += 2
           elif char == 'w':
             info['day_of_week'] = int(time_str[index])
             index += 1
           elif char == 'W':
-            week_1_monday_start_ordinal = date_cls.from_month_week_day(info['year'], 1, 1, 1).ordinal_date()
-            week_num = (info['ordinal_day'] - week_1_monday_start_ordinal) // date_cls.DAYS_IN_WEEK + 1
-            result += f'{week_num:0>2}'
+            info['week_num_monday_start'] = int(time_str[index:index + 2])
+            index += 2
           elif char == 'x':
             new_info, length = cls.info_from_format_string(
               format_str = '%m/%d/%y',
@@ -474,7 +472,9 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
             
             info['year'] = int(year_part)
           elif char == 'z':
-            result += cls.fixedprec_offset_to_str(info['tz_offset'])
+            offset, length = cls.str_offset_to_fixedprec(time_str[index:], allow_text_beyond_end = True)
+            info['tz_offset'] = offset
+            index += length
           elif char == 'Z':
             raise ValueError('Format string parse code %Z unsupported')
           # datetime format strings
@@ -513,7 +513,9 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
         case cls._format_string_state.PERCENT_COLON:
           # datetime format strings
           if char == 'z':
-            result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = True)
+            offset, length = cls.str_offset_to_fixedprec(time_str[index:], allow_text_beyond_end = True)
+            info['tz_offset'] = offset
+            index += length
           # invalid format specifier
           else:
             raise ValueError(f'Invalid format string sequence %:{char}')
@@ -559,15 +561,21 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
           elif char == 'z':
             minute_colon = True if minute_colon == True else False
             if frac_size == '':
-              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon)
+              offset, length = cls.str_offset_to_fixedprec(time_str[index:], allow_text_beyond_end = True)
+              info['tz_offset'] = offset
+              index += length
             elif frac_size == 'm':
-              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon, precision = -1)
+              offset, length = cls.str_offset_to_fixedprec(time_str[index:], allow_text_beyond_end = True)
+              info['tz_offset'] = offset
+              index += length
             else:
               frac_size = int(frac_size)
               if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
                 raise ValueError(f'Format string sequence %.{frac_size}z percision too large')
               else:
-                result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon, precision = frac_size)
+                offset, length = cls.str_offset_to_fixedprec(time_str[index:], allow_text_beyond_end = True)
+                info['tz_offset'] = offset
+                index += length
             state = cls._format_string_state.START
           # invalid format specifier
           else:
