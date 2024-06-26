@@ -547,16 +547,28 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
             if minute_colon == True:
               raise ValueError(f'Format specifier %.{frac_size}:f invalid')
             elif frac_size == '':
-              place = info['frac_second'].place
-              result += f'{int(info['frac_second'] * 10 ** place):0>{place}}'
+              frac_part = ''
+              
+              while index < len(time_str) and time_str[index:index + 1].isdigit():
+                frac_part += time_str[index]
+                index += 1
+              
+              info['frac_second'] = FixedPrec(f'0.{frac_part}')
             elif frac_size == 'm':
               raise ValueError(f'Format string sequence %.{frac_size}f invalid')
             else:
               frac_size = int(frac_size)
+              
               if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
                 raise ValueError(f'Format string sequence %.{frac_size}f percision too large')
               else:
-                result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
+                frac_part = time_str[index:index + frac_size]
+                
+                if frac_part.isdigit():
+                  info['frac_second'] = FixedPrec(f'0.{frac_part}')
+                  index += frac_size
+                else:
+                  raise ValueError(f'"{frac_part}" is not a digit string and is invalid for %f')
             state = cls._format_string_state.START
           elif char == 'z':
             minute_colon = True if minute_colon == True else False
