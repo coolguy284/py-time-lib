@@ -32,8 +32,8 @@
 | %z                 | C89 Standard     | Timezone offset. "Z" for UTC, +HHMM or -HHMM for offset with minute precision, +HH:MM:SS or -HH:MM:SS for offset with second precision, and +HH:MM:SS.Z... or -HH:MM:SS.Z... for offset with subsecond precision, with as many decimal digits needed to show full offset. |
 | %Z                 | C89 Standard     | Timezone name. |
 | %:z                | datetime library | Timezone offset with colons always. +HH:MM or -HH:MM for offset with minute precision, +HH:MM:SS or -HH:MM:SS for offset with second precision, and +HH:MM:SS.Z... or -HH:MM:SS.Z... for offset with subsecond precision, with as many decimal digits needed to show full offset. |
-| %.&lt;number&gt;z [WIP] | py-time-lib      | Timezone offset with N-digits of precision. %.0z will truncate subsecond component of offset, %.Nz to display offset to N-digits of precision, %.mz to truncate offset to minutes, and %.z for full offset precision. |
-| %.&lt;number&gt;:z [WIP] | py-time-lib      | Timezone offset with N-digits of precision, with colons always. %.0:z will truncate subsecond component of offset, %.N:z to display offset to N-digits of precision, %.m:z to truncate offset to minutes, and %.:z for full offset precision. |
+| %.&lt;number&gt;z  | py-time-lib      | Timezone offset with N-digits of precision. %.0z will truncate subsecond component of offset, %.Nz to display offset to N-digits of precision, %.mz to truncate offset to minutes, and %.z for full offset precision. |
+| %.&lt;number&gt;:z | py-time-lib      | Timezone offset with N-digits of precision, with colons always. %.0:z will truncate subsecond component of offset, %.N:z to display offset to N-digits of precision, %.m:z to truncate offset to minutes, and %.:z for full offset precision. |
 | %%                 | C89 Standard     | Escape sequence for raw "%" in output. |
 
 When parsing strings, %z and %:z and variants (%.&lt;number&gt;z and %.&lt;number&gt;:z) will behave identically, parsing as many digits of offset as possible.

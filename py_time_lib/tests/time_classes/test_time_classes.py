@@ -1400,8 +1400,8 @@ class TestTimeClasses(TestCase):
   def test_to_format_string_tai(self):
     time_instant = TimeInstant.from_date_tuple_tai(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(
-      time_instant.to_format_string_tai('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I j:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f .15f:%.15f .f:%.f .0z:%.0z .1z:%.1z .15z:%.15z'),
-      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+00:00:37 Z:Time Atomic International %:% str:test G:2024 u:7 V:15 :z:+00:00:37 .10f:0567891300 .15f:056789130000000 .f:05678913 .0z:+00:00:37 .1z:+00:00:37.0 .15z:+00:00:37.000000000000000'
+      time_instant.to_format_string_tai('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I j:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f .15f:%.15f .f:%.f .mz:%.mz .m:z:%.m:z .0z:%.0z .0:z:%.0:z .1z:%.1z .1:z:%.1:z .15z:%.15z .15:z:%.15:z .z:%.z .:z:%.:z'),
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:+00:00:37 Z:Time Atomic International %:% str:test G:2024 u:7 V:15 :z:+00:00:37 .10f:0567891300 .15f:056789130000000 .f:05678913 .mz:+0000 .m:z:+00:00 .0z:+00:00:37 .0:z:+00:00:37 .1z:+00:00:37.0 .1:z:+00:00:37.0 .15z:+00:00:37.000000000000000 .15:z:+00:00:37.000000000000000 .z:+00:00:37 .:z:+00:00:37'
     )
     time_instant_2 = TimeInstant.from_date_tuple_tai(2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(
@@ -1412,8 +1412,8 @@ class TestTimeClasses(TestCase):
   def test_to_format_string_utc(self):
     time_instant = TimeInstant.from_date_tuple_utc(2024, 4, 14, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(
-      time_instant.to_format_string_utc('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I j:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f .15f:%.15f .f:%.f .0z:%.0z .1z:%.1z .15z:%.15z'),
-      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:Z Z:Universal Time Coordinated %:% str:test G:2024 u:7 V:15 :z:+00:00 .10f:0567891300 .15f:056789130000000 .f:05678913 .0z:+00:00:00 .1z:+00:00:00.0 .15z:+00:00:00.000000000000000'
+      time_instant.to_format_string_utc('a:%a A:%A b:%b B:%B c:%c d:%d f:%f H:%H I:%I j:%j m:%m M:%M p:%p S:%S U:%U w:%w W:%W x:%x X:%X y:%y Y:%Y z:%z Z:%Z %%:%% str:test G:%G u:%u V:%V :z:%:z .10f:%.10f .15f:%.15f .f:%.f .mz:%.mz .m:z:%.m:z .0z:%.0z .0:z:%.0:z .1z:%.1z .1:z:%.1:z .15z:%.15z .15:z:%.15:z .z:%.z .:z:%.:z'),
+      'a:Sun A:Sunday b:Apr B:April c:Sun Apr 14 13:02:03 2024 d:14 f:056789 H:13 I:01 j:105 m:04 M:02 p:PM S:03 U:15 w:0 W:15 x:04/14/24 X:13:02:03 y:24 Y:2024 z:Z Z:Universal Time Coordinated %:% str:test G:2024 u:7 V:15 :z:+00:00 .10f:0567891300 .15f:056789130000000 .f:05678913 .mz:Z .m:z:+00:00 .0z:+00:00:00 .0:z:+00:00:00 .1z:+00:00:00.0 .1:z:+00:00:00.0 .15z:+00:00:00.000000000000000 .15:z:+00:00:00.000000000000000 .z:Z .:z:+00:00'
     )
     time_instant_2 = TimeInstant.from_date_tuple_utc(2024, 4, 15, 13, 2, 3, FixedPrec('0.05678913'))
     self.assertEqual(

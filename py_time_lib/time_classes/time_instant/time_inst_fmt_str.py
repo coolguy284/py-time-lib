@@ -234,6 +234,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
           elif char == '.':
             state = cls._format_string_state.FRAC_HIGH_PREC
             frac_size = ''
+            minute_colon = None
             continue
           # invalid format specifier
           else:
@@ -254,11 +255,32 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
         case cls._format_string_state.FRAC_HIGH_PREC:
           # custom format strings
           if char.isnumeric():
-            frac_size += char
+            if minute_colon == True:
+              raise ValueError('Format specifier has numbers after minute colon')
+            elif frac_size == 'm':
+              raise ValueError('Format specifier number invalid')
+            else:
+              frac_size += char
+          elif char == 'm':
+            if minute_colon == True:
+              raise ValueError('Format specifier has information after minute colon')
+            elif frac_size != '':
+              raise ValueError('Format specifier number invalid')
+            else:
+              frac_size += char
+          elif char == ':':
+            if minute_colon == True:
+              raise ValueError('Format specifier has double minute colon')
+            else:
+              minute_colon = True
           elif char == 'f':
-            if frac_size == '':
+            if minute_colon == True:
+              raise ValueError(f'Format specifier %.{frac_size}:f invalid')
+            elif frac_size == '':
               place = info['frac_second'].place
               result += f'{int(info['frac_second'] * 10 ** place):0>{place}}'
+            elif frac_size == 'm':
+              raise ValueError(f'Format string sequence %.{frac_size}f invalid')
             else:
               frac_size = int(frac_size)
               if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
@@ -267,12 +289,18 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
                 result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
             state = cls._format_string_state.START
           elif char == 'z':
-            frac_size = int(frac_size)
-            if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
-              raise ValueError(f'Format string sequence %.{frac_size}z percision too large')
+            minute_colon = True if minute_colon == True else False
+            if frac_size == '':
+              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon)
+            elif frac_size == 'm':
+              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon, precision = -1)
             else:
-              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = True, precision = frac_size)
-              state = cls._format_string_state.START
+              frac_size = int(frac_size)
+              if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
+                raise ValueError(f'Format string sequence %.{frac_size}z percision too large')
+              else:
+                result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon, precision = frac_size)
+            state = cls._format_string_state.START
           # invalid format specifier
           else:
             raise ValueError(f'Invalid format string sequence %.{frac_size}{char}')
@@ -495,11 +523,32 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
         case cls._format_string_state.FRAC_HIGH_PREC:
           # custom format strings
           if char.isnumeric():
-            frac_size += char
+            if minute_colon == True:
+              raise ValueError('Format specifier has numbers after minute colon')
+            elif frac_size == 'm':
+              raise ValueError('Format specifier number invalid')
+            else:
+              frac_size += char
+          elif char == 'm':
+            if minute_colon == True:
+              raise ValueError('Format specifier has information after minute colon')
+            elif frac_size != '':
+              raise ValueError('Format specifier number invalid')
+            else:
+              frac_size += char
+          elif char == ':':
+            if minute_colon == True:
+              raise ValueError('Format specifier has double minute colon')
+            else:
+              minute_colon = True
           elif char == 'f':
-            if frac_size == '':
+            if minute_colon == True:
+              raise ValueError(f'Format specifier %.{frac_size}:f invalid')
+            elif frac_size == '':
               place = info['frac_second'].place
               result += f'{int(info['frac_second'] * 10 ** place):0>{place}}'
+            elif frac_size == 'm':
+              raise ValueError(f'Format string sequence %.{frac_size}f invalid')
             else:
               frac_size = int(frac_size)
               if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
@@ -508,12 +557,18 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
                 result += f'{int(info['frac_second'] * 10 ** frac_size):0>{frac_size}}'
             state = cls._format_string_state.START
           elif char == 'z':
-            frac_size = int(frac_size)
-            if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
-              raise ValueError(f'Format string sequence %.{frac_size}z percision too large')
+            minute_colon = True if minute_colon == True else False
+            if frac_size == '':
+              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon)
+            elif frac_size == 'm':
+              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon, precision = -1)
             else:
-              result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = True, precision = frac_size)
-              state = cls._format_string_state.START
+              frac_size = int(frac_size)
+              if frac_size > cls.FORMAT_STRING_MAX_DIGITS:
+                raise ValueError(f'Format string sequence %.{frac_size}z percision too large')
+              else:
+                result += cls.fixedprec_offset_to_str(info['tz_offset'], minute_colon = minute_colon, precision = frac_size)
+            state = cls._format_string_state.START
           # invalid format specifier
           else:
             raise ValueError(f'Invalid format string sequence %.{frac_size}{char}')
