@@ -18,6 +18,7 @@ complete all ..., notimplementederrors
   test_from_format_string_solar
 
 low prio:
+add format string specifier for century
 timeinst support for __format__, with prefix specifying parsing method like "TAI:" or "UTC:" or "True Solar, longitude=0:"
 strptime improve parsing of offset value, actually follow format code and add new generic format code %;z for strptime only that can accept colons or no colons
 accept tuple/sequence/iterator for format string funcs to batch process

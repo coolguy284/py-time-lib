@@ -12,13 +12,14 @@ from ..time_zone import TimeZone
 from ..lib import TimeStorageType
 from .time_inst_solar import TimeInstantSolar
 from .time_inst_smear import LeapSmearPlan, TimeInstantLeapSmear
-from ...named_tuples import DateTupleBasic
+from ...named_tuples import DateTupleBasic, DateTupleFormatString
 
 class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   # static stuff
   
   FORMAT_STRING_MAX_DIGITS = 1000
   HALF_DAY_VARIATIONS = ('AM', 'PM')
+  DEFAULT_TIMEZONE_NAME = 'NULL'
   
   _str_offset_to_fixedprec_minute = re_compile(r'^([+-])(\d{2})(\d{2})')
   _str_offset_to_fixedprec_any = re_compile(r'^([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?')
@@ -219,7 +220,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
           elif char == 'z':
             result += cls.fixedprec_offset_to_str(info['tz_offset'])
           elif char == 'Z':
-            result += info['tz_name']
+            result += info['tz_name'] if info['tz_name'] != None else cls.DEFAULT_TIMEZONE_NAME
           # datetime format strings
           elif char == 'G':
             result += f'{info['iso_week_date_year']:0>4}'
@@ -603,7 +604,60 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   __slots__ = ()
   
   @classmethod
-  def from_format_string(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+  def from_format_string(cls, format_str: str, time_str: str, default_info: dict = {}, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+    '''
+    Parses a time string with the given format string and default values into a TimeInstant.
+    Possible default values:
+    {
+      calendar day (pick one):
+        gregorian or similar:
+          year (pick one):
+            standard:
+              'year': <any integer>, calendar year,
+            
+            century split:
+              'year_floordiv_100': century number, century 0 is years 0 CE to 99 CE. must be manually set as default, cannot be parsed from format string,
+              'year_mod_100': year without century,
+          
+          day in year (pick one):
+            standard:
+              'month': 0-12, month in year,
+              'day': day in month,
+            
+            ordinal:
+              'ordinal_day': 1-366 (typically), day in year,
+            
+            week numbered, sunday start:
+              'week_num_sunday_start': 00-53, week number in year, week 1 starts on sunday and is first sunday of the year,
+              'day_of_week': 0=sunday, 6=saturday,
+            
+            week numbered, monday start:
+              'week_num_monday_start': 00-53, week number in year, week 1 starts on monday and is first monday of the year,
+              'day_of_week': 0=sunday, 6=saturday,
+        
+        iso week date:
+          'iso_week_date_year': year in the iso week date calendar,
+          'iso_week_date_week': week of year in iso week date calendar,
+          'iso_week_date_day': day of week, 1-7, 1=monday, 7=sunday,
+      
+      time in day:
+        hour (pick one):
+          standard (24 hour):
+            'hour': hour in day,
+          
+          AM/PM (12 hour):
+            '12hr_half_day': 0 or 1, 0 is 12am-11am, 1 is 12pm-11pm,
+            '12hr_hour': 0-11, hour value in each half of the day (either before noon or after (and during) noon),
+        
+        remainder:
+          'minute': 0-59, minute in hour,
+          'second': 0-60, second in minute,
+          'frac_second': FixedPrec fractional component of second, in range [0, 1),
+      
+      timezone:
+        'tz_offset': FixedPrec timezone offset from UTC in seconds,
+    }
+    '''
     raise NotImplementedError()
   
   @classmethod
@@ -639,8 +693,8 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     raise NotImplementedError()
   
   @classmethod
-  def _to_format_string_final_processing(cls, format_str: str, date_cls: type[JulGregBaseDate], date_tup: DateTupleBasic, tz_offset: TimeStorageType, tz_name: str) -> str:
-    year, month, day, hour, minute, second, frac_second = date_tup
+  def date_tuple_to_format_string(cls, format_str: str, date_cls: type[JulGregBaseDate], date_tup: DateTupleFormatString) -> str:
+    year, month, day, hour, minute, second, frac_second, tz_offset, tz_name = date_tup
     date = date_cls(year, month, day)
     day_of_week = date.day_of_week()
     ordinal_day = date.ordinal_date()
@@ -666,23 +720,27 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   def to_format_string_tai(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a TAI time string formatted in the strftime style.'
     
-    return self._to_format_string_final_processing(
+    return self.date_tuple_to_format_string(
       format_str = format_str,
       date_cls = date_cls,
-      date_tup = self.to_date_tuple_tai(date_cls = date_cls),
-      tz_offset = -self.get_utc_tai_offset(),
-      tz_name = 'Time Atomic International'
+      date_tup = DateTupleFormatString(
+        *self.to_date_tuple_tai(date_cls = date_cls),
+        tz_offset = -self.get_utc_tai_offset(),
+        tz_name = 'Time Atomic International'
+      )
     )
   
   def to_format_string_utc(self, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a UTC time string formatted in the strftime style.'
     
-    return self._to_format_string_final_processing(
+    return self.date_tuple_to_format_string(
       format_str = format_str,
       date_cls = date_cls,
-      date_tup = self.to_date_tuple_utc(date_cls = date_cls),
-      tz_offset = 0,
-      tz_name = 'Universal Time Coordinated'
+      date_tup = DateTupleFormatString(
+        *self.to_date_tuple_utc(date_cls = date_cls),
+        tz_offset = 0,
+        tz_name = 'Universal Time Coordinated'
+      )
     )
   
   def to_format_string_tz(self, time_zone: TimeZone, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
@@ -690,34 +748,40 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     
     tz_offset, tz_offset_abbr = self.get_current_tz_offset(time_zone, date_cls = date_cls)
     
-    return self._to_format_string_final_processing(
+    return self.date_tuple_to_format_string(
       format_str = format_str,
       date_cls = date_cls,
-      date_tup = self.to_date_tuple_tz(time_zone, date_cls = date_cls)[:7],
-      tz_offset = tz_offset,
-      tz_name = 'NULL' if tz_offset_abbr == None else tz_offset_abbr
+      date_tup = DateTupleFormatString(
+        *self.to_date_tuple_tz(time_zone, date_cls = date_cls)[:7],
+        tz_offset = tz_offset,
+        tz_name = tz_offset_abbr
+      )
     )
   
   def to_format_string_mono(self, time_scale: TimeInstantSolar.TIME_SCALES, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a monotonic-time-scale time string formatted in the strftime style.'
     
-    return self._to_format_string_final_processing(
+    return self.date_tuple_to_format_string(
       format_str = format_str,
       date_cls = date_cls,
-      date_tup = self.to_date_tuple_mono(time_scale, date_cls = date_cls),
-      tz_offset = -self.get_utc_tai_offset() + self.get_mono_tai_offset(time_scale),
-      tz_name = time_scale.name
+      date_tup = DateTupleFormatString(
+        *self.to_date_tuple_mono(time_scale, date_cls = date_cls),
+        tz_offset = -self.get_utc_tai_offset() + self.get_mono_tai_offset(time_scale),
+        tz_name = time_scale.name
+      )
     )
   
   def to_format_string_solar(self, longitude_deg: TimeStorageType, true_solar_time: bool, format_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
     'Returns a solar time string formatted in the strftime style.'
     
-    return self._to_format_string_final_processing(
+    return self.date_tuple_to_format_string(
       format_str = format_str,
       date_cls = date_cls,
-      date_tup = self.to_date_tuple_solar(longitude_deg, true_solar_time, date_cls = date_cls),
-      tz_offset = -self.get_utc_tai_offset() + self.get_solar_tai_offset(longitude_deg, true_solar_time),
-      tz_name = f'Mean Solar Time {longitude_deg}deg Longitude'
+      date_tup = DateTupleFormatString(
+        *self.to_date_tuple_solar(longitude_deg, true_solar_time, date_cls = date_cls),
+        tz_offset = -self.get_utc_tai_offset() + self.get_solar_tai_offset(longitude_deg, true_solar_time),
+        tz_name = f'Mean Solar Time {longitude_deg}deg Longitude'
+      )
     )
   
   def to_format_string_smear_utc(self, smear_plan: LeapSmearPlan, format_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
@@ -728,12 +792,14 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     else:
       tz_offset = 0
     
-    return self._to_format_string_final_processing(
+    return self.date_tuple_to_format_string(
       format_str = format_str,
       date_cls = date_cls,
-      date_tup = self.to_date_tuple_smear_utc(smear_plan, date_cls = date_cls),
-      tz_offset = tz_offset,
-      tz_name = 'Universal Time Coordinated (Smeared)'
+      date_tup = DateTupleFormatString(
+        *self.to_date_tuple_smear_utc(smear_plan, date_cls = date_cls),
+        tz_offset = tz_offset,
+        tz_name = 'Universal Time Coordinated (Smeared)'
+      )
     )
   
   def to_format_string_smear_tz(self, smear_plan: LeapSmearPlan, time_zone: TimeZone, format_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
@@ -741,10 +807,12 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     
     tz_offset, tz_offset_abbr = self.get_current_tz_offset_smear(smear_plan, time_zone, true_utc_offset = true_utc_offset, date_cls = date_cls)
     
-    return self._to_format_string_final_processing(
+    return self.date_tuple_to_format_string(
       format_str = format_str,
       date_cls = date_cls,
-      date_tup = self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)[:7],
-      tz_offset = tz_offset,
-      tz_name = f'{'NULL' if tz_offset_abbr == None else tz_offset_abbr} (Smeared)'
+      date_tup = DateTupleFormatString(
+        *self.to_date_tuple_smear_tz(smear_plan, time_zone, date_cls = date_cls)[:7],
+        tz_offset = tz_offset,
+        tz_name = f'{self.DEFAULT_TIMEZONE_NAME if tz_offset_abbr == None else tz_offset_abbr} (Smeared)'
+      )
     )
