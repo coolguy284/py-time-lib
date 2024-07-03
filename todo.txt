@@ -2,8 +2,9 @@ year with century math use century constant
 constant for hours in half day
 finish format string parse support tests
 remove class specific constant vars that are already in constants file
-add clock page
-add holidays page
+gui time display:
+  add clock page
+  add holidays page
 test true leap second handling in windows
 
 option to cache parsed tz, leapsecs in pickle file
