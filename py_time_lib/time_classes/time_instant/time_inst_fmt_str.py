@@ -4,7 +4,7 @@ from re import compile as re_compile
 from typing import Self
 
 from ...fixed_prec import FixedPrec
-from ...constants import NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX
+from ...constants import NOMINAL_MICROSECS_PER_SEC_LOG_FIXEDPREC_RADIX, YEARS_IN_CENTURY, NOMINAL_DAYS_PER_WEEK
 from ...calendars.gregorian import GregorianDate
 from ...calendars.jul_greg_base import JulGregBaseDate
 from ...calendars.iso_weekdate import IsoWeekDate
@@ -308,6 +308,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     
     return result
   
+  @classmethod
   def get_string_array_match(cls, format_arr: list[str], string: str) -> int | None:
     for i in range(len(format_arr)):
       test_str = format_arr[i]
@@ -316,6 +317,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     
     return None
   
+  @classmethod
   def info_from_format_string(
       cls,
       format_str: str,
@@ -602,6 +604,80 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   # instance stuff
   
   __slots__ = ()
+  
+  @classmethod
+  def format_string_to_date_tuple(
+    cls,
+    format_str: str,
+    date_cls: type[JulGregBaseDate],
+    time_str: str,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True,
+  ) -> DateTupleFormatString:
+    info = cls.info_from_format_string(
+      format_str = format_str,
+      time_str = time_str,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long,
+      date_cls = date_cls
+    )
+    
+    # get year
+    
+    if 'year' in info:
+      # gregorian year
+      year = info['year']
+      iso_week_date = False
+    elif 'year_mod_100' in info:
+      # gregorian year and century
+      year = info['year_floordiv_100'] * YEARS_IN_CENTURY + info['year_mod_100']
+      iso_week_date = False
+    else:
+      # iso week date
+      iso_week_date = True
+    
+    # get date
+    
+    if iso_week_date:
+      date = date_cls.from_iso_week_tuple(
+        info['iso_week_date_year'],
+        info['iso_week_date_week'],
+        info['iso_week_date_day']
+      )
+    else:
+      if 'month' in info:
+        date = date_cls(year, info['month'], info['day'])
+      elif 'ordinal_day' in info:
+        date = date_cls.from_ordinal_date(year, info['ordinal_day'])
+      elif 'week_num_sunday_start' in info:
+        week_1_sunday_start_ordinal = date_cls.from_month_week_day(info['year'], 1, 1, 0).ordinal_date()
+        ordinal_day = week_1_sunday_start_ordinal + \
+          info['week_num_sunday_start'] * NOMINAL_DAYS_PER_WEEK + \
+          info['day_of_week']
+        date = date_cls.from_ordinal_date(year, ordinal_day)
+      elif 'week_num_monday_start' in info:
+        week_1_monday_start_ordinal = date_cls.from_month_week_day(info['year'], 1, 1, 1).ordinal_date()
+        ordinal_day = week_1_monday_start_ordinal + \
+          info['week_num_monday_start'] * NOMINAL_DAYS_PER_WEEK + \
+          (info['day_of_week'] - 1) % NOMINAL_DAYS_PER_WEEK
+        date = date_cls.from_ordinal_date(year, ordinal_day)
+    
+    # get hour
+    
+    if 'hour' in info:
+      hour = info['hour']
+    else:
+      hour = info['12hr_half_day'] * 12 + info['12hr_hour']
+    
+    # get remaining values
+    
+    minute = info['minute']
+    second = info['second']
+    frac_second = info['frac_second']
+    
+    tz_offset = info['tz_offset']
+    
+    return DateTupleFormatString(date.year, date.month, date.day, hour, minute, second, frac_second, tz_offset, None)
   
   @classmethod
   def from_format_string(cls, format_str: str, time_str: str, default_info: dict = {}, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:

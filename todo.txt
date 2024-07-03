@@ -1,3 +1,5 @@
+year with century math use century constant
+constant for hours in half day
 finish format string parse support
 remove class specific constant vars that are already in constants file
 add clock page
