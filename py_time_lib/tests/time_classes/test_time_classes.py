@@ -1594,9 +1594,6 @@ class TestTimeClasses(TestCase):
       TimeInstant.from_date_tuple_smear_tz(smear_plan, tz, 2017, 1, 1, 0, 0, 1, FixedPrec(0))
     )
   
-  #def test_from_format_string_smear_generic(self):
-  #  ...
-  
   def test_generated_timezones(self):
     chicago = TIMEZONES['proleptic_variable']['America/Chicago']
     sydney = TIMEZONES['proleptic_variable']['Australia/Sydney']

@@ -929,11 +929,6 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
       date_cls = date_cls
     )
   
-  #@classmethod
-  #def from_format_string_smear(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
-  #  raise NotImplementedError()
-  #from_format_string_smear = from_format_string
-  
   @classmethod
   def from_format_string_smear_utc(
     cls,
