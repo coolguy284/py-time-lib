@@ -1511,32 +1511,91 @@ class TestTimeClasses(TestCase):
       'U:15 W:16'
     )
   
+  def test_from_format_string_generic(self):
+    self.assertEqual(
+      TimeInstant.from_format_string('%Y-%m-%d %H:%M:%S.%f %z', '2024-07-03 02:04:05.000122 Z'),
+      TimeInstant.from_date_tuple_tai(2024, 7, 3, 2, 4, 5 + 37, FixedPrec('0.000122'))
+    )
+    
+    self.assertEqual(
+      TimeInstant.from_format_string('%Y-%m-%d %H:%M:%S.%f %z', '2024-07-03 02:04:05.000122 +0100'),
+      TimeInstant.from_date_tuple_tai(2024, 7, 3, 1, 4, 5 + 37, FixedPrec('0.000122'))
+    )
+  
   def test_from_format_string_tai(self):
-    ...
+    self.assertEqual(
+      TimeInstant.from_format_string_tai('%Y-%m-%d %H:%M:%S.%f', '2024-07-03 02:04:05.000122'),
+      TimeInstant.from_date_tuple_tai(2024, 7, 3, 2, 4, 5, FixedPrec('0.000122'))
+    )
   
   def test_from_format_string_utc(self):
-    ...
+    self.assertEqual(
+      TimeInstant.from_format_string_utc('%Y-%m-%d %H:%M:%S.%f', '2024-07-03 02:04:05.000122'),
+      TimeInstant.from_date_tuple_utc(2024, 7, 3, 2, 4, 5, FixedPrec('0.000122'))
+    )
   
   def test_from_format_string_tz(self):
-    ...
+    tz = TimeZone(3600)
+    self.assertEqual(
+      TimeInstant.from_format_string_tz(tz, '%Y-%m-%d %H:%M:%S.%f', '2024-07-03 02:04:05.000122'),
+      TimeInstant.from_date_tuple_tz(tz, 2024, 7, 3, 2, 4, 5, FixedPrec('0.000122'))
+    )
   
   def test_from_format_string_mono(self):
-    ...
+    ts = TimeInstant.TIME_SCALES.TT
+    self.assertEqual(
+      TimeInstant.from_format_string_mono(ts, '%Y-%m-%d %H:%M:%S.%f', '2024-07-03 02:04:05.000122'),
+      TimeInstant.from_date_tuple_mono(ts, 2024, 7, 3, 2, 4, 5, FixedPrec('0.000122'))
+    )
   
   def test_from_format_string_solar(self):
-    ...
+    longitude = 15
+    self.assertEqual(
+      TimeInstant.from_format_string_solar(longitude, False, '%Y-%m-%d %H:%M:%S.%f', '2024-07-03 02:04:05.000122'),
+      TimeInstant.from_date_tuple_solar(longitude, False, 2024, 7, 3, 2, 4, 5, FixedPrec('0.000122'))
+    )
+    self.assertEqual(
+      TimeInstant.from_format_string_solar(longitude, True, '%Y-%m-%d %H:%M:%S.%f', '2024-07-03 02:04:05.000122'),
+      TimeInstant.from_date_tuple_solar(longitude, True, 2024, 7, 3, 2, 4, 5, FixedPrec('0.000122'))
+    )
   
   def test_from_format_string_smear_utc(self):
-    ...
+    smear_plan = LeapSmearPlan(
+      LeapSmearSingle(
+        start_basis = LeapBasis.START,
+        secs_before_start_basis = 5,
+        end_basis = LeapBasis.END,
+        secs_after_end_basis = 5,
+        type = SmearType.LINEAR
+      ),
+      {}
+    )
+    
+    self.assertEqual(
+      TimeInstant.from_format_string_smear_utc(smear_plan, '%Y-%m-%d %H:%M:%S.%f', '2017-01-01 00:00:01.000000'),
+      TimeInstant.from_date_tuple_smear_utc(smear_plan, 2017, 1, 1, 0, 0, 1, FixedPrec(0))
+    )
   
   def test_from_format_string_smear_tz(self):
-    ...
+    smear_plan = LeapSmearPlan(
+      LeapSmearSingle(
+        start_basis = LeapBasis.START,
+        secs_before_start_basis = 5,
+        end_basis = LeapBasis.END,
+        secs_after_end_basis = 5,
+        type = SmearType.LINEAR
+      ),
+      {}
+    )
+    tz = TimeZone(3600)
+    
+    self.assertEqual(
+      TimeInstant.from_format_string_smear_tz(smear_plan, tz, '%Y-%m-%d %H:%M:%S.%f', '2017-01-01 00:00:01.000000'),
+      TimeInstant.from_date_tuple_smear_tz(smear_plan, tz, 2017, 1, 1, 0, 0, 1, FixedPrec(0))
+    )
   
-  def test_from_format_string_generic(self):
-    ...
-  
-  def test_from_format_string_smear_generic(self):
-    ...
+  #def test_from_format_string_smear_generic(self):
+  #  ...
   
   def test_generated_timezones(self):
     chicago = TIMEZONES['proleptic_variable']['America/Chicago']

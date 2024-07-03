@@ -615,15 +615,15 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     error_if_invalid_base_char: bool = True,
     error_if_time_str_too_long: bool = True,
   ) -> DateTupleFormatString:
-    info = cls.info_from_format_string(
+    info = default_info.copy()
+    
+    info.update(cls.info_from_format_string(
       format_str = format_str,
       time_str = time_str,
       error_if_invalid_base_char = error_if_invalid_base_char,
       error_if_time_str_too_long = error_if_time_str_too_long,
       date_cls = date_cls
-    )[0]
-    
-    info.update(default_info)
+    )[0])
     
     # get year
     
@@ -932,7 +932,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
   #@classmethod
   #def from_format_string_smear(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
   #  raise NotImplementedError()
-  from_format_string_smear = from_format_string
+  #from_format_string_smear = from_format_string
   
   @classmethod
   def from_format_string_smear_utc(
