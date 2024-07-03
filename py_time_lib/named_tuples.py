@@ -67,7 +67,7 @@ class DateTupleFormatString(NamedTuple):
   minute: Integral
   second: Integral
   frac_second: TimeStorageType
-  tz_offset: TimeStorageType
+  tz_offset: TimeStorageType | None
   tz_name: str | None
 
 class CurrentTZOffset(NamedTuple):

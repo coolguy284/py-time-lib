@@ -599,7 +599,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     if index < len(time_str) and error_if_time_str_too_long:
       raise ValueError(f'Time string extends {len(time_str) - index} chars past format string')
     
-    return info
+    return info, index
   
   # instance stuff
   
@@ -611,6 +611,7 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     format_str: str,
     date_cls: type[JulGregBaseDate],
     time_str: str,
+    default_info: dict = {},
     error_if_invalid_base_char: bool = True,
     error_if_time_str_too_long: bool = True,
   ) -> DateTupleFormatString:
@@ -620,7 +621,9 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
       error_if_invalid_base_char = error_if_invalid_base_char,
       error_if_time_str_too_long = error_if_time_str_too_long,
       date_cls = date_cls
-    )
+    )[0]
+    
+    info.update(default_info)
     
     # get year
     
@@ -675,12 +678,23 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
     second = info['second']
     frac_second = info['frac_second']
     
-    tz_offset = info['tz_offset']
+    if 'tz_offset' in info:
+      tz_offset = info['tz_offset']
+    else:
+      tz_offset = None
     
     return DateTupleFormatString(date.year, date.month, date.day, hour, minute, second, frac_second, tz_offset, None)
   
   @classmethod
-  def from_format_string(cls, format_str: str, time_str: str, default_info: dict = {}, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+  def from_format_string(
+    cls,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ) -> Self:
     '''
     Parses a time string with the given format string and default values into a TimeInstant.
     Possible default values:
@@ -734,39 +748,285 @@ class TimeInstantFormatString(TimeInstantSolar, TimeInstantLeapSmear):
         'tz_offset': FixedPrec timezone offset from UTC in seconds,
     }
     '''
-    raise NotImplementedError()
+    
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    return cls.from_date_tuple_tz(
+      TimeZone(date_tup.tz_offset),
+      date_tup.year,
+      date_tup.month,
+      date_tup.day,
+      date_tup.hour,
+      date_tup.minute,
+      date_tup.second,
+      date_tup.frac_second,
+      dst_second_fold = False,
+      date_cls = date_cls
+    )
   
   @classmethod
-  def from_format_string_tai(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
-    raise NotImplementedError()
+  def from_format_string_tai(
+    cls,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ) -> Self:
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    return cls.from_date_tuple_tai(
+      date_tup.year,
+      date_tup.month,
+      date_tup.day,
+      date_tup.hour,
+      date_tup.minute,
+      date_tup.second,
+      date_tup.frac_second,
+      date_cls = date_cls
+    )
   
   @classmethod
-  def from_format_string_utc(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
-    raise NotImplementedError()
+  def from_format_string_utc(
+    cls,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ) -> Self:
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    return cls.from_date_tuple_utc(
+      date_tup.year,
+      date_tup.month,
+      date_tup.day,
+      date_tup.hour,
+      date_tup.minute,
+      date_tup.second,
+      date_tup.frac_second,
+      date_cls = date_cls
+    )
   
   @classmethod
-  def from_format_string_tz(cls, time_zone: TimeZone, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
-    raise NotImplementedError()
+  def from_format_string_tz(
+    cls,
+    time_zone: TimeZone,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ) -> Self:
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    return cls.from_date_tuple_tz(
+      time_zone,
+      date_tup.year,
+      date_tup.month,
+      date_tup.day,
+      date_tup.hour,
+      date_tup.minute,
+      date_tup.second,
+      date_tup.frac_second,
+      date_cls = date_cls
+    )
   
   @classmethod
-  def from_format_string_mono(cls, time_scale: TimeInstantSolar.TIME_SCALES, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
-    raise NotImplementedError()
+  def from_format_string_mono(
+    cls,
+    time_scale: TimeInstantSolar.TIME_SCALES,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ) -> Self:
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    return cls.from_date_tuple_mono(
+      time_scale,
+      date_tup.year,
+      date_tup.month,
+      date_tup.day,
+      date_tup.hour,
+      date_tup.minute,
+      date_tup.second,
+      date_tup.frac_second,
+      date_cls = date_cls
+    )
   
   @classmethod
-  def from_format_string_solar(cls, longitude_deg: TimeStorageType, true_solar_time: bool, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate):
-    raise NotImplementedError()
+  def from_format_string_solar(
+    cls,
+    longitude_deg: TimeStorageType,
+    true_solar_time: bool,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ):
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    return cls.from_date_tuple_solar(
+      longitude_deg,
+      true_solar_time,
+      date_tup.year,
+      date_tup.month,
+      date_tup.day,
+      date_tup.hour,
+      date_tup.minute,
+      date_tup.second,
+      date_tup.frac_second,
+      date_cls = date_cls
+    )
+  
+  #@classmethod
+  #def from_format_string_smear(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
+  #  raise NotImplementedError()
+  from_format_string_smear = from_format_string
   
   @classmethod
-  def from_format_string_smear(cls, format_str: str, time_str: str, date_cls: type[JulGregBaseDate] = GregorianDate) -> Self:
-    raise NotImplementedError()
+  def from_format_string_smear_utc(
+    cls,
+    smear_plan: LeapSmearPlan,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    true_utc_offset: bool = False,
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ) -> str:
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    if true_utc_offset:
+      return cls.from_date_tuple_tz(
+        TimeZone(date_tup.tz_offset),
+        date_tup.year,
+        date_tup.month,
+        date_tup.day,
+        date_tup.hour,
+        date_tup.minute,
+        date_tup.second,
+        date_tup.frac_second,
+        date_cls = date_cls
+      )
+    else:
+      return cls.from_date_tuple_smear_utc(
+        smear_plan,
+        date_tup.year,
+        date_tup.month,
+        date_tup.day,
+        date_tup.hour,
+        date_tup.minute,
+        date_tup.second,
+        date_tup.frac_second,
+        date_cls = date_cls
+      )
   
   @classmethod
-  def from_format_string_smear_utc(cls, smear_plan: LeapSmearPlan, format_str: str, time_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
-    raise NotImplementedError()
-  
-  @classmethod
-  def from_format_string_smear_tz(cls, smear_plan: LeapSmearPlan, time_zone: TimeZone, format_str: str, time_str: str, true_utc_offset: bool = False, date_cls: type[JulGregBaseDate] = GregorianDate) -> str:
-    raise NotImplementedError()
+  def from_format_string_smear_tz(
+    cls,
+    smear_plan: LeapSmearPlan,
+    time_zone: TimeZone,
+    format_str: str,
+    time_str: str,
+    default_info: dict = {},
+    true_utc_offset: bool = False,
+    date_cls: type[JulGregBaseDate] = GregorianDate,
+    error_if_invalid_base_char: bool = True,
+    error_if_time_str_too_long: bool = True
+  ) -> str:
+    date_tup = cls.format_string_to_date_tuple(
+      format_str = format_str,
+      date_cls = date_cls,
+      time_str = time_str,
+      default_info = default_info,
+      error_if_invalid_base_char = error_if_invalid_base_char,
+      error_if_time_str_too_long = error_if_time_str_too_long
+    )
+    
+    if true_utc_offset:
+      return cls.from_date_tuple_tz(
+        TimeZone(date_tup.tz_offset),
+        date_tup.year,
+        date_tup.month,
+        date_tup.day,
+        date_tup.hour,
+        date_tup.minute,
+        date_tup.second,
+        date_tup.frac_second,
+        date_cls = date_cls
+      )
+    else:
+      return cls.from_date_tuple_smear_tz(
+        smear_plan,
+        time_zone,
+        date_tup.year,
+        date_tup.month,
+        date_tup.day,
+        date_tup.hour,
+        date_tup.minute,
+        date_tup.second,
+        date_tup.frac_second,
+        date_cls = date_cls
+      )
   
   @classmethod
   def date_tuple_to_format_string(cls, format_str: str, date_cls: type[JulGregBaseDate], date_tup: DateTupleFormatString) -> str:
