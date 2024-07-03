@@ -4,14 +4,23 @@ from numbers import Integral
 from ..calendars.gregorian import GregorianDate
 
 HOLIDAYS = Enum('HOLIDAYS', (
+  'NEW_YEARS_DAY',
   'MOTHERS_DAY',
   'MEMORIAL_DAY',
   'FATHERS_DAY',
-  'AMERICAN_INDEPENDENCE_DAY',
+  'US_INDEPENDENCE_DAY',
+  'US_THANKSGIVING',
+  'CHRISTMAS_EVE',
+  'CHRISTMAS',
+  'NEW_YEARS_EVE',
 ))
 
 def get_holiday(holiday: HOLIDAYS, year: Integral) -> GregorianDate:
   match holiday:
+    case HOLIDAYS.NEW_YEARS_DAY:
+      # first day of the year
+      return GregorianDate(year, 1, 1)
+    
     case HOLIDAYS.MOTHERS_DAY:
       # https://en.wikipedia.org/wiki/Mother%27s_Day_(United_States)
       # second sunday in may
@@ -27,9 +36,26 @@ def get_holiday(holiday: HOLIDAYS, year: Integral) -> GregorianDate:
       # third sunday in june
       return GregorianDate.from_month_week_day(year, 6, 3, 0)
     
-    case HOLIDAYS.AMERICAN_INDEPENDENCE_DAY:
-      # fourth of july
+    case HOLIDAYS.US_INDEPENDENCE_DAY:
+      # july 4th
       return GregorianDate(year, 7, 4)
+    
+    case HOLIDAYS.US_THANKSGIVING:
+      # https://en.wikipedia.org/wiki/Thanksgiving
+      # 4th thursday in november
+      return GregorianDate.from_month_week_day(year, 11, 4, 4)
+    
+    case HOLIDAYS.CHRISTMAS_EVE:
+      # december 24th
+      return GregorianDate(year, 12, 24)
+    
+    case HOLIDAYS.CHRISTMAS:
+      # december 25th
+      return GregorianDate(year, 12, 25)
+    
+    case HOLIDAYS.NEW_YEARS_EVE:
+      # last day of the year
+      return GregorianDate(year, 12, 31)
 
 def get_holidays(year: Integral) -> list[tuple[str, GregorianDate]]:
   holidays = []
