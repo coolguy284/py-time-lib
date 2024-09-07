@@ -337,7 +337,7 @@ def _parse_tzdb_get_result_dicts(lines_split: list[list[str]]) -> dict[str, dict
         else:
           entry_dict['to_year_inclusive'] = int(to_year_str)
         
-        entry_dict['month'] = GregorianDate.MONTH_NAMES_SHORT.index(month) + 1
+        entry_dict['month'] = GregorianDate.MONTH_NAMES_SHORT.index(month[:3]) + 1
         entry_dict['day'] = _parse_tzdb_parse_day_in_month_str(date)
         
         entry_dict['from_day_start'] = _parse_tzdb_time_str_to_fixedprec_secs_from_day_start(time_str)
