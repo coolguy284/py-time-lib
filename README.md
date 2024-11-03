@@ -43,6 +43,10 @@ IsoWeekDate(year = 2024, week = 17, day = 5)
 ```python
 >>> from py_time_lib import *
 
+# If you are doing this in the year 2025+, and want to experiment with leap seconds
+# that were added after 2024:
+>>> update_leap_seconds()
+
 >>> t1 = TimeInstant.from_date_tuple_utc(
   year=2024, month=4, day=26,
   hour=13, minute=2, second=0,
@@ -102,6 +106,9 @@ DateTupleBasic(
 ### Time Zones:
 ```python
 >>> from py_time_lib import *
+
+# Load timezone data:
+>>> update_timezone_data()
 
 >>> chicago = TIMEZONES['proleptic_variable']['America/Chicago']
 
