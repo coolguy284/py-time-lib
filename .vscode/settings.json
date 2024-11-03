@@ -1,8 +1,5 @@
 {
   "files.exclude": {
-    "**/__pycache__": true,
-    "README-LICENSE": true,
-    "LICENSE": true,
-    "UNLICENSE": true
+    "**/__pycache__": true
   }
 }
