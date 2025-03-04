@@ -6,6 +6,7 @@ gui time display:
   add clock page
   add holidays page
 test true leap second handling in windows
+use newton iteration for the function inversion calculations used in the library
 
 option to cache parsed tz, leapsecs in pickle file
 
