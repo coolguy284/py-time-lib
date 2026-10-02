@@ -230,4 +230,4 @@ def get_file_from_online(url: str) -> bytes:
     if response.status_code != 200:
       raise RuntimeError('Leap second request failed')
     
-    return response.text
+    return response.content
