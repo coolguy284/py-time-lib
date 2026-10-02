@@ -4,6 +4,7 @@ from os import makedirs
 from os.path import exists
 from typing import Callable, Sequence
 from urllib.request import urlopen
+from urllib.error import URLError
 
 MAX_BINARY_SEARCH_STEPS = 500
 MAX_LINEAR_INVERSE_STEPS = 500
@@ -210,8 +211,23 @@ def set_file_at_path(file_path: str, contents: bytes) -> None:
     f.write(contents)
 
 def get_file_from_online(url: str) -> bytes:
-  with urlopen(url) as response:
-    if response.status != 200:
+  try:
+    with urlopen(url) as response:
+        if response.status != 200:
+          raise RuntimeError('Leap second request failed')
+        
+        return response.read()
+  except URLError:
+    global requests_get
+    
+    try:
+      requests_get
+    except NameError:
+      from requests import get as requests_get
+    
+    response = requests_get(url)
+    
+    if response.status_code != 200:
       raise RuntimeError('Leap second request failed')
     
-    return response.read()
+    return response.text
