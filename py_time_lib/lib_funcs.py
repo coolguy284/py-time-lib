@@ -210,9 +210,8 @@ def set_file_at_path(file_path: str, contents: bytes) -> None:
     f.write(contents)
 
 def get_file_from_online(url: str) -> bytes:
-  response = urlopen(url)
-  
-  if response.status != 200:
-    raise RuntimeError('Leap second request failed')
-  
-  return response.read()
+  with urlopen(url) as response:
+    if response.status != 200:
+      raise RuntimeError('Leap second request failed')
+    
+    return response.read()
